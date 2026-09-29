@@ -472,6 +472,11 @@ table.changes td.bad { color: var(--bad); }
 .pick-list button[aria-current="true"] { border-left: 3px solid var(--accent); background: var(--accent-soft); }
 .pick-list button:disabled { opacity: .5; cursor: default; }
 .pick-list small { display: block; font-size: 12px; color: var(--ink-3); }
+.picker-custom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--accent); border-radius: var(--r-s); background: var(--accent-soft); }
+.picker-custom b { font-size: 14px; }
+.picker-custom small { display: block; font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+.picker-custom .btn-accent { font-size: 13.5px; padding: 7px 14px; }
 .pick-list li.pick-custom { display: flex; align-items: center; gap: 8px; }
+.pick-list li.pick-empty { padding: 10px 6px; font-size: 13px; }
 .pick-list li.pick-custom [data-pick] { flex: 1; min-width: 0; }
 .pick-list li.pick-custom .linkbtn { width: auto; flex: none; padding: 8px 6px; color: var(--accent); }

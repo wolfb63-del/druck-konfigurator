@@ -57,7 +57,7 @@ Alles läuft lokal in deinem Browser. Es werden keine Modelle oder Daten ins Int
 - Heizt der Start-G-Code eines Herstellerprofils fest auf eine Temperatur (bei rund 20 Profilen, z. B. LONGER LK10), warnt das Datenblatt – Orca würde sonst mit dieser festen Temperatur drucken.
 - Kobra S1 und U1 nutzen weiterhin deine eigenen Orca-Vorlagen und die Live-Abfrage.
 
-**Drucker nicht dabei?** Unten in der Auswahl auf **Eigenes Orca-Profil verwenden** klicken. Das Tool liest dann dein eigenes OrcaSlicer-Profil ein:
+**Drucker nicht dabei?** In der Auswahl direkt unter dem Suchfeld auf **Eigenes Orca-Profil verwenden** klicken. Das Tool liest dann dein eigenes OrcaSlicer-Profil ein:
 
 1. In OrcaSlicer deinen Drucker anlegen bzw. auswählen (Hersteller-Profil oder eigene Werte für Bett, Düse, Firmware).
 2. Ein **neues, leeres Projekt** mit diesem Drucker – es muss kein Modell geladen sein.

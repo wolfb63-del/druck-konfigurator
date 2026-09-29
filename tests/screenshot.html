@@ -35,7 +35,9 @@ f.onload=()=>{const w=f.contentWindow,d=w.document;
   });
   if(q.get('custom')==='list')upload('kobra_s1_0.4.3mf','a.3mf').then(()=>upload('snapmaker_u1_0.4.3mf','b.3mf')).then(()=>d.getElementById('printerOrcaBtn').click());
   else if(q.get('custom')){
-   d.getElementById('printerOrcaBtn').click();if(q.get('custom')!=='picker')d.getElementById('customPrinterOpen').click();
+   d.getElementById('printerOrcaBtn').click();
+   if(q.get('search')){const s=d.getElementById('pickSearch');s.value=q.get('search');s.dispatchEvent(new w.Event('input'))}
+   if(q.get('custom')!=='picker')d.getElementById('customPrinterOpen').click();
    if(q.get('custom')==='1')upload('snapmaker_u1_0.4.3mf','mein-drucker.3mf');
   }
  });

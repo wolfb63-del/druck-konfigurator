@@ -79,7 +79,7 @@ function renderPickerList() {
     const ok = pickerNozzleOk(p.nozzle);
     return '<li><button type="button" data-pick="' + esc(n) + '"' + (n === cur ? ' aria-current="true"' : '') + (ok ? '' : ' disabled title="Diese Düsengröße kann das Tool nicht umrechnen"') + '>' +
       '<b>' + esc(p.model) + '</b><small>Düse ' + de(Number(p.nozzle), 2) + ' mm · Bett ' + de(p.bed[0], 0) + ' × ' + de(p.bed[1], 0) + ' mm</small></button></li>';
-  }).join('') : '<li class="muted">Kein Drucker gefunden.</li>';
+  }).join('') : '<li class="muted pick-empty">Kein Drucker gefunden. Nicht in der Liste? Oben über <b>Eigenes Orca-Profil verwenden</b> dein eigenes Profil einlesen.</li>';
 }
 function openPrinterPicker() {
   fillPickerVendors();

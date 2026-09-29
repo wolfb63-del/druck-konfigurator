@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](https://semver.org/lang/de/): Hauptversion bei grundlegenden Änderungen, Nebenversion bei neuen Funktionen, Patch bei Fehlerbehebungen.
 
+## [6.3.1] – 2026-09-29
+
+### Geändert
+- „Dein Drucker ist nicht dabei?“ in der Druckerauswahl deutlich sichtbarer: farbiger Kasten mit Knopf direkt unter dem Suchfeld statt kleinem grauem Text unter der Liste; findet die Suche nichts, verweist auch die leere Liste darauf.
+
 ## [6.3.0] – 2026-09-29
 
 ### Neu
