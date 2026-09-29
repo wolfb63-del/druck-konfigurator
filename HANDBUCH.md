@@ -51,6 +51,8 @@ Alles läuft lokal in deinem Browser. Es werden keine Modelle oder Daten ins Int
 
 Über **Anderer Drucker …** wählst du aus rund 990 Druckern von 63 Herstellern – dieselbe Liste wie in OrcaSlicer. Hersteller wählen, Namen eintippen (z. B. „Ender“, „MK4“, „P1S“), Drucker mit passender Düse anklicken.
 
+![Druckerauswahl](docs/img/drucker.png)
+
 - **Geschwindigkeiten, Beschleunigung und Volumenstrom** höchstens so hoch wie im OrcaSlicer-Profil des Druckers – ein langsamer Drucker bleibt bei seinen Werten, TPU trotzdem langsam.
 - **Temperaturen und Materialwerte** stammen aus den Tests am Kobra S1 und gelten hier als allgemeine Startwerte.
 - Die **3MF** enthält Druckerprofil, Prozessprofil und passende Filamentprofile des Herstellers aus OrcaSlicer; Orca lädt beim Öffnen genau diese Profile.
