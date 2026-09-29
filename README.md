@@ -7,6 +7,7 @@ Startwerte berechnen und direkt als **OrcaSlicer-Projekt (3MF)** speichern – m
 ## Was es kann
 
 - **Rund 990 Drucker:** dieselbe Liste wie in OrcaSlicer – Geschwindigkeiten und Beschleunigung werden auf das Profil des gewählten Druckers begrenzt
+- **Eigener Drucker:** nicht in der Liste? Leeres Orca-Projekt mit deinem Drucker speichern und einlesen – Schritt-für-Schritt-Anleitung im Tool
 - **Modell laden:** STL (auch mit mehreren Körpern), mehrere Dateien, 3MF, Makerworld-ZIP
 - **Lage auf dem Bett:** schlägt die Seite vor, die am wenigsten Stützen braucht – Stützen auf dem Teil zählen stärker, weil sie schwer abgehen
 - **Datenblatt:** Temperaturen, Schichthöhe, Geschwindigkeiten, Wände, Füllung, Stützen, Brim – je nach Filament, Objektart, Priorität und Belastung
@@ -52,6 +53,7 @@ node tests/export-project.js  # Makerworld-Umstellung
 node tests/holes.js           # Bohrloch-Erkennung
 node tests/verify-3mf.js      # Export gegen die OrcaSlicer-CLI (dauert einige Minuten)
 node tests/verify-orca-printers.js  # 3MF für beliebige Drucker gegen die OrcaSlicer-CLI (dauert lang)
+node tests/verify-custom-printer.js # eigenes, hochgeladenes Orca-Profil gegen die OrcaSlicer-CLI
 ```
 
 Der Bedientest `tests/ui-smoke.js` läuft im Browser (Anleitung im Kopf der Datei). Handbuch-PDF neu erzeugen: `node tools/build-handbuch.js`. Druckerliste neu erzeugen, wenn eine neue OrcaSlicer-Version installiert ist: `node tools/build-orca-printers.js`.

@@ -43,7 +43,10 @@ for (const [vendor, frag] of SAMPLE) {
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', 'orca-printers', vi.file), 'utf8'), ctx);
   const entry = K.orcaPrinterEntry(vendor, name);
   vm.runInContext('PRINTERS.orca=' + JSON.stringify(entry), ctx);
-  const inp = { printer: 'orca', material: 'petg', nozD: '0.4', nozM: 'brass', object: 'general', goal: 'balanced', load: 'medium', support: 'auto', supportLevel: 'balanced', thresh: '45' };
+  // Düse wie im Tool: beim Wählen des Druckers wird dessen Düse eingestellt (printer-picker.js) – fest 0,4 mm
+  // würde z. B. einem 0,2-mm-Drucker 0,45 mm Linienbreite geben (bis 2026-09-29 so, daher die Ausfälle feiner Düsen)
+  const nozD = String(Number(entry.orca.nozzle));
+  const inp = { printer: 'orca', material: 'petg', nozD, nozM: 'brass', object: 'general', goal: 'balanced', load: 'medium', support: 'auto', supportLevel: 'balanced', thresh: '45' };
   const r = K.compute(inp, geom, { getMat: K.getMat, settings: K.store.settings });
   const tpl = K.orcaGenericTemplate(vendor, name);
   console.log(`\n${name} (${tpl.settings.filament_settings_id.length} Slot${tpl.settings.filament_settings_id.length > 1 ? 's' : ''}, Bett ${tpl.bed.join(' × ')})`);

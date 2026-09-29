@@ -56,6 +56,20 @@ Alles läuft lokal in deinem Browser. Es werden keine Modelle oder Daten ins Int
 - Die **3MF** enthält Druckerprofil, Prozessprofil und passende Filamentprofile des Herstellers aus OrcaSlicer; Orca lädt beim Öffnen genau diese Profile.
 - Heizt der Start-G-Code eines Herstellerprofils fest auf eine Temperatur (bei rund 20 Profilen, z. B. LONGER LK10), warnt das Datenblatt – Orca würde sonst mit dieser festen Temperatur drucken.
 - Kobra S1 und U1 nutzen weiterhin deine eigenen Orca-Vorlagen und die Live-Abfrage.
+
+**Drucker nicht dabei?** Unten in der Auswahl auf **Eigenes Orca-Profil verwenden** klicken. Das Tool liest dann dein eigenes OrcaSlicer-Profil ein:
+
+1. In OrcaSlicer deinen Drucker anlegen bzw. auswählen (Hersteller-Profil oder eigene Werte für Bett, Düse, Firmware).
+2. Ein **neues, leeres Projekt** mit diesem Drucker – es muss kein Modell geladen sein.
+3. **Datei → Projekt speichern unter …** als .3mf.
+4. Diese Datei im Dialog auswählen. Der Drucker erscheint oben als **Eigener** und bleibt im Browser gespeichert.
+
+Alle so angelegten Drucker stehen danach in der Auswahl unter **★ Eigene Drucker** ganz oben in der Herstellerliste – dort wieder auswählen oder über **Entfernen** löschen.
+
+**Keine Makerworld-Datei verwenden:** Eine Datei von Makerworld enthält das Druckerprofil des Designers (meist ein Bambu-Drucker), nicht den auf der Seite gewählten Drucker. Das Tool erkennt solche Dateien und lehnt sie hier ab – Makerworld-Dateien über **Modell öffnen** laden und oben deinen Drucker wählen.
+
+Einschränkung: Filamentprofile werden nicht nach Materialtyp (PLA/PETG/…) gewechselt – jeder Slot behält das Profil, das beim Speichern in Orca eingestellt war. Nach dem Export in Orca ggf. das passende Filamentprofil je Slot wählen. Temperaturen und Geschwindigkeiten aus dem Datenblatt landen trotzdem in der 3MF.
+
 - **Menüs:**
   - **Datei** – Modell öffnen, Modell entfernen
   - **Profile** – Filamentwerte anpassen, neues Filament, eigene Profile, Import/Export, Düsen-Umrechnung, Drucker-Verbindung
@@ -130,7 +144,7 @@ Links wählst du **Filament, Objektart, Priorität, Belastung, Support** und **S
 
 **Stützen:** Das Tool empfiehlt Baumstützen, wenn das Teil relevante Überhänge hat. Der Abstand zwischen Stütze und Teil entspricht einer Schichthöhe (PETG 0,05 mm mehr, weil es stärker haftet) – so halten die Stützen sicher und lassen sich trotzdem lösen.
 
-**Düsen-Umrechnung:** Für 0,25/0,6/0,8 mm und andere Düsenmaterialien rechnet das Tool die Werte um. Der 3MF-Export ist derzeit nur mit der **0,4-mm-Düse** möglich.
+**Düsen-Umrechnung:** Für 0,2/0,25/0,6/0,8 mm und andere Düsenmaterialien rechnet das Tool die Werte um. Der 3MF-Export ist derzeit nur mit der **0,4-mm-Düse** möglich.
 
 ---
 

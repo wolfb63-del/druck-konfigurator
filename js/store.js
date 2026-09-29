@@ -2,11 +2,11 @@
 /* Eigene Werte im Browser speichern – aus v4. Gleicher Schlüssel wie v4, damit
    bereits gespeicherte Profile (gleicher file://-Ursprung) übernommen werden. */
 const STORE_KEY='kobraS1Konfigurator.v4';
-let store={profiles:{},settings:{steelOffset:5,steelVol:0.9},last:{}};
+let store={profiles:{},settings:{steelOffset:5,steelVol:0.9},last:{},customPrinters:{}};
 let storageOK=true;
 function loadStore(){
   try{const s=JSON.parse(localStorage.getItem(STORE_KEY)||'null');
-    if(s&&typeof s==='object'){store.profiles=s.profiles||{};Object.assign(store.settings,s.settings||{});store.last=s.last||{}}
+    if(s&&typeof s==='object'){store.profiles=s.profiles||{};Object.assign(store.settings,s.settings||{});store.last=s.last||{};store.customPrinters=s.customPrinters||{}}
   }catch(e){storageOK=false}
 }
 // Gibt zurück, ob dauerhaft gespeichert werden konnte; die Anzeige macht panel.js.

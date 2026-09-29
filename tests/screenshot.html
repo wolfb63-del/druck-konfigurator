@@ -8,9 +8,16 @@ const q=new URLSearchParams(location.search);
 f.onload=()=>{const w=f.contentWindow,d=w.document;
  function box(x0,y0,z0,x1,y1,z1){const v=[[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]];return [[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]].map(t=>t.map(i=>v[i]))}
  const tris=[...box(15,15,0,25,25,20),...box(0,0,20,40,40,25)],buf=new ArrayBuffer(84+tris.length*50),dv=new DataView(buf);dv.setUint32(80,tris.length,true);tris.forEach((t,i)=>t.flat().forEach((c,j)=>dv.setFloat32(84+i*50+12+j*4,c,true)));
+ // hole=1: 40×40×6-Platte mit rundem Loch Ø5 mittig (für den Passgenauigkeits-Hinweis)
+ function plateHole(size,h,r,cx,cy,n){const half=size/2,tr=[];const sq=a=>{const c=Math.cos(a),s=Math.sin(a),k=half/Math.max(Math.abs(c),Math.abs(s));return[cx+k*c,cy+k*s]};const ci=a=>[cx+r*Math.cos(a),cy+r*Math.sin(a)];
+  for(let i=0;i<n;i++){const a=2*Math.PI*i/n,b=2*Math.PI*(i+1)/n,[oa,ob,ia,ib]=[sq(a),sq(b),ci(a),ci(b)];
+   tr.push([[...ia,h],[...oa,h],[...ob,h]],[[...ia,h],[...ob,h],[...ib,h]],[[...ia,0],[...ob,0],[...oa,0]],[[...ia,0],[...ib,0],[...ob,0]]);
+   tr.push([[...oa,0],[...ob,0],[...ob,h]],[[...oa,0],[...ob,h],[...oa,h]],[[...ia,0],[...ib,h],[...ib,0]],[[...ia,0],[...ia,h],[...ib,h]]);}
+  return tr}
+ const htris=plateHole(40,6,2.5,20,20,32),hbuf=new ArrayBuffer(84+htris.length*50),hdv=new DataView(hbuf);hdv.setUint32(80,htris.length,true);htris.forEach((t,i)=>t.flat().forEach((c,j)=>hdv.setFloat32(84+i*50+12+j*4,c,true)));
  if(q.get('printer'))d.querySelector('.printer-switch [data-printer="'+q.get('printer')+'"]').click();
- // model=N: N Pilze als Teile (Teileliste)
- const loaded=q.get('model')?w.loadFiles(Array.from({length:Math.max(1,+q.get('model')||1)},(_,i)=>new w.File([buf],i?'pilz-'+(i+1)+'.stl':'pilz.stl'))):Promise.resolve();
+ // model=N: N Pilze als Teile (Teileliste); hole=1: Platte mit Ø5-Loch statt Pilz
+ const loaded=q.get('hole')?w.loadFiles([new w.File([hbuf],'platte-loch.stl')]):q.get('model')?w.loadFiles(Array.from({length:Math.max(1,+q.get('model')||1)},(_,i)=>new w.File([buf],i?'pilz-'+(i+1)+'.stl':'pilz.stl'))):Promise.resolve();
  loaded.then(()=>{
   if(q.get('scroll'))w.document.querySelector('.inputs').scrollIntoView();if(q.get('card'))d.getElementById('modelCard').scrollIntoView();
   if(q.get('tab')==='3d')d.getElementById('tab3d').click();
@@ -18,6 +25,19 @@ f.onload=()=>{const w=f.contentWindow,d=w.document;
   if(q.get('export')){d.getElementById('export3mf').click();const s=d.querySelector('input[name="slot"][value="'+q.get('export')+'"]');if(s)s.click()}
   if(q.get('menu'))d.querySelectorAll('.menu-btn')[+q.get('menu')].click();
   if(q.get('link')){d.querySelectorAll('.menu-btn')[1].click();d.querySelector('[data-action="link"]').click()}
+  // custom=dlg: Dialog „Eigenen Drucker verwenden“ zeigen; custom=1: zusätzlich templates/snapmaker_u1_0.4.3mf
+  // als „eigenes Profil“ hochladen (DataTransfer statt echtem Dateidialog)
+  // custom=list: beide Vorlagen nacheinander als eigene Drucker einlesen, danach die Auswahl öffnen
+  const upload=(f,name)=>fetch('../templates/'+f).then(r=>r.arrayBuffer()).then(b=>{
+   d.getElementById('printerOrcaBtn').click();d.getElementById('customPrinterOpen').click();
+   const inp=d.getElementById('customPrinterFile'),dt=new w.DataTransfer();dt.items.add(new w.File([b],name));
+   inp.files=dt.files;inp.dispatchEvent(new w.Event('change'));return new Promise(r=>setTimeout(r,300));
+  });
+  if(q.get('custom')==='list')upload('kobra_s1_0.4.3mf','a.3mf').then(()=>upload('snapmaker_u1_0.4.3mf','b.3mf')).then(()=>d.getElementById('printerOrcaBtn').click());
+  else if(q.get('custom')){
+   d.getElementById('printerOrcaBtn').click();if(q.get('custom')!=='picker')d.getElementById('customPrinterOpen').click();
+   if(q.get('custom')==='1')upload('snapmaker_u1_0.4.3mf','mein-drucker.3mf');
+  }
  });
 };
 </script>

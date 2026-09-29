@@ -69,7 +69,7 @@ async function runSmoke(opts={}){
   sel('nozM','steel_hardened');sel('material','pla_hs');
 
   /* 4) Düsengrößen */
-  for(const d of ['0.25','0.6','0.8']){sel('nozD',d);ok($('warning').innerHTML.includes('Umgerechnet'),'Düse '+d+': Umrechnungshinweis')}
+  for(const d of ['0.2','0.25','0.6','0.8']){sel('nozD',d);ok($('warning').innerHTML.includes('Umgerechnet'),'Düse '+d+': Umrechnungshinweis')}
   sel('nozD','0.4');
 
   /* 5) Modell laden */

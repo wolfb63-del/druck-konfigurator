@@ -7,6 +7,7 @@ Gesammelt beim Bedientest. Nichts davon ist umgesetzt – Entscheidung liegt bei
 2. ~~Slicer-Namen~~ – umgesetzt 2026-09-26: alle Anleitungen nennen OrcaSlicer.
 3. ~~Nicht exportierte Empfehlungen~~ – Lüfter erste Schicht, Rückzug, Z-Hop umgesetzt 2026-09-26 (5.3.0) und Beschleunigung (5.4.0) – alle Datenblatt-Werte sind jetzt in der 3MF.
 4. **Brim-Spannen:** Aus „5–8 mm“ wird 5 mm (untere Grenze), aus „0–5 mm bei Haftungsproblemen“ (Reifen) wird „kein Brim“. Ggf. im Export-Dialog wählbar machen.
+19. **Loch-Verstärkung bei 3MF-Wiederimport:** Öffnet man eine schon exportierte 3MF erneut (z. B. um Drucker/Slot zu wechseln), fehlt „Bohrlöcher verstärken“ komplett – `build3mfFromProject` (js/export3mf.js) patcht nur die bestehende Datei und kann keine neuen Modifikator-Teile einfügen. Workaround: Original-STL neu laden statt die 3MF. Echter Fix würde `build3mfFromProject` um XML-Einfügung (kollisionssichere IDs, neue Objekte + Komponenten-Referenzen) erweitern – User-Entscheidung 2026-09-28: erstmal zurückgestellt.
 
 ## Komfort
 5. ~~3MF-Dateien öffnen~~ – umgesetzt 2026-09-26 (STL mit mehreren Körpern, mehrere Dateien, ZIP, 3MF; Makerworld-3MF wird auf S1/U1 umgestellt).
@@ -19,8 +20,8 @@ Gesammelt beim Bedientest. Nichts davon ist umgesetzt – Entscheidung liegt bei
 12. Der Kobra S1 antwortet sehr unterschiedlich schnell (gemessen 0,2–15 s, einmal gar nicht). Ursache unbestätigt (WLAN? Drucker ausgelastet?). Tool wartet 8 s mit einem zweiten Versuch.
 13. ~~Vorlagenwerte statt Exportwerte in Orca~~ – behoben (different_settings_to_system + passende System-Presets).
 
-## Idee 2026-09-27 (noch nicht umgesetzt)
-15. **Text auf ein Teil gravieren:** Fläche anklicken (wie "Fläche aufs Bett"), Text/Größe/Tiefe eingeben. Technisch als zweites Netz mit Orca-"Negative Part" (Abzug beim Slicen, keine eigene 3D-Boolesche-Operation nötig) – ähnlich wie die Bohrloch-Verstärkung. Braucht eine neue Bibliothek für Text-zu-Umriss plus eine lizenzfreie Schriftart, neue Bedienung, Prüfung per Orca-CLI (genauer Part-Subtyp muss verifiziert werden). Entscheidung 27.09.: erst später angehen.
+## Idee 2026-09-27 – umgesetzt, dann wieder verworfen (2026-09-28)
+15. **Text auf ein Teil gravieren:** am 27.09. umgesetzt (Fläche anklicken, Text/Größe/Tiefe, Orca-"Negative Part"), inkl. Vorschau in der 3D-Ansicht und Flächenprüfung (Text darf nicht über Kanten/Krümmung hinausragen). Am 28.09. auf Nutzerwunsch wieder komplett entfernt ("das mit der Text funktion war eine blöde idee") – nicht wegen der Technik, sondern weil die Funktion insgesamt nicht gebraucht wurde. War nie committet, also auch nicht über die Git-Historie wiederherstellbar – bei erneutem Wunsch müsste sie neu gebaut werden (Ansatz: opentype.js + earcut für Text-zu-Netz, Orca "negative_part", Flächenprüfung per Breitensuche über koplanare Dreiecke – siehe diese Zeilen als Gedächtnisstütze).
 
 ## Geplant 2026-09-26 (nach Import/Ausrichtung/Stützwerte/Werte je Teil/Makerworld-3MF)
 14. **Bohrlöcher verstärken:** zylindrische Löcher erkennen, in der 3MF je Loch einen Orca-Modifikator (Zylinder, Loch + 2 × ~3 mm) mit 100 % Füllung und ggf. mehr Wänden. Offen: automatisch oder nur als Vorschlag.

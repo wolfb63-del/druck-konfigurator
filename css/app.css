@@ -472,3 +472,6 @@ table.changes td.bad { color: var(--bad); }
 .pick-list button[aria-current="true"] { border-left: 3px solid var(--accent); background: var(--accent-soft); }
 .pick-list button:disabled { opacity: .5; cursor: default; }
 .pick-list small { display: block; font-size: 12px; color: var(--ink-3); }
+.pick-list li.pick-custom { display: flex; align-items: center; gap: 8px; }
+.pick-list li.pick-custom [data-pick] { flex: 1; min-width: 0; }
+.pick-list li.pick-custom .linkbtn { width: auto; flex: none; padding: 8px 6px; color: var(--accent); }

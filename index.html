@@ -19,7 +19,7 @@
     <select id="printer" class="visually-hidden" tabindex="-1" aria-hidden="true"><option value="kobra_s1">Anycubic Kobra S1 Combo</option><option value="snapmaker_u1">Snapmaker U1</option><option value="orca">Anderer Drucker</option></select>
     <div class="nozzle"><span>Düse <span class="help" id="nozHelp" title="Weicht deine Düse vom Referenzprofil ab, rechnet das Programm Temperatur, Volumenstrom, Schichthöhe und Linienbreite um.">?</span></span>
       <span class="nozzle-row">
-        <select id="nozD" aria-label="Düsendurchmesser"><option value="0.25">0,25 mm</option><option value="0.4" selected>0,4 mm</option><option value="0.6">0,6 mm</option><option value="0.8">0,8 mm</option></select>
+        <select id="nozD" aria-label="Düsendurchmesser"><option value="0.2">0,2 mm</option><option value="0.25">0,25 mm</option><option value="0.4" selected>0,4 mm</option><option value="0.6">0,6 mm</option><option value="0.8">0,8 mm</option></select>
         <select id="nozM" aria-label="Düsenmaterial"></select>
       </span>
     </div>
@@ -260,8 +260,23 @@
     <div class="picker-row"><label for="pickVendor">Hersteller</label><select id="pickVendor"></select></div>
     <div class="picker-row"><label for="pickSearch">Suchen</label><input id="pickSearch" type="search" placeholder="z. B. Ender, MK4, P1S" autocomplete="off"></div>
     <ul id="pickList" class="pick-list"></ul>
+    <p class="muted small">Drucker nicht dabei? <button type="button" class="linkbtn" id="customPrinterOpen">Eigenes Orca-Profil verwenden</button></p>
   </div>
   <div class="ed-foot"><button class="btn sec" type="button" data-close>Schließen</button></div></dialog>
+
+<dialog id="customPrinterDlg" aria-labelledby="customPrinterTitle"><div class="ed-head"><h2 id="customPrinterTitle">Eigenen Drucker verwenden</h2><div class="muted">Für Drucker, die nicht in der Liste stehen – dein eigenes OrcaSlicer-Profil wird direkt eingelesen.</div></div>
+  <div class="ed-body">
+    <ol class="export-steps">
+      <li>In OrcaSlicer deinen Drucker anlegen bzw. auswählen (Hersteller-Profil oder eigene Werte für Bett, Düse, Firmware).</li>
+      <li>Ein <b>neues, leeres Projekt</b> mit diesem Drucker aktiv – es muss kein Modell geladen sein.</li>
+      <li><b>Datei → Projekt speichern unter …</b> als .3mf.</li>
+      <li>Diese Datei hier auswählen:</li>
+    </ol>
+    <input type="file" id="customPrinterFile" accept=".3mf">
+    <p id="customPrinterWarn" class="note bad hidden" role="alert"></p>
+    <p class="muted small">Hinweis: Filamentprofile werden dabei nicht automatisch nach Materialtyp (PLA/PETG/…) gewechselt – nach dem Export in Orca ggf. das passende Filamentprofil je Slot von Hand wählen.</p>
+  </div>
+  <div class="ed-foot"><button class="btn sec" type="button" data-close>Abbrechen</button></div></dialog>
 
 <dialog id="disclaimerDlg" aria-labelledby="disclaimerTitle"><div class="ed-head"><h2 id="disclaimerTitle">Haftungsausschluss</h2><div class="muted">Bitte kurz lesen – Nutzung auf eigene Verantwortung.</div></div>
   <div class="ed-body disclaimer">
@@ -304,6 +319,7 @@
 <script src="js/export3mf.js"></script>
 <script src="js/orca-printers/index.js"></script>
 <script src="js/orca-generic.js"></script>
+<script src="js/orca-custom.js"></script>
 <script src="js/printer-link.js"></script>
 <script src="js/viewer.js"></script>
 <script src="js/miniview.js"></script>
@@ -313,6 +329,7 @@
 <script src="js/orient-ui.js"></script>
 <script src="js/part-settings.js"></script>
 <script src="js/holes-ui.js"></script>
+<script src="js/custom-printer-ui.js"></script>
 <script src="js/printer-picker.js"></script>
 </body>
 </html>

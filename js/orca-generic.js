@@ -12,6 +12,28 @@ const MULTI_SLOT_COUNT = 4;   // Drucker mit Filament-Wechsler (AMS/MMU) bekomme
 
 const first = v => (Array.isArray(v) ? v[0] : v);
 
+/* Bereinigungen, die für jede Orca-project_settings.config gelten – egal ob aus einem Katalogprofil
+   zusammengesetzt (orcaGenericTemplate) oder aus einer hochgeladenen eigenen Datei gelesen
+   (orca-custom.js). Verändert settings direkt (in place). */
+function orcaCleanupSettings(settings) {
+  // Leere Einträge (null) lassen Orca abstürzen (beobachtet 2026-09-27: extruder_printable_height=[null]
+  // → Zugriffsverletzung bei Bambu-Druckern) – solche Schlüssel weglassen, Orca nimmt dann den Grundwert
+  for (const [k, v] of Object.entries(settings)) if (v === null || (Array.isArray(v) && v.some(x => x === null || x === undefined))) delete settings[k];
+  /* machine_max_… und machine_min_… sind [Normal-, Silent-Modus]-Paare, unabhängig von der Kopfzahl. Einige
+   * offizielle Orca-Profile (z. B. ältere Anycubic-Drucker) geben nur einen Wert an – das lässt die
+   * Orca-CLI bei „marlin“/„marlin2“/„reprap“-Firmware abstürzen (beobachtet 2026-09-27, Kobra Max/Plus/
+   * S1 Max/X/Vyper). Auf 2 Werte auffüllen behebt es, ohne den eigentlichen Wert zu ändern. Ausnahme:
+   * machine_max_junction_deviation ist kein Modus-Paar, sondern ein einzelner Wert (beobachtet 2026-09-28
+   * beim eigenen Kobra-S1-Profil – Auffüllen auf 2 Werte ließ die CLI dort abstürzen, ohne Fehlermeldung). */
+  for (const k of Object.keys(settings)) if (/^machine_(max|min)_/.test(k) && !/_junction_deviation$/.test(k) && Array.isArray(settings[k]) && settings[k].length === 1)
+    settings[k] = [settings[k][0], settings[k][0]];
+  // Manche Profile geben Flächen als Text „0x0,220x0,…“ an; im Projekt erwartet Orca eine Liste.
+  // NICHT thumbnails – das ist ein einzelner Beschreibungsstring („230x110/PNG“), kein Koordinaten-Text
+  // (Fehler gefunden 2026-09-28: als Array geschickt ließ die CLI ebenfalls ohne Meldung abstürzen).
+  for (const k of ['printable_area', 'bed_exclude_area'])
+    if (typeof settings[k] === 'string') settings[k] = settings[k].split(',').map(s => s.trim()).filter(Boolean);
+}
+
 /* Wie viele Filament-Slots ein Drucker im Projekt bekommt: je Düse einer; 4 bei Druckern mit
    Filament-Wechsler. single_extruder_multi_material taugt dafür nicht – Orca schaltet es in den
    Grundwerten für fast alle Drucker ein. Erkannt werden daher Bambu (AMS) und Namen mit Wechsler-Hinweis. */
@@ -51,24 +73,13 @@ function orcaGenericTemplate(vendor, name) {
     if (v === undefined || (Array.isArray(v) && (v.length === heads || v.length === 0))) continue;
     settings[k] = Array(heads).fill(Array.isArray(v) ? v[0] : v);
   }
-  // Leere Einträge (null) lassen Orca abstürzen (beobachtet 2026-09-27: extruder_printable_height=[null]
-  // → Zugriffsverletzung bei Bambu-Druckern) – solche Schlüssel weglassen, Orca nimmt dann den Grundwert
-  for (const [k, v] of Object.entries(settings)) if (v === null || (Array.isArray(v) && v.some(x => x === null || x === undefined))) delete settings[k];
-  /* machine_max_… und machine_min_… sind [Normal-, Silent-Modus]-Paare, unabhängig von der Kopfzahl. Einige
-   * offizielle Orca-Profile (z. B. ältere Anycubic-Drucker) geben nur einen Wert an – das lässt die
-   * Orca-CLI bei „marlin“/„marlin2“/„reprap“-Firmware abstürzen (beobachtet 2026-09-27, Kobra Max/Plus/
-   * S1 Max/X/Vyper). Auf 2 Werte auffüllen behebt es, ohne den eigentlichen Wert zu ändern. */
-  for (const k of Object.keys(settings)) if (/^machine_(max|min)_/.test(k) && Array.isArray(settings[k]) && settings[k].length === 1)
-    settings[k] = [settings[k][0], settings[k][0]];
+  orcaCleanupSettings(settings);
   // Spülmengen: je Kopf eine Slot × Slot-Tabelle (0 auf der Diagonale)
   if (Array.isArray(settings.flush_volumes_matrix)) {
     const f = settings.flush_volumes_matrix.map(Number).find(x => x > 0) || 280;
     const one = Array.from({ length: n * n }, (_, i) => String(i % (n + 1) === 0 ? 0 : f));
     settings.flush_volumes_matrix = Array.from({ length: heads }, () => one).flat();
   }
-  // Manche Profile geben Flächen als Text „0x0,220x0,…“ an; im Projekt erwartet Orca eine Liste
-  for (const k of ['printable_area', 'bed_exclude_area', 'thumbnails'])
-    if (typeof settings[k] === 'string') settings[k] = settings[k].split(',').map(s => s.trim()).filter(Boolean);
   settings.printer_settings_id = name;
   settings.print_settings_id = p.process;
   settings.print_compatible_printers = [name];   // Orca prüft, ob das Prozessprofil zum Drucker passt
@@ -122,7 +133,7 @@ function orcaPrinterEntry(vendor, name) {
   return {
     id: 'orca', label: name.replace(/ \d+(\.\d+)? nozzle$/, ''), slicer: 'OrcaSlicer',
     nozzleOptions: ['brass', 'steel_stainless', 'steel_hardened'], nozzleDefault: 'brass',
-    multicolorSystem: null, enclosureBuiltin: false, testedOK: false, brassNozzleNote: false,
+    multicolorSystem: null, enclosureBuiltin: false, testedOK: false,
     orca: { vendor, name, nozzle: String(p.nozzle), process: data.processes[p.process] || {}, maxVol, fixedStartTemp: fixedStartTemp(p.machine) }
   };
 }
@@ -131,7 +142,9 @@ function orcaPrinterEntry(vendor, name) {
 let orcaTplCache = { key: '', tpl: null };
 function orcaActiveTemplate(nozD) {
   const o = typeof PRINTERS !== 'undefined' && PRINTERS.orca && PRINTERS.orca.orca;
-  if (!o || nkey(o.nozzle) !== nkey(nozD) || !ORCA_PRINTER_DATA[o.vendor]) return null;
+  if (!o || nkey(o.nozzle) !== nkey(nozD)) return null;
+  if (o.vendor === 'custom') return o.customTemplate || null;   // eigenes Profil, keine Katalogdaten nötig
+  if (!ORCA_PRINTER_DATA[o.vendor]) return null;
   if (orcaTplCache.key !== o.name) orcaTplCache = { key: o.name, tpl: orcaGenericTemplate(o.vendor, o.name) };
   return orcaTplCache.tpl;
 }

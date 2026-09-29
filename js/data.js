@@ -60,7 +60,11 @@ const KIND_TEMPLATE={pla:'pla',petg:'petg',abs:'abs',asa:'asa',tpu:'tpu'};
 const STATUS={tested:['tested','Getestet'],generic:['generic','Allgemeiner Startwert'],user:['user','Eigene Werte']};
 
 // Düsen: v = Volumenstrom-Faktor ggü. 0,4 mm, lh = Schichthöhe [Q,A,S], fl = erste Schicht, lw/lwo/lwf = Linienbreiten
+/* 0,2 mm: Mediane aus den OrcaSlicer-Profilen aller 105 Drucker mit 0,2-mm-Düse (ausgewertet 2026-09-29):
+   Schichthöhe 0,10 (0,08–0,14 in den Prozessprofilen), erste Schicht 0,12, Linienbreiten 0,22.
+   Volumenstrom: Filamentprofile mit Düsenangabe setzen für 0,2 mm im Median 0,12 × den 0,4-mm-Wert (34 Paare, meist 1–2 mm³/s). */
 const NOZ={
+ '0.2': {v:0.12,lh:[0.08,0.10,0.14],fl:0.12,lw:0.22,lwo:0.22,lwf:0.22},
  '0.25':{v:0.4,lh:[0.08,0.10,0.12],fl:0.12,lw:0.27,lwo:0.25,lwf:0.30},
  '0.4': {v:1.0,lh:[0.16,0.20,0.24],fl:0.20,lw:0.45,lwo:0.42,lwf:0.50},
  '0.6': {v:1.6,lh:[0.24,0.30,0.36],fl:0.30,lw:0.65,lwo:0.62,lwf:0.75},
@@ -85,12 +89,12 @@ const PRINTERS={
   kobra_s1:{
     id:'kobra_s1',label:'Anycubic Kobra S1 Combo',slicer:'OrcaSlicer',
     nozzleOptions:['steel_hardened','brass'],nozzleDefault:'steel_hardened',
-    multicolorSystem:'ace',enclosureBuiltin:true,testedOK:true,brassNozzleNote:true
+    multicolorSystem:'ace',enclosureBuiltin:true,testedOK:true
   },
   snapmaker_u1:{
     id:'snapmaker_u1',label:'Snapmaker U1',slicer:'OrcaSlicer',
     nozzleOptions:['steel_stainless','steel_hardened'],nozzleDefault:'steel_stainless',
-    multicolorSystem:'toolchanger',enclosureBuiltin:false,testedOK:false,brassNozzleNote:false
+    multicolorSystem:'toolchanger',enclosureBuiltin:false,testedOK:false
   }
 };
 
@@ -127,7 +131,7 @@ const GOAL_LABEL={balanced:'Ausgewogen',quality:'Qualität',fast:'Schnell',stron
 
 /* ================= HELP TEXTS ================= */
 const explanations={
- 'Düsendurchmesser':'Größere Düse = mehr Durchsatz, dickere Schichten, gröbere Details. 0,25 mm nur für sehr feine Details. Schichthöhe, Linienbreite und Volumenstrom werden automatisch angepasst.',
+ 'Düsendurchmesser':'Größere Düse = mehr Durchsatz, dickere Schichten, gröbere Details. 0,2 und 0,25 mm nur für sehr feine Details. Schichthöhe, Linienbreite und Volumenstrom werden automatisch angepasst.',
  'Linienbreite':'Breite einer gedruckten Bahn, typischerweise 105–115 % des Düsendurchmessers. Wird aus der gewählten Düse abgeleitet.',
  'Düse':'Temperatur der Düse. Zu niedrig: schlechte Schichtverbindung und Risse. Zu hoch: Fäden, durchhängende Überhänge, Verfärbung.',
  'Heizbett':'Temperatur der Bauplatte. Höher verbessert die Haftung, kann aber die Unterseite verformen (Elefantenfuß).',

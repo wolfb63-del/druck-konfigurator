@@ -39,6 +39,20 @@ function specCell(x){
     '<span class="v">'+x[1]+'</span>'+(x[2]?'<span class="n">'+x[2]+'</span>':'')+'</div>';
 }
 
+/* Zusätzlicher, gut sichtbarer Hinweis (Achtung-Box statt nur „Hinweise"): kleine runde Löcher
+   (⌀ bis 6 mm, typisch für Wellen/Stifte/Lager) können auf ineinandergreifende oder eng passende
+   Geometrie hindeuten – dort hilft oft die X-Y-Konturkompensation in Orca, die dieses Tool nicht
+   selbst setzt. Keine Zahnrad-Erkennung (zu unsicher), nur ein Hinweis anhand vorhandener Löcher;
+   bei „Präzisionsteil“ steht die ausführlichere Version schon in r.danger, daher hier nicht doppelt. */
+function precisionHint(r){
+  if(r.o==='precision'||!project||project.threemf)return null;
+  const part=project.parts[project.selected];
+  if(!part||typeof partHoles!=='function')return null;
+  const small=partHoles(part).filter(h=>2*h.r<=6);
+  if(!small.length)return null;
+  return 'Kleine Löcher erkannt (⌀ bis '+de(2*Math.max(...small.map(h=>h.r)),1)+' mm, z. B. für Wellen/Stifte) – bei ineinandergreifenden oder eng passenden Teilen (z. B. Zahnrädern) vorher einen Testkörper mit dem kritischen Maß drucken und nachmessen. Weichen die Maße ab, in OrcaSlicer unter Prozesseinstellungen → Erweitert die X-Y-Konturkompensation anpassen (xy_contour_compensation für Außenkonturen/Zähne, xy_hole_compensation für Löcher).';
+}
+
 function update(){
   if(typeof savePartFromForm==='function')savePartFromForm();
   const r=compute(currentInput(),geom,{getMat,settings:store.settings});lastOrdered=r.ordered;
@@ -60,7 +74,8 @@ function update(){
   orcaFilamentJson=buildOrcaFilamentJSON(r);
   orcaProcessJson=buildOrcaProcessJSON(r);
   $('orcaNote').innerHTML=orcaWarningText(r);
-  $('danger').innerHTML=r.danger.length?'<b>Achtung:</b><br>'+r.danger.map(esc).join('<br>'):'';
+  const dangerAll=r.danger.concat(precisionHint(r)?[precisionHint(r)]:[]);
+  $('danger').innerHTML=dangerAll.length?'<b>Achtung:</b><br>'+dangerAll.map(esc).join('<br>'):'';
   $('warning').innerHTML=r.warn.join('<br><br>');
   $('checks').innerHTML='<b>Vor dem Druck:</b> Filamentprofil prüfen · Düse '+esc(r.nozLabel)+' · Bett reinigen · erste Schicht beobachten'+(r.dryNeed&&r.m.dry?' · '+esc(r.m.dry):'')+(geom?'<br>STL-Maße und Überhanganalyse ('+r.a.th+'°) wurden berücksichtigt.':'');
   $('supportGuide').innerHTML='<h3>Stützen-Empfehlung</h3><b>'+esc(r.sup)+'</b><br>'+esc(r.supNeed)+

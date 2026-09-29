@@ -2,6 +2,19 @@
 
 Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](https://semver.org/lang/de/): Hauptversion bei grundlegenden Änderungen, Nebenversion bei neuen Funktionen, Patch bei Fehlerbehebungen.
 
+## [6.3.0] – 2026-09-29
+
+### Neu
+- **Eigener Drucker:** Wer seinen Drucker nicht unter den rund 990 findet, klickt in der Auswahl auf „Eigenes Orca-Profil verwenden“. Eine Anleitung führt durch die Schritte (Drucker in OrcaSlicer anlegen → leeres Projekt → „Projekt speichern unter“ → Datei einlesen). Das Tool liest das Profil direkt aus der 3MF, der Drucker bleibt im Browser gespeichert. Gegen die Orca-CLI geprüft (`tests/verify-custom-printer.js`). Einschränkung: Filamentprofile werden nicht nach Materialtyp gewechselt. Alle eigenen Drucker stehen in der Auswahl unter „★ Eigene Drucker“ (wieder wählbar, entfernbar). Makerworld-Dateien werden hier erkannt und mit Hinweis auf „Modell öffnen“ abgelehnt – sie enthalten das Profil des Designers, nicht den gewählten Drucker.
+- **Passgenauigkeit deutlicher sichtbar:** der Hinweis zur X-Y-Konturkompensation steht jetzt in der roten „Achtung“-Box statt versteckt bei den Hinweisen – bei „Präzisionsteil“ wie bisher, zusätzlich automatisch bei jedem Teil mit kleinen runden Löchern (⌀ bis 6 mm, z. B. Wellen/Stifte/Lager), unabhängig vom gewählten Objekttyp. Keine Zahnrad-Erkennung (zu unsicher/fehleranfällig), nur ein Hinweis anhand vorhandener Löcher – Kompensationswerte selbst bleiben Handarbeit in OrcaSlicer.
+
+- **0,2-mm-Düse:** neu wählbar (bisher gab es nur 0,25 mm, die seltenere Größe – in den OrcaSlicer-Profilen haben 105 Drucker eine 0,2-mm-Variante, nur 30 eine 0,25-mm). Werte aus den Mittelwerten dieser 105 Orca-Profile: Schichthöhe 0,10 mm, erste Schicht 0,12 mm, Linienbreite 0,22 mm, Volumenstrom 0,12 × 0,4-mm-Wert. Damit sind auch die Katalog-Drucker mit 0,2-mm-Profil (z. B. Snapmaker U1 0,2) nicht mehr gesperrt. 0,25 mm bleibt. Hinweise zu feinen Düsen (Faserfilament, Druckzeit) gelten jetzt für beide.
+
+### Behoben
+- Hinweis „Anycubic bietet die 0,25-mm-Düse für den S1 als Messingdüse an“ entfernt – nicht belegbar, in OrcaSlicer gibt es 0,25 mm nur für den Kobra S1 Max.
+- Test `verify-orca-printers.js` rechnete für jeden Drucker mit 0,4-mm-Düse, auch bei Druckern mit feinerer Düse – dadurch schlugen alle 0,2-/0,25-mm-Drucker scheinbar fehl. Jetzt mit der Düse des Druckers wie im Tool.
+- Bereinigung der Orca-Einstellungen: `machine_max_junction_deviation` wird nicht mehr auf zwei Werte aufgefüllt und `thumbnails` bleibt Text – beides ließ die Orca-CLI ohne Fehlermeldung abstürzen (gefunden beim eigenen Drucker, betrifft die gemeinsame Funktion auch für Katalog-Drucker).
+
 ## [6.2.0] – 2026-09-27
 
 ### Geändert
