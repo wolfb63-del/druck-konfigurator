@@ -44,10 +44,13 @@ const SLOT_ADAPTERS = {
 function linkAvailable() { return location.protocol === 'http:'; }
 
 // Liefert {slots, host, time} oder wirft einen Fehler mit verständlicher Meldung.
+const HOST_PATTERN = /^[A-Za-z0-9.-]+$/;
+
 async function fetchLiveSlots(printerId, host) {
   const adapter = SLOT_ADAPTERS[printerId];
   if (!adapter) throw Error('für diesen Drucker gibt es keine Live-Abfrage');
   if (!host) throw Error('keine IP-Adresse eingetragen');
+  if (!HOST_PATTERN.test(host)) throw Error('ungültige IP-Adresse/Hostname');
   if (!linkAvailable()) throw Error(location.protocol === 'https:'
     ? 'Live-Abfrage geht in der Online-Version nicht – dafür das Tool herunterladen und über den lokalen Server starten'
     : 'Live-Abfrage nur beim Start über „Konfigurator starten.cmd“ bzw. tools/serve.py (nicht per Doppelklick auf index.html)');
