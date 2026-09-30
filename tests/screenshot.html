@@ -2,10 +2,18 @@
 <!-- Hilfsseite für Sichtprüfungen: ?printer=snapmaker_u1&model=1|2&tab=3d&menu=2&export=3 – headless-Screenshot über http://127.0.0.1 laden. -->
 <script>try{localStorage.setItem("druckKonfigurator.disclaimer",new URLSearchParams(location.search).get("disclaimer")?"0":"1")}catch(e){}
 try{if(new URLSearchParams(location.search).get('orca')){localStorage.setItem('kobraS1Konfigurator.v4',JSON.stringify({last:{printer:'orca',orcaPrinter:{vendor:'Creality',name:'Creality Ender-3 V3 SE 0.4 nozzle'}},profiles:{},settings:{}}))}}catch(e){}</script>
+<script>
+// ls=<name>: gespeicherten Zustand aus tests/_ls_<name>.json vor dem Laden setzen (synchron, damit er vor dem iframe greift)
+try{const n=new URLSearchParams(location.search).get('ls');if(n){const x=new XMLHttpRequest();x.open('GET','_ls_'+n+'.json',false);x.send();localStorage.setItem('kobraS1Konfigurator.v4',x.responseText)}}catch(e){}
+</script>
+<div id="errbox" style="position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#300;color:#fbb;font:13px monospace;padding:4px;white-space:pre-wrap;display:none"></div>
 <iframe id="f" src="../index.html"></iframe>
 <script>
 const q=new URLSearchParams(location.search);
 f.onload=()=>{const w=f.contentWindow,d=w.document;
+ // Fehler im Tool sichtbar machen (unten rot eingeblendet)
+ const eb=document.getElementById('errbox');w.addEventListener('error',e=>{eb.style.display='block';eb.textContent+='FEHLER: '+e.message+' @ '+(e.filename||'').split('/').pop()+':'+e.lineno+'\n'});
+ if(q.get('clickorca'))setTimeout(()=>{try{d.getElementById('printerOrcaBtn').click()}catch(e){eb.style.display='block';eb.textContent+='FEHLER: '+e.message+'\n'+e.stack.split('\n').slice(0,4).join('\n')}},500);
  function box(x0,y0,z0,x1,y1,z1){const v=[[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]];return [[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]].map(t=>t.map(i=>v[i]))}
  const tris=[...box(15,15,0,25,25,20),...box(0,0,20,40,40,25)],buf=new ArrayBuffer(84+tris.length*50),dv=new DataView(buf);dv.setUint32(80,tris.length,true);tris.forEach((t,i)=>t.flat().forEach((c,j)=>dv.setFloat32(84+i*50+12+j*4,c,true)));
  // hole=1: 40×40×6-Platte mit rundem Loch Ø5 mittig (für den Passgenauigkeits-Hinweis)
@@ -33,7 +41,7 @@ f.onload=()=>{const w=f.contentWindow,d=w.document;
   const upload=(f,name)=>fetch('../templates/'+f).then(r=>r.arrayBuffer()).then(b=>{
    d.getElementById('printerOrcaBtn').click();d.getElementById('customPrinterOpen').click();
    const inp=d.getElementById('customPrinterFile'),dt=new w.DataTransfer();dt.items.add(new w.File([b],name));
-   inp.files=dt.files;inp.dispatchEvent(new w.Event('change'));return new Promise(r=>setTimeout(r,300));
+   inp.files=dt.files;inp.dispatchEvent(new w.Event('change'));return new Promise(r=>setTimeout(r,1500));
   });
   if(q.get('custom')==='list')upload('kobra_s1_0.4.3mf','a.3mf').then(()=>upload('snapmaker_u1_0.4.3mf','b.3mf')).then(()=>d.getElementById('printerOrcaBtn').click());
   else if(q.get('custom')){

@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](https://semver.org/lang/de/): Hauptversion bei grundlegenden Änderungen, Nebenversion bei neuen Funktionen, Patch bei Fehlerbehebungen.
 
+## [6.4.1] – 2026-09-30
+
+### Behoben
+- Druckerauswahl ließ sich nicht öffnen, wenn ein eigener Drucker noch aus einer Entwicklungsversion im Browser gespeichert war (Fehler „undefined is not valid JSON“, betraf vor allem die lokal geöffnete Version). Alte Einträge werden jetzt beim Start automatisch umgewandelt, unbrauchbare verworfen.
+
 ## [6.4.0] – 2026-09-30
 
 ### Neu
