@@ -21,6 +21,8 @@ f.onload=()=>{const w=f.contentWindow,d=w.document;
  loaded.then(()=>{
   if(q.get('scroll'))w.document.querySelector('.inputs').scrollIntoView();if(q.get('card'))d.getElementById('modelCard').scrollIntoView();
   if(q.get('tab')==='3d')d.getElementById('tab3d').click();
+  // partstep=N: N-mal „Nächstes Teil“ in der 3D-Ansicht
+  for(let i=0;i<+(q.get('partstep')||0);i++)d.querySelector('#partSwitch3d [data-part-step="1"]').click();
   if(q.get('tip'))d.querySelector('.spec .help').focus();
   if(q.get('export')){d.getElementById('export3mf').click();const s=d.querySelector('input[name="slot"][value="'+q.get('export')+'"]');if(s)s.click()}
   if(q.get('menu'))d.querySelectorAll('.menu-btn')[+q.get('menu')].click();

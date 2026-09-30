@@ -180,6 +180,11 @@
   <div id="stage">
     <div id="viewerEmpty" data-action="open">Noch kein Modell geladen.<br><small>STL, 3MF oder ZIP hier ablegen oder klicken zum Auswählen</small></div>
     <div id="info" class="hud"></div>
+    <div id="partSwitch3d" class="hud hidden" role="group" aria-label="Teil wählen">
+      <button type="button" data-part-step="-1" title="Vorheriges Teil" aria-label="Vorheriges Teil">◀</button>
+      <select id="partSelect3d" aria-label="Teil"></select>
+      <button type="button" data-part-step="1" title="Nächstes Teil" aria-label="Nächstes Teil">▶</button>
+    </div>
     <div id="controls" class="hud">
       <button id="btnWireframe" type="button">Wireframe</button>
       <button id="btnAxes" type="button" class="active">Achsen</button>

@@ -322,6 +322,10 @@ body.dragging #stage { outline: 3px dashed var(--accent); outline-offset: -8px; 
 .hud button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 #info { top: 10px; left: 10px; padding: 6px 10px; pointer-events: none; }
 #info:empty { display: none; }
+#partSwitch3d { top: 48px; left: 10px; display: flex; gap: 4px; align-items: center; padding: 4px; }
+#partSwitch3d.hidden { display: none; }
+#partSwitch3d select { background: var(--hud-bg); color: var(--hud-ink); border: 1px solid var(--hud-border); border-radius: var(--r-s); padding: 5px 8px; font: inherit; font-size: 13px; max-width: 22em; }
+#partSwitch3d select option { color: #111; background: #fff; }
 #controls { top: 10px; right: 10px; left: 10px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; background: none; pointer-events: none; }
 #controls button { pointer-events: auto; }
 #subControls { top: 48px; right: 10px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; background: none; }

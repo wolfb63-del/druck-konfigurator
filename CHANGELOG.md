@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](https://semver.org/lang/de/): Hauptversion bei grundlegenden Änderungen, Nebenversion bei neuen Funktionen, Patch bei Fehlerbehebungen.
 
+## [6.4.0] – 2026-09-30
+
+### Neu
+- **Teile in der 3D-Ansicht wechseln:** Bei Projekten mit mehreren Teilen oben links eine Auswahl mit ◀ / ▶ – bisher ging das nur über die Teileliste im Einstellungs-Tab.
+
 ## [6.3.1] – 2026-09-29
 
 ### Geändert

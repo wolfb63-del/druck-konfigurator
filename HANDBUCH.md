@@ -216,6 +216,7 @@ Ist eine Platte größer als dein Bett, erscheint ein Hinweis.
 - **Überhangwinkel** (unten): Flächen steiler als dieser Winkel werden rot markiert; grau = liegt auf dem Bett.
 - **Wireframe**, **Achsen**, **Schnitt** (Schnittebene je Achse verschieben), **Messen** (zwei Punkte anklicken).
 - **Fläche aufs Bett**, **↻ X**, **↻ Y** – wie in der Modellkarte.
+- **Mehrere Teile:** Oben links unter der Modellinfo mit **◀ / ▶** oder der Auswahlliste zwischen den Teilen wechseln – dieselbe Auswahl wie in der Teileliste der Einstellungen.
 
 ---
 

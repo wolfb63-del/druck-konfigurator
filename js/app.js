@@ -50,7 +50,23 @@ function selectPart(i){
   showModel(project.parts[i].geom);
 }
 
+// Teilewahl in der 3D-Ansicht (dort ist die Teileliste des Einstellungs-Tabs nicht sichtbar)
+function renderPartSwitch3d(){
+  const box=$('partSwitch3d'),multi=!!project&&project.parts.length>1;
+  box.classList.toggle('hidden',!multi);
+  if(!multi)return;
+  const sel=$('partSelect3d');
+  sel.innerHTML=project.parts.map((p,i)=>'<option value="'+i+'">'+(i+1)+'/'+project.parts.length+' · '+esc(p.name)+'</option>').join('');
+  sel.value=String(project.selected);
+}
+$('partSelect3d').addEventListener('change',e=>selectPart(+e.target.value));
+$('partSwitch3d').addEventListener('click',e=>{
+  const b=e.target.closest('[data-part-step]');if(!b||!project)return;
+  const n=project.parts.length;selectPart((project.selected+ +b.dataset.partStep+n)%n);
+});
+
 function renderPartList(){
+  renderPartSwitch3d();
   const list=$('partList');
   if(!project||project.parts.length<2){list.innerHTML='';return}
   const th=+$('thresh').value,label={none:'ohne Stützen',few:'wenig Stützen',needed:'Stützen'};
