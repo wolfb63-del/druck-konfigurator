@@ -175,6 +175,7 @@ function save3mf(){
     if(plan.usesDefault){store.last[slotKey(r.printer.id)]=slot;persist()}
     $('exportDlg').close();
     toast('3MF gespeichert: '+a.download);
+    if(typeof markExported==='function')markExported();
   }catch(e){
     toast('3MF konnte nicht erstellt werden: '+e.message);
   }

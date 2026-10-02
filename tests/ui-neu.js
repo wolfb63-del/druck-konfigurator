@@ -116,5 +116,31 @@ function runToggle(stored) {
   check('Umschalter: unbekannter Wert → Lesbarkeit', c.ds.ui === 'neu' && c.ds.stil === undefined, JSON.stringify(c.ds));
 }
 
+// (5) Einsteiger-Hilfen: im Original verborgen; Schritt-Leiste zeigt den richtigen Stand
+{
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const hints = html.match(/<small class="field-hint"[^>]*>/g) || [];
+  check('Klartext-Hilfen: 4 Stück, alle im Original verborgen', hints.length === 4 && hints.every(h => / hidden>$/.test(h)), hints.join(' '));
+  check('Schritt-Leiste im Original verborgen', /<nav class="steps noprint" id="steps" aria-label="Schritte" hidden>/.test(html));
+  // Minimal-DOM: drei Schritt-Knöpfe mit .step-n/.step-t
+  const mk = i => { const cls = new Set(), n = { textContent: '' }, t = { textContent: '' }, at = {};
+    return { dataset: { step: String(i) }, title: '', classList: { toggle: (c, on) => on ? cls.add(c) : cls.delete(c), has: c => cls.has(c) },
+      setAttribute: (k, v) => { at[k] = v; }, removeAttribute: k => { delete at[k]; }, at, querySelector: q => q === '.step-n' ? n : t, n, t }; };
+  const btns = [mk(1), mk(2), mk(3)];
+  const bar = { querySelectorAll: () => btns, addEventListener: () => {} };
+  const ctx = vm.createContext({ document: { getElementById: id => id === 'steps' ? bar : null, addEventListener: () => {}, querySelector: () => null },
+    project: null, lastResult: { printer: { label: 'Snapmaker U1' } }, toast: () => {} });
+  vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', 'steps.js'), 'utf8'), ctx);
+  const state = () => btns.map(b => (b.classList.has('done') ? 'd' : '-') + (b.classList.has('current') ? 'c' : '') + b.n.textContent).join(' ');
+  vm.runInContext('renderSteps()', ctx);
+  check('Schritte ohne Modell: 1 erledigt, 2 aktuell', state() === 'd✓ -c2 -3' && btns[0].t.textContent === 'Drucker: Snapmaker U1' && btns[1].at['aria-current'] === 'step', state());
+  vm.runInContext('project = { name: "a.stl" }; renderSteps()', ctx);
+  check('Schritte mit Modell: 3 aktuell, Name angezeigt', state() === 'd✓ d✓ -c3' && btns[1].t.textContent === 'Modell: a.stl', state());
+  vm.runInContext('markExported()', ctx);
+  check('Nach dem Speichern: alle erledigt, keiner aktuell', state() === 'd✓ d✓ d✓' && btns[2].t.textContent === '3MF gespeichert', state());
+  vm.runInContext('project = { name: "b.stl" }; renderSteps()', ctx);
+  check('Neues Modell: Schritt 3 wieder offen', state() === 'd✓ d✓ -c3', state());
+}
+
 console.log(pass + '/' + (pass + fail) + ' bestanden');
 process.exit(fail ? 1 : 0);

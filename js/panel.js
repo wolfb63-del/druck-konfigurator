@@ -93,6 +93,7 @@ function update(){
   if(typeof renderPartList==='function')renderPartList();
   if(typeof renderOrient==='function')renderOrient();
   if(typeof renderPartScope==='function')renderPartScope();
+  if(typeof renderSteps==='function')renderSteps();
   if(typeof renderHoles==='function')renderHoles();
   if(typeof Stability!=='undefined')Stability.renderCard();
   if(typeof updateExportMenu==='function')updateExportMenu(r);

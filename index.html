@@ -76,6 +76,12 @@
   <button type="button" role="tab" id="tab3d" aria-controls="view3d" aria-selected="false">3D-Ansicht <span id="modelBadge" class="tab-badge hidden">Modell</span></button>
 </div>
 
+<nav class="steps noprint" id="steps" aria-label="Schritte" hidden><ol>
+  <li><button type="button" data-step="1"><span class="step-n">1</span><span class="step-t">Drucker wählen</span></button></li>
+  <li><button type="button" data-step="2" data-action="open"><span class="step-n">2</span><span class="step-t">Modell laden</span></button></li>
+  <li><button type="button" data-step="3"><span class="step-n">3</span><span class="step-t">Für OrcaSlicer speichern</span></button></li>
+</ol></nav>
+
 <main>
 <section id="viewSettings" role="tabpanel" aria-labelledby="tabSettings" class="view">
   <h1 id="mainTitle" class="print-only">Druck-Konfigurator</h1>
@@ -102,11 +108,11 @@
         <option value="dumpling">Quetschbares Spielzeug (TPU)</option>
         <option value="case">Handyhülle / flexible Hülle (TPU)</option></select></div>
       <div class="field-pair">
-        <div class="field"><label for="goal">Priorität</label><select id="goal"><option value="balanced">Ausgewogen</option><option value="quality">Hohe Qualität</option><option value="fast">Schneller Druck</option><option value="strong">Maximale Stabilität</option></select></div>
-        <div class="field"><label for="load">Belastung</label><select id="load"><option value="medium">Mittel</option><option value="low">Gering</option><option value="high">Hoch</option></select></div>
+        <div class="field"><label for="goal">Priorität</label><select id="goal"><option value="balanced">Ausgewogen</option><option value="quality">Hohe Qualität</option><option value="fast">Schneller Druck</option><option value="strong">Maximale Stabilität</option></select><small class="field-hint" hidden>Unsicher? „Ausgewogen“ passt fast immer.</small></div>
+        <div class="field"><label for="load">Belastung</label><select id="load"><option value="medium">Mittel</option><option value="low">Gering</option><option value="high">Hoch</option></select><small class="field-hint" hidden>Deko: Gering · Halter, Clip: Mittel · tragend: Hoch</small></div>
       </div>
-      <div class="field"><label for="support">Support</label><select id="support"><option value="auto">Automatisch entscheiden</option><option value="avoid">Möglichst vermeiden</option><option value="allow">Support erlaubt</option></select></div>
-      <div class="field"><label for="supportLevel">Stützreduzierung <span class="help" title="Wirkt nur, wenn Stützen nötig sind. Weniger Stützen sparen Material, erhöhen aber das Risiko für Durchhängen.">?</span></label><select id="supportLevel"><option value="safe">Stark und sicher</option><option value="balanced" selected>Ausgewogen</option><option value="reduced">Stark reduziert</option><option value="minimal">Minimal – gerade noch haltend</option></select></div>
+      <div class="field"><label for="support">Support</label><select id="support"><option value="auto">Automatisch entscheiden</option><option value="avoid">Möglichst vermeiden</option><option value="allow">Support erlaubt</option></select><small class="field-hint" hidden>„Automatisch“ prüft die Überhänge deines Modells.</small></div>
+      <div class="field"><label for="supportLevel">Stützreduzierung <span class="help" title="Wirkt nur, wenn Stützen nötig sind. Weniger Stützen sparen Material, erhöhen aber das Risiko für Durchhängen.">?</span></label><select id="supportLevel"><option value="safe">Stark und sicher</option><option value="balanced" selected>Ausgewogen</option><option value="reduced">Stark reduziert</option><option value="minimal">Minimal – gerade noch haltend</option></select><small class="field-hint" hidden>Nur wichtig, wenn Stützen nötig sind. Unsicher? „Ausgewogen“.</small></div>
 
       <div id="storeWarn" class="note bad hidden"></div>
     </aside>
@@ -376,5 +382,6 @@
 <script src="js/holes-ui.js"></script>
 <script src="js/custom-printer-ui.js"></script>
 <script src="js/printer-picker.js"></script>
+<script src="js/steps.js"></script>
 </body>
 </html>

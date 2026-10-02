@@ -72,3 +72,22 @@ html[data-ui="neu"] .busy::after { content: ""; position: absolute; left: 0; bot
 @media (prefers-reduced-motion: reduce) {
   html[data-ui="neu"] .busy::after { animation: none; width: 100%; opacity: .5; }
 }
+
+/* A1) Schritt-Leiste für Einsteiger (js/steps.js); im Original verborgen */
+html[data-ui="neu"] .steps { display: block; flex: none; padding: 8px 20px; background: var(--paper); border-bottom: 1px solid var(--rule); }
+html[data-ui="neu"] .steps ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+html[data-ui="neu"] .steps button { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; max-width: 34ch; padding: 3px 12px 3px 4px; border: 1px solid transparent; border-radius: 999px; background: none; color: var(--ink-2); font-size: 14px; cursor: pointer; }
+html[data-ui="neu"] .steps button:hover { background: var(--sheet); color: var(--ink); }
+html[data-ui="neu"] .steps .step-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-ui="neu"] .steps .step-n { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--field-border); font-size: 13px; font-weight: 700; }
+html[data-ui="neu"] .steps .done .step-n { background: var(--ok-soft); border-color: var(--ok-rule); color: var(--ok); }
+html[data-ui="neu"] .steps .current { border-color: var(--accent); background: var(--sheet); color: var(--ink); font-weight: 600; }
+html[data-ui="neu"] .steps .current .step-n { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+/* A3) Klartext-Hilfe unter unklaren Feldern; im Original verborgen */
+html[data-ui="neu"] .field-hint { display: block; margin-top: 4px; font-size: 12px; line-height: 1.35; color: var(--ink-3); }
+/* Die Schritt-Leiste kostet Höhe: klebende Spalten entsprechend kürzer, sonst läge ihr Ende unter dem Fenster */
+@media (min-width: 1241px) {
+  html[data-ui="neu"] .inputs,
+  html[data-ui="neu"] .model-col { max-height: calc(100dvh - var(--topbar-h) - var(--tabs-h) - 110px); }
+}
