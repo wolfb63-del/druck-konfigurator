@@ -62,6 +62,8 @@ function showOrientResult(part, res) {
   const s = res.suggestion;
   $('orientSuggest').classList.toggle('hidden', !s);
   if (s) $('orientSuggestText').textContent = 'Besser: andere Seite aufs Bett – ' + supportText(s) + ', Auflage ' + mm2(s.contact) + ', Höhe ' + de(s.height, 1) + ' mm.';
+  // Hinweis, falls die neue Lage ein kritisches Teil in Z schwächt (nur Text, js/fragility-ui.js)
+  if (s && typeof Stability !== 'undefined') Stability.orientNote(part, s.R, $('orientStab')); else $('orientStab').classList.add('hidden');
 }
 
 function pickFace(part) {

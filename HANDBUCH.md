@@ -118,6 +118,7 @@ Unter **Lage auf dem Bett** bewertet das Tool, wie viele Stützen die aktuelle L
 - **Übernehmen** dreht das Teil in die vorgeschlagene Lage.
 - **Fläche aufs Bett …** – wechselt in die 3D-Ansicht; die Fläche anklicken, die unten liegen soll (Esc bricht ab).
 - **↻ X / ↻ Y / ↻ Z** – um 90° drehen. **Original** – Lage aus der Datei.
+- Wird ein Teil, das als **kritisch** eingestuft ist, durch den Vorschlag in Z schwächer (eine schmale Stelle stünde aufrecht), steht unter dem Vorschlag ein gelber Hinweis **„Achtung Stabilität“**. Dann weniger Stützen gegen Festigkeit abwägen. Das ist nur eine Näherung. Der Hinweis erscheint beim Einzelvorschlag, nicht bei „Alle Teile nach Vorschlag ausrichten“.
 - Bei mehreren Teilen: **Alle Teile nach Vorschlag ausrichten**.
 - Unter der Modell-Karte zeigt eine **kleine 3D-Vorschau** das gewählte Teil in seiner aktuellen Lage – rot eingefärbte Flächen brauchen Stützen. Ziehen dreht die Ansicht, das Mausrad zoomt.
 
@@ -130,6 +131,12 @@ Unter **Bohrlöcher verstärken** listet das Tool die runden Löcher des gewähl
 - Nach einer Drehung wird neu erkannt, die Häkchen werden zurückgesetzt.
 - Nur bei STL-Teilen; Makerworld-Projekte bleiben unverändert.
 - In Orca erscheint der Modifikator unter dem Objekt als „Verstärkung Loch …“ und lässt sich dort anpassen oder löschen.
+
+### Stabilität (Hinweis)
+
+Unter **Stabilität** bewertet das Tool das gewählte Teil, auch wenn das Projekt nur ein Teil hat: **stabil**, **schwach** oder **kritisch**, mit dünnster Wand bzw. der Stelle, die in Z schwach ist. Bei schwachen oder kritischen Teilen folgen Vorschläge, etwa die Wand im Modell zu verstärken, eine liegende Lage zu wählen oder mehr Wände bzw. mehr Füllung zu verwenden. Dieselbe Bewertung steht im Datenblatt unter den Hinweisen.
+
+Das ist eine **Näherung aus der Geometrie, keine Festigkeitsberechnung**. Das Tool ändert keine Druckwerte und auch nicht den 3MF-Export. Was du übernehmen willst, stellst du selbst in OrcaSlicer ein. Farbkarte und Grenzen: siehe 3D-Ansicht (Abschnitt 11) und Abschnitt 12.
 
 ---
 

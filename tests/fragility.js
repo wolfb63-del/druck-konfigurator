@@ -189,6 +189,36 @@ for (const R of [10, 20]) {
   check('Raster = Brute Force (Prüfkörper, ' + hits + ' Treffer)', diff === 0 && hits > 100, diff);
 }
 
+// 5c) Schritt 4: Ausrichtungs-Hinweis und Vorschlagstexte
+{
+  const adv = vm.runInContext('fragilityAdvice', ctx), chk = vm.runInContext('orientationZCheck', ctx), txt = vm.runInContext('orientationZText', ctx);
+  const turn = (pos, R) => K.analyzeFragility(K.makeGeom('', K.rotatePositions(pos, R)), { lineWidth: LW });
+  // 0,6-mm-Platte 30 × 20 liegend (kritisch: dünn) → 90° um Y: 30 mm hoch stehend.
+  // Sollwert unabhängig vom Rechenweg: Rechteck-Querschnitt t × b hat Trägheitsradius t/√12;
+  // Material über der ersten Scheibe (Scheibenabstand max(0,2; 30/200) = 0,2 → Mitte 0,1) = 29,9 mm.
+  const plate06 = build([['p', box(0, 0, 0, 30, 20, 0.6)]]).pos;
+  const lie = K.analyzeFragility(K.makeGeom('', plate06), { lineWidth: LW }), stand = turn(plate06, K.rotateAxis('y', 90));
+  const soll = 29.9 / (0.6 / Math.sqrt(12));
+  check('0,6-Platte liegend: kritisch (dünn), nicht schwach in Z', lie.level === 'critical' && !lie.reasons.includes('z'), lie.level + ' ' + lie.reasons);
+  check('0,6-Platte stehend: Schlankheit ≈ 29,9 / (0,6/√12) = ' + soll.toFixed(0) + ' (±5 %)', stand.zWorst && Math.abs(stand.zWorst.slender - soll) / soll < 0.05, stand.zWorst && stand.zWorst.slender);
+  const c1 = chk(lie, stand);
+  check('Hinweis: liegend → stehend schwächt kritisches Teil in Z', c1.weakens && /stünde eine schmale Stelle aufrecht/.test(txt(c1)) && /Näherung/.test(txt(c1)), JSON.stringify(c1));
+  const c2 = chk(stand, lie);
+  check('kein Hinweis: stehend → liegend (wird in Z stärker)', !c2.weakens && txt(c2) === '', JSON.stringify(c2));
+  // 1,2-mm-Wand 30 × 20 liegend → um X auf 20 mm Höhe gestellt: Schlankheit ≈ 19,9 / (1,2/√12) ≈ 57 → nur „schwach“,
+  // in keiner Lage kritisch → laut Vorgabe kein Hinweis. (Um Y gedreht stünde sie 30 mm hoch: ≈ 86 → kritisch, dann mit Hinweis.)
+  const up20 = turn(lying.pos, K.rotateAxis('x', 90)), c3 = chk(K.analyzeFragility(lying, { lineWidth: LW }), up20);
+  check('1,2-Wand 20 mm stehend: Schlankheit ≈ 57 (±5 %), Stufe schwach', Math.abs(up20.zWorst.slender - 19.9 / (1.2 / Math.sqrt(12))) / 57.4 < 0.05 && up20.level === 'warn', up20.zWorst.slender + ' ' + up20.level);
+  const c4 = chk(K.analyzeFragility(lying, { lineWidth: LW }), turn(lying.pos, K.rotateAxis('y', 90)));
+  check('Hinweis: 1,2-Wand 30 mm stehend wird kritisch in Z', c4.weakens && c4.after.level === 'critical', JSON.stringify(c4));
+  check('kein Hinweis: 1,2-mm-Wand (nur „schwach“, nicht kritisch)', !c3.weakens, JSON.stringify(c3));
+  // Vorschlagstexte: als Näherung formuliert, Inhalt passend zur Ursache, „ok“ ohne Text
+  const a1 = adv(f), a0 = adv(K.analyzeFragility(K.makeGeom('', build([['b', box(0, 0, 0, 20, 20, 10)]]).pos), { lineWidth: LW }));
+  check('Vorschlag Prüfkörper: dünne Wände + Z, mit Zahlen', a1.length === 2 && /dünnste ≈ 0,6 mm/.test(a1[0].text) && /1,7 mm/.test(a1[0].text) && /mehr Wände/.test(a1[1].text) && /Füllung/.test(a1[1].text), JSON.stringify(a1.map(x => x.kind)));
+  check('kein Vorschlag bei stabilem Teil', a0.length === 0);
+  check('Hinweistext nennt Näherung und unveränderte Druckwerte', /Näherung/.test(vm.runInContext('FRAG_DISCLAIMER', ctx)) && /unverändert/.test(vm.runInContext('FRAG_DISCLAIMER', ctx)));
+}
+
 // 6) Echte Mehrteile-3MF: Analyse ändert weder Teile, Slots noch Geometrie
 const real = process.env.FRAG3MF;
 if (real && fs.existsSync(real)) {

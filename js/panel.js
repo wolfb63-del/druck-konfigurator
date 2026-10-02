@@ -76,7 +76,8 @@ function update(){
   $('orcaNote').innerHTML=orcaWarningText(r);
   const dangerAll=r.danger.concat(precisionHint(r)?[precisionHint(r)]:[]);
   $('danger').innerHTML=dangerAll.length?'<b>Achtung:</b><br>'+dangerAll.map(esc).join('<br>'):'';
-  $('warning').innerHTML=r.warn.join('<br><br>');
+  const stabHint=typeof Stability!=='undefined'&&geom?Stability.hintLine(geom):'';
+  $('warning').innerHTML=r.warn.concat(stabHint?[stabHint]:[]).join('<br><br>');
   $('checks').innerHTML='<b>Vor dem Druck:</b> Filamentprofil prüfen · Düse '+esc(r.nozLabel)+' · Bett reinigen · erste Schicht beobachten'+(r.dryNeed&&r.m.dry?' · '+esc(r.m.dry):'')+(geom?'<br>STL-Maße und Überhanganalyse ('+r.a.th+'°) wurden berücksichtigt.':'');
   $('supportGuide').innerHTML='<h3>Stützen-Empfehlung</h3><b>'+esc(r.sup)+'</b><br>'+esc(r.supNeed)+
     (r.supOn?'<br><br><b>So stellst du es in '+esc(r.printer.slicer)+' ein:</b><br>1. <i>Stützstrukturen aktivieren</i> einschalten.<br>2. <i>Typ: Baum (automatisch)</i> und <i>nur kritische Bereiche</i> aktivieren.<br>3. <i>Schwellenwinkel: '+r.sp.angle+'°</i>.<br>4. <i>Nur auf Druckplatte</i> zuerst testen; bei unerreichbaren Innenflächen deaktivieren.<br>5. Raft aus. Immer die Schichtvorschau prüfen.':'<br><br>Im Slicer <i>Stützstrukturen aktivieren</i> ausgeschaltet lassen und in der Vorschau kurz kontrollieren, ob keine Bahnen frei in der Luft hängen.');
@@ -93,6 +94,7 @@ function update(){
   if(typeof renderOrient==='function')renderOrient();
   if(typeof renderPartScope==='function')renderPartScope();
   if(typeof renderHoles==='function')renderHoles();
+  if(typeof Stability!=='undefined')Stability.renderCard();
   if(typeof updateExportMenu==='function')updateExportMenu(r);
   if(typeof enhanceHelp==='function')enhanceHelp();
 }

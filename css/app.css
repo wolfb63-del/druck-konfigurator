@@ -199,6 +199,16 @@ body.dragging .model-card { border-color: var(--accent); background: var(--accen
 .orient p { margin: 4px 0 0; font-size: 13px; }
 .orient-suggest { margin-top: 8px; padding: 8px 10px; border-radius: var(--r-s); background: var(--ok-soft); border: 1px solid var(--ok-rule); color: var(--ok); font-size: 13px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
 .orient-suggest.hidden { display: none; }
+.orient .orient-stab { margin-top: 8px; padding: 8px 10px; font-size: 13px; }
+/* Stabilität in der Modell-Karte (auch bei nur einem Teil) */
+.stab { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--rule); }
+.stab p { margin: 4px 0 0; font-size: 13px; }
+.stab #stabPart { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }
+.stab .pstab { font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+.stab-advice { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+.stab-advice:empty { display: none; }
+.stab-advice li { margin: 3px 0; }
+.stab .stab-note { font-size: 12px; }
 .orient-tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .orient-tools button, .btn-accent { font: inherit; font-size: 12.5px; padding: 4px 9px; border-radius: var(--r-s); border: 1px solid var(--rule-strong); background: var(--sheet); color: var(--ink); cursor: pointer; }
 .orient-tools button:hover:not(:disabled) { border-color: var(--accent); }

@@ -395,3 +395,46 @@ function analyzeFragility(geom, opts) {
     thresholds: { crit: FRAG_THIN_CRIT * lw, warn: FRAG_THIN_WARN * lw, slenderWarn: FRAG_SLENDER_WARN, slenderCrit: FRAG_SLENDER_CRIT }
   };
 }
+
+/* Hinweise mit Vorschlag zu einem Ergebnis von analyzeFragility – nur Text, als Näherung formuliert.
+   Die Druckwerte im Tool und im Export bleiben unverändert. Liefert [{ kind: 'thin' | 'z', text }]. */
+// Höhe einer schwachen Stelle als Text (ganz unten: „direkt über dem Bett“)
+function fragHeightText(z) { return z < 0.5 ? 'direkt über dem Bett' : 'bei ' + z.toFixed(1).replace('.', ',') + ' mm Höhe'; }
+
+const FRAG_DISCLAIMER = 'Näherung aus der Geometrie, keine Festigkeitsberechnung. Die Druckeinstellungen im Tool und im 3MF bleiben unverändert – bei Bedarf selbst in OrcaSlicer anpassen.';
+function fragilityAdvice(r) {
+  if (!r || r.level === 'ok') return [];
+  const fmt = (v, d) => v.toFixed(d).replace('.', ','), out = [], t = r.thresholds;
+  if (r.reasons.includes('thin')) {
+    const crit = r.thinCritArea >= FRAG_MIN_AREA || (r.minThick !== null && r.minThick < t.crit);
+    out.push({ kind: 'thin', text: 'Dünne Wände' + (r.minThick !== null ? ' (dünnste ≈ ' + fmt(r.minThick, 1) + ' mm)' : '') +
+      ': unter ' + fmt(t.warn, 1) + ' mm (4 Linienbreiten) passen nur wenige Linien nebeneinander, mehr Wände bringen dort kaum etwas. ' +
+      'Falls möglich die Wand im Modell auf mindestens ' + fmt(t.warn, 1) + ' mm verstärken.' +
+      (crit ? ' Stellen unter ' + fmt(t.crit, 1) + ' mm in der Slicer-Vorschau prüfen – sie können dünner oder lückenhaft gedruckt werden.' : '') });
+  }
+  if (r.reasons.includes('z') && r.zWorst) {
+    out.push({ kind: 'z', text: 'Schwach in Z ' + fragHeightText(r.zWorst.z) + ' (schmaler Querschnitt, ' + fmt(r.zWorst.above, 0) +
+      ' mm Material darüber): Bruchgefahr zwischen den Schichten. Am wirksamsten ist meist eine Lage, in der diese Stelle liegt statt steht. ' +
+      'Sonst als Näherung: mehr Wände (z. B. 4) und mehr Füllung (z. B. 30–40 %) vergrößern den tragenden Querschnitt.' });
+  }
+  return out;
+}
+
+/* Schwächt eine Drehung (z. B. der Ausrichtungsvorschlag aus orient.js) das Teil in Z?
+   before/after: analyzeFragility für aktuelle und neue Lage. Gemeldet wird nur, wenn das Teil in einer
+   der beiden Lagen als kritisch eingestuft ist und die Z-Klasse in der neuen Lage schlechter wird. */
+function orientationZCheck(before, after) {
+  const zRank = r => (r && r.zWorst ? r.zWorst.cls : 0);
+  const critical = before.level === 'critical' || after.level === 'critical';
+  const weakens = critical && zRank(after) > zRank(before);
+  return {
+    weakens,
+    before: { level: before.level, slender: before.zWorst ? before.zWorst.slender : 0 },
+    after: { level: after.level, slender: after.zWorst ? after.zWorst.slender : 0, z: after.zWorst ? after.zWorst.z : null }
+  };
+}
+function orientationZText(chk) {
+  if (!chk || !chk.weakens) return '';
+  return 'Achtung Stabilität: In dieser Lage stünde eine schmale Stelle aufrecht' + (chk.after.z !== null ? ' (' + fragHeightText(chk.after.z) + ')' : '') +
+    ' – das Teil wird in Z schwächer und kann eher zwischen den Schichten brechen. Weniger Stützen gegen Festigkeit abwägen; bei Funktionsteilen ggf. die aktuelle Lage behalten. (Näherung)';
+}

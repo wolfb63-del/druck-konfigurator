@@ -96,6 +96,7 @@ async function runSmoke(opts={}){
   ok($('partList').querySelector('[data-part="1"]').textContent.includes('Slot 2'),'Teileliste zeigt Slot von Teil 2');
   for(let t=0;t<50&&$('partList').querySelector('.pstab.wait');t++)await wait(100);
   ok([...$('partList').querySelectorAll('.pstab')].length===items.length&&!$('partList').querySelector('.pstab.wait,.pstab.err'),'Teileliste: Stabilitäts-Kennzahl für jedes Teil');
+  ok(!$('stabBox').classList.contains('hidden')&&$('stabPart').textContent===geom.name&&/stabil|schwach|kritisch/.test($('stabText').textContent),'Modell-Karte: Stabilität des gewählten Teils');
   const lastBefore=JSON.parse(JSON.stringify(store.last));
   menuClick('export3mf');await wait(50);
   ok(!$('partPlan').classList.contains('hidden')&&$('partPlanTable').querySelectorAll('tbody tr').length===4,'Export-Dialog: Tabelle mit 4 Teilen');

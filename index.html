@@ -113,6 +113,7 @@
           <div class="orient-head"><span class="eyebrow" id="orientTitle">Lage auf dem Bett</span><span id="orientPart" class="muted"></span></div>
           <p id="orientInfo" aria-live="polite"></p>
           <div id="orientSuggest" class="orient-suggest hidden"><span id="orientSuggestText"></span><button type="button" class="btn-accent" data-orient="apply">Übernehmen</button></div>
+          <p id="orientStab" class="note warn orient-stab hidden" role="note"></p>
           <div class="orient-tools" role="group" aria-label="Teil drehen">
             <button type="button" data-orient="pick" title="In der 3D-Ansicht die Fläche anklicken, die aufs Bett soll">Fläche aufs Bett …</button>
             <button type="button" data-orient="x" title="90° um die X-Achse drehen">↻ X</button><button type="button" data-orient="y" title="90° um die Y-Achse drehen">↻ Y</button><button type="button" data-orient="z" title="90° um die Z-Achse drehen (ändert nur die Lage auf dem Bett)">↻ Z</button>
@@ -125,6 +126,12 @@
           <p id="holeInfo"></p>
           <ul id="holeList" class="hole-list"></ul>
           <button type="button" id="holeAll" class="linkbtn hidden">Alle an/aus</button>
+        </section>
+        <section id="stabBox" class="stab hidden" aria-labelledby="stabTitle">
+          <div class="orient-head"><span class="eyebrow" id="stabTitle">Stabilität (Hinweis)</span><span id="stabPart" class="muted"></span></div>
+          <p id="stabText" aria-live="polite"></p>
+          <ul id="stabAdvice" class="stab-advice"></ul>
+          <p id="stabNote" class="muted stab-note hidden"></p>
         </section>
         <p class="oh-info muted"></p>
         <p class="muted drop-hint">STL, 3MF oder Makerworld-ZIP einfach ins Fenster ziehen – auch mehrere Dateien.</p>
