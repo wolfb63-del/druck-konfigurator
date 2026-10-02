@@ -49,7 +49,7 @@ Reines HTML/CSS/JavaScript ohne Build-Schritt (`<script src>`, funktioniert auch
 node tests/compare-v4.js      # gleiche Ergebnisse wie v4
 node tests/import.js          # Import (STL/ZIP/3MF)
 node tests/orient.js          # Lage-Bewertung
-node tests/export-project.js  # Makerworld-Umstellung
+node tests/export-project.js  # Makerworld-Umstellung, Lochverstärkung in 3MF-Projekten
 node tests/holes.js           # Bohrloch-Erkennung
 node tests/fragility.js       # Fragilität (Wandstärke, Z-Schwäche); FRAG3MF=<3mf> optional
 node tests/verify-3mf.js      # Export gegen die OrcaSlicer-CLI (dauert einige Minuten)

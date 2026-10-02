@@ -2,6 +2,17 @@
 
 Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](https://semver.org/lang/de/): Hauptversion bei grundlegenden Änderungen, Nebenversion bei neuen Funktionen, Patch bei Fehlerbehebungen.
 
+## [Unreleased]
+
+### Neu
+- **Bohrlöcher verstärken auch bei 3MF-Projekten** (Orca, Bambu Studio, Makerworld): Der Kasten erscheint jetzt auch dort; angehakte Löcher bekommen in der übernommenen Datei einen Orca-Modifikator mit 100 % Füllung. Lage, Platten und Farben des Designers bleiben.
+
+### Geändert
+- **Einfache 3MF** ohne Orca-/Bambu-Projektdaten (z. B. aus Cura, PrusaSlicer, CAD) werden wie eine STL behandelt: nur die Form, mit Lage-Tasten und Lochverstärkung. Eine Bemalung aus PrusaSlicer geht dabei verloren.
+
+### Behoben
+- **Gespiegelte Objekte in 3MF** wurden mit nach innen zeigenden Flächen eingelesen: Löcher wurden dort nicht erkannt, Überhänge falsch bewertet.
+
 ## [6.5.0] – 2026-10-02
 
 ### Neu

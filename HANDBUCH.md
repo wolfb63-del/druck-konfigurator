@@ -90,7 +90,7 @@ Einschränkung: Filamentprofile werden nicht nach Materialtyp (PLA/PETG/…) gew
 |---|---|
 | **STL** | Wird eingelesen; stecken mehrere getrennte Körper darin, werden sie als einzelne Teile erkannt. |
 | **mehrere STLs** | Alle zusammen als ein Projekt mit Teileliste. |
-| **3MF** | Objekte, Platten und Slot-Zuweisung werden übernommen (Modifier und Hilfskörper werden nicht als Teil gezählt). |
+| **3MF** | Projekte aus OrcaSlicer, Bambu Studio oder Makerworld: Objekte, Platten und Slot-Zuweisung werden übernommen (Modifier und Hilfskörper werden nicht als Teil gezählt). Einfache 3MF ohne diese Projektdaten (z. B. aus Cura, PrusaSlicer oder einem CAD-Programm) werden wie eine STL behandelt: nur die Form, mit Lage-Tasten; eine Bemalung aus PrusaSlicer geht dabei verloren. |
 | **ZIP** (z. B. von Makerworld) | Wird entpackt. Liegt genau eine 3MF darin, wird diese verwendet, sonst alle STLs. |
 
 Körper, die sich berühren oder überlappen, bleiben ein Teil – z. B. Hohlkörper oder unverschmolzene Exporte aus Tinkercad.
@@ -129,8 +129,9 @@ Bei 3MF-Projekten bleibt die Lage des Designers erhalten; Drehen ist dort gesper
 Unter **Bohrlöcher verstärken** listet das Tool die runden Löcher des gewählten Teils auf – senkrecht und waagerecht, mit Durchmesser, Tiefe und Lage. Nichts wird automatisch geändert: Setze ein **Häkchen** bei den Löchern, die Last tragen (z. B. Schraubenlöcher). Beim 3MF-Export bekommt jedes angehakte Loch in Orca einen **Modifikator**: einen Ring von 3 mm rund um das Loch mit **100 % Füllung**. Dort ist das Teil dann massiv und verteilt die Last der Schraube besser.
 
 - Nach einer Drehung wird neu erkannt, die Häkchen werden zurückgesetzt.
-- Nur bei STL-Teilen; Makerworld-Projekte bleiben unverändert.
-- In Orca erscheint der Modifikator unter dem Objekt als „Verstärkung Loch …“ und lässt sich dort anpassen oder löschen.
+- Funktioniert bei STL-Teilen und bei 3MF-Projekten (Orca, Bambu Studio, Makerworld). Bei 3MF-Projekten kommt der Modifikator in die übernommene Datei; Lage, Platten und Farben des Designers bleiben. Steht ein Objekt mehrfach auf dem Bett, gilt der Modifikator für alle Kopien.
+- In Orca erscheint der Modifikator unter dem Objekt als „Verstärkung Loch …“ (mit Durchmesser und Lage) und lässt sich dort anpassen oder löschen. Wird die Datei erneut übernommen, erkennt das Tool vorhandene Verstärkungen an Durchmesser und Lage und legt sie nicht doppelt an.
+- Bekannte Grenze: Das Tool prüft nur die Einheit des Hauptmodells (mm). Eine 3MF, deren Objekt-Dateien eine andere Einheit haben, könnte die Verstärkung versetzt platzieren – Orca und Bambu Studio schreiben immer mm.
 
 ### Stabilität (Hinweis)
 
