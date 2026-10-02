@@ -2,15 +2,21 @@
 
 Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](https://semver.org/lang/de/): Hauptversion bei grundlegenden Änderungen, Nebenversion bei neuen Funktionen, Patch bei Fehlerbehebungen.
 
-## [Unreleased]
+## [6.5.0] – 2026-10-02
 
 ### Neu
-- **Stabilitäts-Ansicht** in der 3D-Ansicht (Umschalter Überhang | Stabilität): Farbkarte für dünne Wände und schlanke Stellen in Z je Teil, mit Kurzbewertung. Schwellen hängen an der Linienbreite der gewählten Düse. Nur Hinweis, die Druckeinstellungen bleiben unverändert.
+- **Stabilitäts-Ansicht** in der 3D-Ansicht (Umschalter Überhang | Stabilität): Farbkarte für dünne Wände und schlanke Stellen in Z je Teil (grün / gelb / rot), mit Kurzbewertung. Schwellen hängen an der Linienbreite der gewählten Düse (bei 0,4 mm: dünn unter ≈ 1,7 mm, kritisch unter ≈ 0,8 mm).
 - **Stabilitäts-Kennzahl in der Teileliste** (stabil / schwach / kritisch mit dünnster Wand bzw. „Z“), Teil für Teil im Hintergrund berechnet.
-- **Stabilitäts-Hinweise mit Vorschlag** in der Modell-Karte (auch bei nur einem Teil) und im Datenblatt, klar als Näherung gekennzeichnet; dazu ein Hinweis, wenn der Ausrichtungsvorschlag ein kritisches Teil in Z schwächt. Nur Text, Druckwerte und Export bleiben unverändert.
+- **Stabilitäts-Hinweise mit Vorschlag** in der Modell-Karte (auch bei nur einem Teil) und im Datenblatt: Wand verstärken, liegende Lage, mehr Wände/Füllung. Dazu ein Hinweis, wenn der Ausrichtungsvorschlag ein kritisches Teil in Z schwächt.
+- Alles nur als **Näherung aus der Geometrie**, keine Festigkeitsberechnung: Druckwerte, Slots und 3MF-Export bleiben unverändert.
+- Prüfkörper zum Nachdrucken: `node tools/make-pruefkoerper.js` erzeugt `testdaten/stabilitaet-pruefkoerper.stl`.
 
 ### Behoben
 - **Mehrfarbige 3MF aus Teilen** (ein Objekt, dessen Teile verschiedene Slots haben, z. B. Schild in Weiß + Relief in Schwarz): wurden im Tool zu einem Teil zusammengefasst, Farben/Slots waren nicht sichtbar, und die berechneten Filamentwerte landeten im Slot des Objekts statt in den tatsächlich gedruckten Slots. Jetzt erscheint jedes Teil einzeln mit Namen und Slot (Teileliste, 3D-Ansicht), der Slot lässt sich je Teil ändern, und der Export setzt ihn am Teil selbst. Gegen die Orca-CLI geprüft: Druck bleibt zweifarbig, ein umgestellter Slot kommt im G-Code an.
+
+### Bekannte Einschränkungen
+- Stabilität: Steht ein Teilstück im Loch eines anderen (z. B. Stift in einem Rohr), kann die Stelle schwächer erscheinen, als sie ist. Waagerechte Strukturen dünner als ≈ 0,2 mm werden in Z übersehen, als dünne Wand aber markiert.
+- Die Schwellen sind Startwerte und noch nicht durch Testdrucke bestätigt.
 
 ## [6.4.1] – 2026-09-30
 
