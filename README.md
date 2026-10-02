@@ -52,6 +52,7 @@ node tests/orient.js          # Lage-Bewertung
 node tests/export-project.js  # Makerworld-Umstellung, Lochverstärkung in 3MF-Projekten
 node tests/holes.js           # Bohrloch-Erkennung
 node tests/fragility.js       # Fragilität (Wandstärke, Z-Schwäche); FRAG3MF=<3mf> optional
+node tests/ui-neu.js          # Oberflächen Lesbarkeit/Schlicht: nur per Umschalter aktiv, Kontraste, Schriftgrößen
 node tests/verify-3mf.js      # Export gegen die OrcaSlicer-CLI (dauert einige Minuten)
 node tests/verify-orca-printers.js  # 3MF für beliebige Drucker gegen die OrcaSlicer-CLI (dauert lang)
 node tests/verify-custom-printer.js # eigenes, hochgeladenes Orca-Profil gegen die OrcaSlicer-CLI

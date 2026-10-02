@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 ## [Unreleased]
 
 ### Neu
+- **Oberfläche wählbar** (Profile → Oberfläche): **Original**, **Verbesserte Lesbarkeit** (Standard: sichtbarer Fokus in der Kopfzeile, kräftigere Feldränder, keine Schrift unter 12 px, größere Klickfläche der „?“-Punkte, dunkleres Grün, Lade- und Fehlermeldungen werden vorgelesen) oder **Schlicht** (reduziert nach Apple-Prinzipien: helle Kopfzeile, Systemschrift, Flächen statt Linien, Pillen-Knöpfe; mit allen Lesbarkeits-Verbesserungen). „Original“ stellt die bisherige Oberfläche unverändert wieder her; die Stile liegen getrennt in `css/ui-neu.css` und `css/ui-schlicht.css`.
 - **Bohrlöcher verstärken auch bei 3MF-Projekten** (Orca, Bambu Studio, Makerworld): Der Kasten erscheint jetzt auch dort; angehakte Löcher bekommen in der übernommenen Datei einen Orca-Modifikator mit 100 % Füllung. Lage, Platten und Farben des Designers bleiben.
 
 ### Geändert
