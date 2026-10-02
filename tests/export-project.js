@@ -209,5 +209,26 @@ hp = runHoles(holeProject(two, { plate2: true }), (j, i) => i === 1 ? j.found : 
   check('Kein Loch angehakt: keine Netz-Datei, kein modifier_part', !hp.modFile && hp.mods === 0, hp.modFile + ' / ' + hp.mods);
   check('Kein Loch angehakt: Komponenten und Beziehungen unverändert', compsOf(hp.root) === compsOf(s0('3D/3dmodel.model')) && hp.rels === s0('3D/_rels/3dmodel.model.rels'), compsOf(hp.root)); }
 
+// Orca-Kennung (gemeldet 2026-10-02): ohne <metadata name="OrcaSlicer"> behandelt Orca eine umgestellte
+// Makerworld-Datei als BambuStudio-Projekt und meldet „Die 3MF wurde von BambuStudio erstellt …“
+// (OrcaSlicer bbs_3mf.cpp: Tag ORCASLICER_TAG → is_orca_3mf; Plater.cpp: Zweig From_BBS). Sollwert: genau
+// eine Kennung mit der Orca-Version der Vorlage; die Application-Angabe des Designers bleibt.
+{
+  const tplVer = K.exportTemplate('kobra_s1', '0.4').orcaVersion;
+  const tags = x => [...x.matchAll(/<metadata name="OrcaSlicer">([^<]*)<\/metadata>/g)].map(m => m[1]);
+  check('Vorlage hat eine Orca-Version (x.y.z)', /^\d+\.\d+\.\d+/.test(tplVer || ''), tplVer);
+  const mw = '<?xml version="1.0"?><model unit="millimeter" xmlns:p="x"><metadata name="Application">BambuStudio-02.05.03.61</metadata><resources>' + cubeXml(1, 20) + '</resources><build><item objectid="1"/></build></model>';
+  const mwZip = (root, settings) => fflate.zipSync({ '3D/3dmodel.model': u8(root), 'Metadata/model_settings.config': u8(settings || '<?xml version="1.0"?><config><object id="1"><metadata key="name" value="W"/></object></config>') });
+  let o = runHoles(mwZip(mw), () => []);
+  check('Makerworld-Datei: genau eine OrcaSlicer-Kennung mit Vorlagen-Version', JSON.stringify(tags(o.root)) === JSON.stringify([tplVer]), tags(o.root).join() + ' / ' + tplVer);
+  check('Makerworld-Datei: Application des Designers bleibt', /<metadata name="Application">BambuStudio-02\.05\.03\.61<\/metadata>/.test(o.root), o.root.slice(0, 300));
+  // Schon vorhandene (ältere) Kennung → durch die Version der Vorlage ersetzt, nicht verdoppelt
+  o = runHoles(mwZip(mw.replace('<resources>', '<metadata name="OrcaSlicer">2.1.0</metadata><resources>')), () => []);
+  check('Vorhandene Kennung: ersetzt statt verdoppelt', JSON.stringify(tags(o.root)) === JSON.stringify([tplVer]), tags(o.root).join());
+  // Hauptmodell mit Namensraum-Präfix: Kennung mit demselben Präfix, sonst liest Orca sie nicht als metadata
+  o = runHoles(mwZip(mw.replace('<model ', '<m:model xmlns:m="x" ').replace('</model>', '</m:model>').replace(/<metadata /, '<m:metadata ').replace('</metadata>', '</m:metadata>')), () => []);
+  check('Präfix m: → <m:metadata name="OrcaSlicer">', new RegExp('<m:metadata name="OrcaSlicer">' + tplVer.replace(/\./g, '\.') + '</m:metadata>').test(o.root), o.root.slice(0, 300));
+}
+
 console.log(pass + '/' + (pass + fail) + ' bestanden');
 process.exit(fail ? 1 : 0);

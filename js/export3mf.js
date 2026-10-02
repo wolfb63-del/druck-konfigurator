@@ -495,6 +495,18 @@ function addHoleModifiers(out, ms, items, rootPath, zipLib, notes) {
   return ms;
 }
 
+/* Orca-Kennung im Hauptmodell (gemeldet 2026-10-02): Fehlt <metadata name="OrcaSlicer">, liest Orca eine
+   Makerworld-/Bambu-Datei als BambuStudio-Projekt und meldet „Die 3MF wurde von BambuStudio erstellt. Einige
+   Einstellungen können abweichen“ (OrcaSlicer bbs_3mf.cpp ORCASLICER_TAG, Plater.cpp Zweig From_BBS). Die
+   project_settings stammen hier aber aus der Orca-Vorlage – deshalb deren Version setzen; eine vorhandene
+   Kennung wird ersetzt. Application (Herkunft beim Designer) bleibt. Präfix wie am <model>-Tag. */
+function markAsOrca(root, version) {
+  const tag = '<metadata name="OrcaSlicer">' + xmlEsc(version) + '</metadata>';
+  const existing = /<((?:\w+:)?)metadata\b[^>]*\bname="OrcaSlicer"[^>]*>[^<]*<\/(?:\w+:)?metadata>/;
+  if (existing.test(root)) return root.replace(existing, (all, pre) => tag.replace('<metadata', '<' + pre + 'metadata').replace('</metadata', '</' + pre + 'metadata'));
+  return root.replace(/<((?:\w+:)?)model\b[^>]*>/, (open, pre) => open + '\n <' + pre + 'metadata name="OrcaSlicer">' + xmlEsc(version) + '</' + pre + 'metadata>');
+}
+
 /* jobs: [{geom, r, slot, part:{objectId, partId?, plate}}] wie aus partJobs(); threemf = Import-Ergebnis mit zip.
    partId: Teil eines mehrfarbigen Objekts (import.js) – dessen Slot wird am Teil selbst gesetzt. */
 function build3mfFromProject(tpl, r, jobs, slot, zipLib, liveSlots, threemf) {
@@ -526,6 +538,7 @@ function build3mfFromProject(tpl, r, jobs, slot, zipLib, liveSlots, threemf) {
     const tr = 'transform="' + m.map(v => String(Math.round(v * 1e4) / 1e4)).join(' ') + '"';
     return '<' + tag + (t ? attrs.replace(/transform="[^"]+"/, tr) : attrs + ' ' + tr) + close + '>';
   }));
+  if (tpl.orcaVersion) out[rootPath] = zipLib.strToU8(markAsOrca(zipLib.strFromU8(out[rootPath]), tpl.orcaVersion));
 
   // Slot und eigene Werte je Objekt
   const computedKeys = [...new Set(plannedChanges(r, 0, null).filter(c => !c.perSlot && isObjectKey(c.key)).map(c => c.key).concat([...OBJECT_KEYS], supportChanges(r).map(x => x[1])))];
