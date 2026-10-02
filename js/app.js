@@ -160,7 +160,8 @@ const ACTIONS={
   open:()=>input.click(),
   profiles:()=>{renderMyList();$('profilesDlg').showModal()},
   help:()=>$('helpDlg').showModal(),
-  disclaimer:()=>{if($('helpDlg').open)$('helpDlg').close();$('disclaimerDlg').showModal()}
+  disclaimer:()=>{if($('helpDlg').open)$('helpDlg').close();$('disclaimerDlg').showModal()},
+  privacy:()=>{if($('helpDlg').open)$('helpDlg').close();$('privacyDlg').showModal()}
 };
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-action]');if(a&&ACTIONS[a.dataset.action])ACTIONS[a.dataset.action]();

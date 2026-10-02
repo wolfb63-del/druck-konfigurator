@@ -188,7 +188,7 @@
       </details>
     </article>
   </div>
-  <p class="muted footnote">Druck-Konfigurator v5 (Basis v4) · Startwerte ohne Gewähr – immer die Slicer-Vorschau prüfen. · <button class="linkbtn" type="button" data-action="disclaimer">Haftungsausschluss</button></p>
+  <p class="muted footnote">Druck-Konfigurator v5 (Basis v4) · Startwerte ohne Gewähr – immer die Slicer-Vorschau prüfen. · <button class="linkbtn" type="button" data-action="disclaimer">Haftungsausschluss</button> · <button class="linkbtn" type="button" data-action="privacy">Datenschutz</button> · <a class="linkbtn" href="mailto:bw.3d.druck@gmail.com">Kontakt</a> · <a class="linkbtn" href="https://www.facebook.com/berthold.wolf/" target="_blank" rel="noopener noreferrer">Facebook</a></p>
 </section>
 
 <section id="view3d" role="tabpanel" aria-labelledby="tab3d" class="view" hidden>
@@ -323,6 +323,18 @@
   </div>
   <div class="ed-foot"><button class="btn" type="button" id="disclaimerOk">Verstanden</button></div></dialog>
 
+<dialog id="privacyDlg" aria-labelledby="privacyTitle"><div class="ed-head"><h2 id="privacyTitle">Datenschutz</h2><div class="muted">Private, kostenlose Seite ohne Werbung, ohne Cookies und ohne Tracking.</div></div>
+  <div class="ed-body prose">
+    <p><b>Verantwortlich:</b> Berthold Wolf, E-Mail: <a href="mailto:bw.3d.druck@gmail.com">bw.3d.druck@gmail.com</a></p>
+    <p><b>Hosting:</b> Die Seite liegt bei GitHub Pages (GitHub Inc., USA). Beim Aufruf verarbeitet GitHub technisch notwendige Daten wie die IP-Adresse, um die Seite auszuliefern und zu schützen; dabei kann eine Übertragung in die USA stattfinden. Ich selbst erhalte und speichere diese Daten nicht. Rechtsgrundlage ist das berechtigte Interesse an einer sicheren Bereitstellung (Art. 6 Abs. 1 lit. f DSGVO). Einzelheiten: <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">Datenschutzerklärung von GitHub</a>.</p>
+    <p><b>Deine Modelle und Werte:</b> STL-, 3MF- und ZIP-Dateien werden ausschließlich lokal in deinem Browser verarbeitet und nicht hochgeladen. Eigene Filamentprofile, Einstellungen und die gewählte Oberfläche speichert der Browser lokal (localStorage); sie verlassen dein Gerät nicht und lassen sich über die Browser-Einstellungen (Websitedaten löschen) entfernen.</p>
+    <p><b>Drucker-Verbindung:</b> Nur wenn du sie nutzt, fragt dein Browser die Filament-Belegung direkt bei deinem Drucker im Heimnetz ab. Diese Daten gehen nicht an mich oder an Dritte.</p>
+    <p><b>Externe Links:</b> Links zu Facebook, GitHub oder Makerworld sind einfache Verweise; beim Anklicken gelten die Datenschutzbestimmungen des jeweiligen Anbieters. Die Seite bindet keine Inhalte dieser Anbieter ein.</p>
+    <p><b>Kontakt per E-Mail:</b> Schreibst du mir, verwende ich deine Angaben nur zur Beantwortung.</p>
+    <p><b>Deine Rechte:</b> Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung und Widerspruch (Art. 15–21 DSGVO) sowie Beschwerde bei einer Datenschutz-Aufsichtsbehörde.</p>
+  </div>
+  <div class="ed-foot"><button class="btn" type="button" data-close>Schließen</button></div></dialog>
+
 <dialog id="helpDlg" aria-labelledby="helpTitle"><div class="ed-head"><h2 id="helpTitle">Hilfe</h2></div>
   <div class="ed-body prose">
     <p><b>Automatik:</b> Filamentprofil = Temperatur, Lüfter, Rückzug und maximale Volumengeschwindigkeit. Prozessprofil = Wände, Schichten, Füllung und Druckgeschwindigkeit. Die Stützen-Entscheidung kommt aus der Überhanganalyse des gewählten Teils.</p>
@@ -330,7 +342,8 @@
     <p><b>Eigene Werte:</b> Druckst du mit anderer Temperatur, schneller oder langsamer, klicke bei „Filament“ auf <b>Werte anpassen</b>. Alle Empfehlungen rechnen danach mit deinen Werten. <b>Neues Filament</b> legt ein zusätzliches Profil an, z. B. für eine bestimmte Marke.</p>
     <p><b>Wichtig:</b> STL-Maße und Überhänge werden lokal im Browser ermittelt. 3MF und Makerworld-ZIPs werden direkt gelesen; bei mehreren Teilen gilt die Analyse für das in der Teileliste gewählte Teil. Nahtposition: sichtbare Außenflächen <b>Hinten</b>; runde Teile <b>Ausgerichtet</b> oder <b>Nächstgelegen</b>. Brücken, dünne Wände und die tatsächliche Kontaktfläche der Stützen immer zusätzlich in der Slicer-Vorschau prüfen – die Empfehlung ist eine Geometrie-Näherung und ersetzt die Vorschau nicht.</p>
     <p>Alle Werte sind Startwerte ohne Gewähr. Filamente unterscheiden sich je nach Hersteller und Charge – die Angaben auf der Rolle haben Vorrang.</p>
-    <p><b>Ausführlich:</b> <a href="docs/Handbuch.pdf" target="_blank" rel="noopener">Handbuch öffnen (PDF)</a> · <button class="linkbtn" type="button" data-action="disclaimer">Haftungsausschluss</button> – alle Funktionen mit Bildern, dazu Lösungen für häufige Probleme.</p>
+    <p><b>Ausführlich:</b> <a href="docs/Handbuch.pdf" target="_blank" rel="noopener">Handbuch öffnen (PDF)</a> · <button class="linkbtn" type="button" data-action="disclaimer">Haftungsausschluss</button> · <button class="linkbtn" type="button" data-action="privacy">Datenschutz</button> – alle Funktionen mit Bildern, dazu Lösungen für häufige Probleme.</p>
+    <p><b>Fragen und Rückmeldungen:</b> per E-Mail an <a href="mailto:bw.3d.druck@gmail.com">bw.3d.druck@gmail.com</a> oder auf <a href="https://www.facebook.com/berthold.wolf/" target="_blank" rel="noopener noreferrer">Facebook</a>.</p>
   </div>
   <div class="ed-foot"><button class="btn" type="button" data-close>Schließen</button></div></dialog>
 
