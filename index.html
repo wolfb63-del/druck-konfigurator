@@ -201,10 +201,17 @@
       <div id="measureLabel"></div>
     </div>
     <div id="ohBar" class="hud hidden">
+      <div id="viewMode" class="view-mode" role="group" aria-label="Einfärbung"><button type="button" data-view="overhang" class="active" aria-pressed="true">Überhang</button><button type="button" data-view="stability" aria-pressed="false" title="Dünne Wände und schlanke Stellen in Z (Bruchgefahr zwischen den Schichten). Nur Hinweis.">Stabilität</button></div>
+      <div id="ohOverhang">
       <div class="vbar"><label for="thresh">Überhangwinkel ≤ <span class="help help-dark" title="Winkel von der Senkrechten. Flächen, die steiler überhängen als dieser Wert, werden rot markiert und zählen für die Stützen-Entscheidung. 45° ist ein sicherer Standard, 50–55° spart Stützen.">?</span></label><input type="range" id="thresh" min="30" max="70" value="45"><span class="val" id="threshVal">45°</span></div>
       <div class="stats"><span>Breite X <b id="sx">–</b></span><span>Tiefe Y <b id="sy">–</b></span><span>Höhe Z <b id="sz">–</b></span><span>Volumen <b id="sv">–</b></span></div>
       <div class="legend"><span><i style="background:#9aa8bc"></i>liegt auf dem Druckbett</span><span><i style="background:#3fa8f5"></i>unkritisch</span><span><i style="background:#f2b53d"></i>nahe am Grenzwinkel</span><span><i style="background:#e5514f"></i>über Grenzwinkel</span></div>
       <p id="ohInfo" class="oh-info"></p>
+      </div>
+      <div id="ohStability" class="hidden">
+        <div class="legend"><span><i style="background:#4dbd6b"></i>stabil</span><span><i style="background:#f2b53d"></i>dünn / schwach in Z</span><span><i style="background:#e5514f"></i>kritisch</span></div>
+        <p id="stabInfo" class="stab-info" aria-live="polite"></p>
+      </div>
     </div>
   </div>
 </section>
@@ -320,6 +327,7 @@
 <script src="js/import.js"></script>
 <script src="js/orient.js"></script>
 <script src="js/holes.js"></script>
+<script src="js/fragility.js"></script>
 <script src="js/store.js"></script>
 <script src="js/engine.js"></script>
 <script src="vendor/fflate.min.js"></script>
@@ -333,6 +341,7 @@
 <script src="js/miniview.js"></script>
 <script src="js/panel.js"></script>
 <script src="js/app.js"></script>
+<script src="js/fragility-ui.js"></script>
 <script src="js/export-ui.js"></script>
 <script src="js/orient-ui.js"></script>
 <script src="js/part-settings.js"></script>

@@ -187,6 +187,11 @@ async function runSmoke(opts={}){
   ok($('measureLabel').textContent.includes('Punkt'),'Messen aktiv mit Anleitung');
   $('thresh').value=60;$('thresh').dispatchEvent(new Event('input'));ok($('threshVal').textContent==='60°','Überhangwinkel-Regler');
   $('thresh').value=45;$('thresh').dispatchEvent(new Event('input'));
+  document.querySelector('#viewMode [data-view=stability]').click();await wait(400);
+  ok(!$('ohStability').classList.contains('hidden')&&$('ohOverhang').classList.contains('hidden'),'Stabilität: Legende statt Überhangregler');
+  ok(/^(Stabil|Schwache Stellen|Kritisch)/.test($('stabInfo').textContent)&&/unverändert/.test($('stabInfo').textContent),'Stabilität: Kennzeile mit Hinweis');
+  document.querySelector('#viewMode [data-view=overhang]').click();
+  ok(!$('ohOverhang').classList.contains('hidden'),'zurück zur Überhang-Ansicht');
   ['btnWireframe','btnAxes','btnClip','btnMeasure'].forEach(id=>$(id).click());
   $('tabSettings').click();
 

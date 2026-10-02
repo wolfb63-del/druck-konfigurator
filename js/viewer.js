@@ -120,6 +120,18 @@ const Viewer = (() => {
     mesh.geometry.attributes.color.needsUpdate = true;
   }
 
+  // Stabilitäts-Einfärbung: Klasse je Dreieck (0 stabil, 1 dünn/schwach, 2 kritisch) aus fragility.js
+  const STABILITY = [[.30, .74, .42], [.95, .71, .24], [.90, .32, .31]];
+  function colorizeClasses(cls) {
+    if (!mesh || !geomRef || !cls || cls.length !== geomRef.n) return;
+    const c = mesh.geometry.attributes.color.array;
+    for (let i = 0; i < cls.length; i++) {
+      const col = STABILITY[cls[i]] || STABILITY[0];
+      for (let v = 0; v < 3; v++) { const k = (i * 3 + v) * 3; c[k] = col[0]; c[k + 1] = col[1]; c[k + 2] = col[2]; }
+    }
+    mesh.geometry.attributes.color.needsUpdate = true;
+  }
+
   function setWireframe(on) { wireframeOn = on; if (mesh) mesh.material.wireframe = on; }
   function setAxes(on) { if (axes) axes.visible = on; }
 
@@ -198,5 +210,5 @@ const Viewer = (() => {
     });
   }
 
-  return { available, init, show, clear, colorize, setWireframe, setAxes, setClip, setClipAxis, setClipFraction, setMeasure, setPick };
+  return { available, init, show, clear, colorize, colorizeClasses, setWireframe, setAxes, setClip, setClipAxis, setClipFraction, setMeasure, setPick };
 })();

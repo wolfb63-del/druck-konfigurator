@@ -214,6 +214,7 @@ Ist eine Platte größer als dein Bett, erscheint ein Hinweis.
 
 - Maus: **links ziehen** drehen, **rechts ziehen** verschieben, **Rad** zoomen.
 - **Überhangwinkel** (unten): Flächen steiler als dieser Winkel werden rot markiert; grau = liegt auf dem Bett.
+- **Überhang | Stabilität** (unten links): schaltet die Einfärbung um. *Stabilität* zeigt grün = stabil, gelb = dünne Wand (unter 4 Linienbreiten der gewählten Düse, bei 0,4 mm ≈ 1,7 mm) oder schlanke Stelle in Z, rot = kritisch (unter 2 Linienbreiten oder sehr schlank in Z – Bruchgefahr zwischen den Schichten). Darunter steht eine Kurzbewertung des Teils. Nur Hinweis: an den Druckeinstellungen ändert sich nichts. Große Teile brauchen beim ersten Einschalten einige Sekunden.
 - **Wireframe**, **Achsen**, **Schnitt** (Schnittebene je Achse verschieben), **Messen** (zwei Punkte anklicken).
 - **Fläche aufs Bett**, **↻ X**, **↻ Y** – wie in der Modellkarte.
 - **Mehrere Teile:** Oben links unter der Modellinfo mit **◀ / ▶** oder der Auswahlliste zwischen den Teilen wechseln – dieselbe Auswahl wie in der Teileliste der Einstellungen.

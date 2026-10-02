@@ -4,6 +4,9 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 
 ## [Unreleased]
 
+### Neu
+- **Stabilitäts-Ansicht** in der 3D-Ansicht (Umschalter Überhang | Stabilität): Farbkarte für dünne Wände und schlanke Stellen in Z je Teil, mit Kurzbewertung. Schwellen hängen an der Linienbreite der gewählten Düse. Nur Hinweis, die Druckeinstellungen bleiben unverändert.
+
 ### Behoben
 - **Mehrfarbige 3MF aus Teilen** (ein Objekt, dessen Teile verschiedene Slots haben, z. B. Schild in Weiß + Relief in Schwarz): wurden im Tool zu einem Teil zusammengefasst, Farben/Slots waren nicht sichtbar, und die berechneten Filamentwerte landeten im Slot des Objekts statt in den tatsächlich gedruckten Slots. Jetzt erscheint jedes Teil einzeln mit Namen und Slot (Teileliste, 3D-Ansicht), der Slot lässt sich je Teil ändern, und der Export setzt ihn am Teil selbst. Gegen die Orca-CLI geprüft: Druck bleibt zweifarbig, ein umgestellter Slot kommt im G-Code an.
 

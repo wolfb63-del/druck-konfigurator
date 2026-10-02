@@ -347,6 +347,14 @@ body.dragging #stage { outline: 3px dashed var(--accent); outline-offset: -8px; 
 #ohBar .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
 #ohInfo { margin: 0; }
 #ohInfo:empty { display: none; }
+#ohOverhang, #ohStability { display: grid; gap: 8px; }
+#ohOverhang.hidden, #ohStability.hidden { display: none; }
+.view-mode { display: flex; justify-self: start; }
+.view-mode button { border-radius: 0; }
+.view-mode button:first-child { border-radius: var(--r-s) 0 0 var(--r-s); }
+.view-mode button:last-child { border-radius: 0 var(--r-s) var(--r-s) 0; border-left: 0; }
+#stabInfo { margin: 0; }
+#stabInfo:empty { display: none; }
 .help-dark { background: transparent; color: #ddd; border-color: #888; }
 
 /* ================= Responsiv ================= */

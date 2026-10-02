@@ -90,7 +90,7 @@ function showModel(g){
   $('ohBar').classList.remove('hidden');
   // Ohne Renderer bleibt der Hinweis „3D-Ansicht nicht verfügbar“ sichtbar (wie in v4).
   if(Viewer.show(g))$('viewerEmpty').classList.add('hidden');
-  Viewer.colorize(+$('thresh').value);
+  Stability.paint(g);
   if(miniReady){$('miniView').classList.remove('hidden');MiniView.show(g);MiniView.colorize(+$('thresh').value)}
   update();
 }
@@ -104,7 +104,7 @@ function clearModel(){
   $('viewerEmpty').classList.remove('hidden');
 }
 
-$('thresh').addEventListener('input',()=>{$('threshVal').textContent=$('thresh').value+'°';Viewer.colorize(+$('thresh').value);if(miniReady)MiniView.colorize(+$('thresh').value);update()});
+$('thresh').addEventListener('input',()=>{$('threshVal').textContent=$('thresh').value+'°';Stability.paint(geom);if(miniReady)MiniView.colorize(+$('thresh').value);update()});
 
 /* ================= DRUCKER-UMSCHALTUNG ================= */
 const printerButtons=[...document.querySelectorAll('.printer-switch [data-printer]')];

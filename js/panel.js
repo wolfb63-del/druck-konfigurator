@@ -13,7 +13,7 @@ function fillNozzleMaterialSelect(){
   if(p.nozzleOptions.includes(cur))sel.value=cur;
 }
 
-$('supportLevel').addEventListener('change',()=>{const a=supportProfile($('supportLevel').value).angle;$('thresh').value=a;$('threshVal').textContent=a+'°';Viewer.colorize(+$('thresh').value)});
+$('supportLevel').addEventListener('change',()=>{const a=supportProfile($('supportLevel').value).angle;$('thresh').value=a;$('threshVal').textContent=a+'°';Stability.paint(geom)});
 ['material','nozD','nozM'].forEach(id=>$(id).addEventListener('change',()=>{store.last[id]=$(id).value;persist();update()}));
 ['object','goal','load','support','supportLevel'].forEach(id=>$(id).addEventListener('change',update));
 $('printer').addEventListener('change',()=>{store.last.printer=$('printer').value;persist();fillNozzleMaterialSelect();store.last.nozM=$('nozM').value;persist();update()});
