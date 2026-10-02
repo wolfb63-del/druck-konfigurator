@@ -41,6 +41,7 @@ function renderOrient() {
   $('orientPart').textContent = project.parts.length > 1 ? part.name : '';
   $('orientAll').classList.toggle('hidden', !orientable() || project.parts.length < 2);
   if (!orientable()) {
+    $('orientInfo').classList.remove('busy');
     $('orientInfo').textContent = 'Lage aus der 3MF bleibt erhalten – die Designer legen ihre Teile in der Regel schon richtig hin.';
     $('orientSuggest').classList.add('hidden');
     return;
@@ -48,11 +49,14 @@ function renderOrient() {
   const th = +$('thresh').value, cached = orientCache.get(part), job = ++orientJob;
   if (!cached || cached.th !== th) {
     $('orientInfo').textContent = 'Prüfe mögliche Auflageflächen …';
+    $('orientInfo').classList.add('busy');   // Fortschrittsbalken (css/ui-neu.css)
     $('orientSuggest').classList.add('hidden');
   }
   setTimeout(() => {
     if (job !== orientJob || part !== selectedPart()) return;
-    showOrientResult(part, orientResult(part, th));
+    const res = orientResult(part, th);
+    $('orientInfo').classList.remove('busy');
+    showOrientResult(part, res);
   }, cached && cached.th === th ? 0 : 30);
 }
 

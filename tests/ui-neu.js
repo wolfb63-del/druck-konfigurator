@@ -26,7 +26,9 @@ check('Formel: gleiche Farbe = 1:1', Math.abs(ratio('#777777', '#777777') - 1) <
 
 // (1) Jede Regel ist auf ihre Stufe beschränkt
 const strip = css => css.replace(/\/\*[\s\S]*?\*\//g, '');
-const selectorsOf = css => [...strip(css).matchAll(/([^{}]+)\{[^{}]*\}/g)].flatMap(m => m[1].split(',').map(s => s.trim())).filter(Boolean);
+// @keyframes-Stufen (from/to/%) gestalten kein Element und zählen nicht als Regel
+const noKeyframes = css => css.replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '');
+const selectorsOf = css => [...noKeyframes(strip(css)).matchAll(/([^{}]+)\{[^{}]*\}/g)].flatMap(m => m[1].split(',').map(s => s.trim())).filter(Boolean);
 for (const [file, css, scope] of [['ui-neu.css', neu, 'html[data-ui="neu"]'], ['ui-schlicht.css', sch, 'html[data-stil="schlicht"]']]) {
   const sel = selectorsOf(css), loose = sel.filter(x => !x.startsWith(scope));
   check(file + ': alle Regeln nur bei ' + scope, sel.length > 0 && loose.length === 0, loose.join(' | '));

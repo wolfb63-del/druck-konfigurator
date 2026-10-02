@@ -45,11 +45,13 @@ const Stability = (() => {
     render();
     if (mode !== 'stability' || !g) { Viewer.colorize(+$('thresh').value); return; }
     const r = cached(g);
-    if (r) { Viewer.colorizeClasses(r.cls); $('stabInfo').textContent = summary(r); return; }
+    if (r) { Viewer.colorizeClasses(r.cls); $('stabInfo').textContent = summary(r); $('stabInfo').classList.remove('busy'); return; }
     $('stabInfo').textContent = 'Stabilität wird berechnet …';
+    $('stabInfo').classList.add('busy');   // Fortschrittsbalken (css/ui-neu.css)
     const ticket = ++pending;
     setTimeout(() => {
       if (ticket !== pending || g !== geom || mode !== 'stability') return;   // inzwischen anderes Teil/Modus
+      $('stabInfo').classList.remove('busy');
       try {
         const res = resultFor(g);
         Viewer.colorizeClasses(res.cls);
