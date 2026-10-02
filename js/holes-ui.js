@@ -1,7 +1,8 @@
 'use strict';
 /* Bohrlöcher verstärken – nur als Vorschlag (Entscheidung 2026-09-26): erkannte Löcher des gewählten
    Teils mit Häkchen; angehakte bekommen beim 3MF-Export einen Orca-Modifikator mit 100 % Füllung.
-   Nach einer Drehung wird neu erkannt und die Auswahl zurückgesetzt (die Lage der Löcher ändert sich). */
+   Nach einer Drehung wird neu erkannt und die Auswahl zurückgesetzt (die Lage der Löcher ändert sich).
+   Auch für übernommene Orca-/Bambu-3MF: export3mf.js hängt die Modifikatoren dort ans Objekt an. */
 
 const AXIS_LABEL = { z: 'senkrecht', x: 'waagerecht (X)', y: 'waagerecht (Y)' };
 
@@ -12,7 +13,7 @@ function partHoles(part) {
 
 function renderHoles() {
   const box = $('holeBox'), part = project && project.parts[project.selected];
-  const usable = !!part && !project.threemf;
+  const usable = !!part;
   box.classList.toggle('hidden', !usable);
   if (!usable) return;
   const cands = partHoles(part), chosen = new Set((part.holes || []).map(h => h.id)), g = part.geom;

@@ -391,6 +391,110 @@ function patchPartExtruder(ms, objectId, partId, extruder) {
   });
 }
 
+/* Umkehrung einer 3MF-Transformation (Zeilenvektoren: p' = p·M + t, Werte wie in import.js) */
+function invertTransform(t) {
+  const [a, b, c, d, e, f, g, h, i] = t;
+  const A = e * i - f * h, B = f * g - d * i, C = d * h - e * g, det = a * A + b * B + c * C;
+  if (!Number.isFinite(det) || Math.abs(det) < 1e-12) return null;
+  const m = [A, c * h - b * i, b * f - c * e, B, a * i - c * g, c * d - a * f, C, b * g - a * h, a * e - b * d].map(v => v / det);
+  const [x, y, z] = [t[9], t[10], t[11]];
+  return { m: [...m, -(x * m[0] + y * m[3] + z * m[6]), -(x * m[1] + y * m[4] + z * m[7]), -(x * m[2] + y * m[5] + z * m[8])], mirrored: det < 0 };
+}
+// Dreiecke (Bett-Koordinaten) ins Objekt-Koordinatensystem; bei Spiegelung Umlaufsinn tauschen, damit die Normalen nach außen zeigen
+function toObjectFrame(pos, inv) {
+  const T = inv.m, out = new Float32Array(pos.length);
+  for (let i = 0; i < pos.length; i += 3) {
+    const x = pos[i], y = pos[i + 1], z = pos[i + 2];
+    out[i] = x * T[0] + y * T[3] + z * T[6] + T[9]; out[i + 1] = x * T[1] + y * T[4] + z * T[7] + T[10]; out[i + 2] = x * T[2] + y * T[5] + z * T[8] + T[11];
+  }
+  if (inv.mirrored) for (let i = 0; i < out.length; i += 9) for (let k = 0; k < 3; k++) { const v = out[i + 3 + k]; out[i + 3 + k] = out[i + 6 + k]; out[i + 6 + k] = v; }
+  return out;
+}
+
+/* Bohrloch-Verstärkung in einer übernommenen 3MF (Entscheidung 2026-10-02): die Modifikator-Netze kommen
+   in eine eigene Netz-Datei, hängen als Komponente (ohne eigene Transformation) am Objekt und stehen in
+   model_settings als modifier_part. Die Löcher liegen in Bett-Koordinaten der Quelldatei; die Umkehrung
+   der Item-Transformation bringt sie ins Objekt-System. Mehrere Instanzen teilen ein Objekt: gleiche
+   Modifikatoren werden nur einmal angelegt (und gelten in Orca für alle Kopien). Ist das Objekt nicht
+   eindeutig (holeTargetOk), wird nichts angelegt – Orca würde den Zylinder sonst als festen Körper drucken.
+   Ein Modifikator aus einem früheren Export wird nicht noch einmal angelegt. Erkannt wird er an Durchmesser
+   und Lage im Objekt-System (0,1 mm), die im Namen stehen – nicht an der Loch-Nummer: die ändert sich beim
+   erneuten Einlesen, wenn Teile zusammengefasst werden (Befund der Prüfung 2026-10-02). Liegt eine Mitte
+   genau auf einer Rundungsgrenze, kann trotzdem ein zweiter entstehen – harmlos, beide 100 %. */
+// Objekt im Hauptmodell bis zum Ende seiner Komponentenliste – nie über das eigene </object> hinaus
+const rootObjectRe = oid => new RegExp('(<(?:\\w+:)?object\\b[^>]*\\bid="' + oid + '"[^>]*>(?:(?!</(?:\\w+:)?object>)[\\s\\S])*?)(</(?:\\w+:)?components>)');
+/* Darf am Objekt ein Modifikator hängen? Nur wenn alles eindeutig ist (Befunde der Prüfung 2026-10-02):
+   Hauptmodell in mm und mit p-Namensraum, Objekt aus Komponenten, und model_settings führt genau so viele
+   Teile wie Komponenten – Orca ordnet Teile und Einstellungen sonst womöglich über die Reihenfolge zu
+   (unbestätigt), und der Zylinder würde zum festen Körper.
+   Bekannte Grenze: geprüft wird nur die Einheit des Hauptmodells; die Modifikator-Netze sind in mm. Hätte eine
+   Objekt-Datei eine andere Einheit, könnte die Lage abweichen (unbestätigt, Orca/Bambu schreiben immer mm). */
+function holeTargetOk(root, ms, oid) {
+  const unit = (/<(?:\w+:)?model\b[^>]*\bunit="([^"]+)"/.exec(root) || [])[1] || 'millimeter';
+  if (unit !== 'millimeter' || !/<(?:\w+:)?model\b[^>]*\bxmlns:p="/.test(root)) return false;
+  const obj = rootObjectRe(oid).exec(root), msObj = new RegExp('<object id="' + oid + '">([\\s\\S]*?)</object>').exec(ms);
+  if (!obj || !msObj) return false;
+  const comps = (obj[1].match(/<(?:\w+:)?component\b/g) || []).length, parts = (msObj[1].match(/<part\b/g) || []).length;
+  return comps > 0 && comps === parts;
+}
+function addHoleModifiers(out, ms, items, rootPath, zipLib, notes) {
+  const withHoles = items.filter(j => j.holes && j.holes.length);
+  if (!withHoles.length) return ms;
+  const models = Object.keys(out).filter(k => /\.model$/i.test(k));
+  let nextId = 0;
+  for (const k of models) for (const m of zipLib.strFromU8(out[k]).matchAll(/<(?:\w+:)?object\b[^>]*?\bid="(\d+)"/g)) nextId = Math.max(nextId, +m[1]);
+  nextId = Math.max(nextId + 1, HOLE_MOD_ID_BASE);
+  let file = 'verstaerkung.model', n = 1;
+  while (out['3D/Objects/' + file]) file = 'verstaerkung_' + (++n) + '.model';
+  const path = '/3D/Objects/' + file;
+  let root = zipLib.strFromU8(out[rootPath]);
+  const meshes = [], byObject = new Map(), refused = new Set();
+  for (const j of withHoles) {
+    const name = j.geom.name, oid = String(j.part.objectId).replace(/[^\w-]/g, '');
+    const inv = j.part.transform ? invertTransform(j.part.transform) : null;
+    if (!byObject.has(oid) && !(inv && holeTargetOk(root, ms, oid))) {
+      if (!refused.has(oid)) notes.push(name + ': Lochverstärkung in dieser 3MF nicht möglich – bitte in Orca einen Modifikator setzen.');
+      refused.add(oid);
+      continue;
+    }
+    if (!inv || refused.has(oid)) continue;
+    const msObj = (new RegExp('<object id="' + oid + '">[\\s\\S]*?</object>').exec(ms) || [''])[0];
+    const seen = byObject.get(oid) || byObject.set(oid, { keys: new Set(), mods: [] }).get(oid);
+    for (const h of j.holes) {
+      const pos = toObjectFrame(holeModifierMesh(h), inv);
+      const mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < pos.length; i++) { const a = i % 3; mn[a] = Math.min(mn[a], pos[i]); mx[a] = Math.max(mx[a], pos[i]); }
+      const where = '(Ø ' + de(2 * h.r, 1) + ' mm, bei ' + [0, 1, 2].map(a => de(Math.round((mn[a] + mx[a]) * 5) / 10 || 0, 1)).join(' / ') + ')';
+      if (msObj.includes(xmlEsc(where) + '"')) continue;   // schon aus einem früheren Export vorhanden
+      const label = 'Verstärkung Loch ' + h.id + ' ' + where;
+      const key = mn.concat(mx).map(v => Math.round(v * 100)).join(',');
+      if (seen.keys.has(key)) continue;
+      seen.keys.add(key);
+      const id = nextId++;
+      meshes.push(meshObjectXML(pos, [0, 0, 0], id));
+      seen.mods.push({ id, name: label });
+    }
+  }
+  if (!meshes.length) return ms;
+  for (const [oid, { mods }] of byObject) {
+    if (!mods.length) continue;
+    const copies = new Set(items.filter(j => String(j.part.objectId) === oid).map(j => j.part.instance || 0)).size;
+    if (copies > 1) notes.push(withHoles.find(j => String(j.part.objectId) === oid).geom.name + ': steht ' + copies + '-mal auf dem Bett – die Lochverstärkung gilt für alle Kopien (Orca hängt sie ans Objekt).');
+    const comps = mods.map(m => '    <component p:path="' + path + '" objectid="' + m.id + '" p:UUID="' + uuid(m.id, 'b206-40ff-9872-83e8017abed1') + '" transform="1 0 0 0 1 0 0 0 1 0 0 0"/>\n').join('');
+    root = root.replace(rootObjectRe(oid), (all, body, close) => body + comps + close);
+    const parts = mods.map(m => '    <part id="' + m.id + '" subtype="modifier_part">\n      <metadata key="name" value="' + xmlEsc(m.name) + '"/>\n      <metadata key="matrix" value="1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1"/>\n' +
+      HOLE_MOD_SETTINGS.map(([k, v]) => '      <metadata key="' + k + '" value="' + v + '"/>\n').join('') + '    </part>\n').join('');
+    ms = ms.replace(new RegExp('(<object id="' + oid + '">[\\s\\S]*?)(</object>)'), (all, body, close) => body + parts + '  ' + close);
+  }
+  out[rootPath] = zipLib.strToU8(root);
+  out['3D/Objects/' + file] = zipLib.strToU8(XML_HEAD + MODEL_OPEN + ' <metadata name="BambuStudio:3mfVersion">1</metadata>\n <resources>\n' + meshes.join('') + ' </resources>\n <build/>\n</model>\n');
+  const relsPath = '3D/_rels/3dmodel.model.rels', rel = ' <Relationship Target="' + path + '" Id="rel-verstaerkung-' + n + '" Type="' + REL_TYPE + '"/>\n';
+  out[relsPath] = zipLib.strToU8(out[relsPath]
+    ? zipLib.strFromU8(out[relsPath]).replace(/<\/Relationships>/, rel + '</Relationships>')
+    : XML_HEAD + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n' + rel + '</Relationships>\n');
+  return ms;
+}
+
 /* jobs: [{geom, r, slot, part:{objectId, partId?, plate}}] wie aus partJobs(); threemf = Import-Ergebnis mit zip.
    partId: Teil eines mehrfarbigen Objekts (import.js) – dessen Slot wird am Teil selbst gesetzt. */
 function build3mfFromProject(tpl, r, jobs, slot, zipLib, liveSlots, threemf) {
@@ -438,6 +542,7 @@ function build3mfFromProject(tpl, r, jobs, slot, zipLib, liveSlots, threemf) {
     if (!new RegExp('<object id="' + esc + '">').test(ms)) { notes.push(j.geom.name + ': keine Objekt-Einstellungen in der 3MF – Slot und eigene Werte bitte in Orca prüfen.'); continue; }
     ms = ms.replace(new RegExp('(<object id="' + esc + '">)([\\s\\S]*?)(?=<part\\b|</object>)'), (all, open, body) => patchObjectHead(open + body, Math.min(partSlot(j), nFil - 1) + 1, own, computedKeys));
   }
+  ms = addHoleModifiers(out, ms, items, rootPath, zipLib, notes);
   out['Metadata/model_settings.config'] = zipLib.strToU8(ms);
   return { bytes: zipLib.zipSync(out, { level: 6 }), changes, objectChanges, notes, plateCount: shifts.size };
 }

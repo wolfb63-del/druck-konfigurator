@@ -23,7 +23,7 @@ async function loadFiles(files){
     const entries=await Promise.all(files.map(async f=>({name:f.name,bytes:await readBytes(f)})));
     const imp=importModels(entries,fflate);
     // slot: 0-basiert oder null (= Slot aus dem Export-Dialog); 3MF-Teile behalten den Slot des Designers
-    const parts=imp.parts.map((p,i)=>({id:i,name:p.name,origPos:p.pos,R:IDENTITY3,geom:makeGeom(p.name,p.pos),slot:p.extruder?p.extruder-1:null,plate:p.plate||1,objectId:p.objectId||null,partId:p.partId||null,partIds:p.partIds||null,instance:p.instance||0,input:null}));
+    const parts=imp.parts.map((p,i)=>({id:i,name:p.name,origPos:p.pos,R:IDENTITY3,geom:makeGeom(p.name,p.pos),slot:p.extruder?p.extruder-1:null,plate:p.plate||1,objectId:p.objectId||null,partId:p.partId||null,partIds:p.partIds||null,instance:p.instance||0,transform:p.transform||null,input:null}));
     showProject({name:imp.name,parts,threemf:imp.threemf,notes:imp.notes});
   }catch(e){
     $('fileinfo').textContent='Modell konnte nicht gelesen werden: '+e.message+'. Bitte die Datei prüfen oder erneut exportieren.';
