@@ -226,6 +226,9 @@ Ist eine Platte größer als dein Bett, erscheint ein Hinweis.
 - 3MF-Export nur mit **0,4-mm-Düse** (dafür gibt es die Orca-Vorlagen).
 - Bohrlöcher werden nur erkannt, wenn sie rund sind und entlang einer Achse des Teils verlaufen (bis etwa 3° Neigung). Schräge Löcher, Sechskant-Aussparungen für Muttern und Senkungen erscheinen nicht in der Liste.
 - Die Überhang-Erkennung ist eine Geometrie-Näherung. Bei beschädigten Netzen (verdrehte Flächen) kann ein Überhang übersehen werden.
+- Die **Stabilitäts-Analyse** ist eine Heuristik (Wandstärke und Schlankheit in Z), keine Festigkeitsrechnung – Bestätigung bringt nur ein Testdruck. Bekannte Lücken:
+  - Steht ein Teilstück im Loch eines anderen (z. B. Stift in einem Rohr), kann die Höhe des Materials darüber zu hoch geschätzt werden; die Stelle wirkt dann schwächer, als sie ist.
+  - Sehr dünne waagerechte Strukturen (dünner als 0,2 mm, bei hohen Teilen etwas mehr) werden bei der Prüfung in Z übersehen. Als dünne Wand werden sie trotzdem markiert.
 
 ---
 
