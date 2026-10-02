@@ -63,8 +63,40 @@ const Stability = (() => {
 
   function setMode(m) { mode = m; paint(geom); }
 
+  /* Kennzahl für die Teileliste. Noch nicht berechnete Teile werden nacheinander im Hintergrund
+     gerechnet (je Teil ein eigener Takt, damit die Seite zwischendurch reagiert); danach wird die
+     Liste neu gezeichnet. */
+  const queue = [];
+  let running = false;
+  function schedule(g, onDone) {
+    if (!queue.some(q => q.g === g)) queue.push({ g, onDone });
+    if (running) return;
+    running = true;
+    const next = () => {
+      const job = queue.shift();
+      if (!job) { running = false; return; }
+      setTimeout(() => {
+        // Teil gehört nicht mehr zum geladenen Projekt (neue Datei, gedreht) → überspringen
+        const stale = typeof project !== 'undefined' && (!project || !project.parts.some(p => p.geom === job.g));
+        if (!stale) try { resultFor(job.g); } catch (e) { cache.set(job.g, { lw: lineWidth(), result: null, error: e.message }); }
+        if (!queue.length) job.onDone();
+        next();
+      }, 0);
+    };
+    next();
+  }
+  const SHORT = { ok: 'stabil', warn: 'schwach', critical: 'kritisch' };
+  function badge(g, onDone) {
+    const e = g && cache.get(g), r = cached(g);
+    if (e && e.lw === lineWidth() && e.error) return '<span class="pstab err" title="' + esc(e.error) + '">Stabilität ?</span>';
+    if (!r) { schedule(g, onDone); return '<span class="pstab wait">Stabilität …</span>'; }
+    const thin = r.reasons.includes('thin') && r.minThick !== null, z = r.reasons.includes('z');
+    const detail = (thin ? ' · ' + de(r.minThick, 1) + ' mm' : '') + (z ? (thin ? ' · Z' : ' · in Z') : '');
+    return '<span class="pstab ' + r.level + '" title="' + esc(summary(r)) + '">' + SHORT[r.level] + detail + '</span>';
+  }
+
   $('viewMode').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setMode(b.dataset.view); });
   $('nozD').addEventListener('change', () => { if (mode === 'stability') paint(geom); });
 
-  return { paint, setMode, mode: () => mode, resultFor, cached, summary };
+  return { paint, setMode, mode: () => mode, resultFor, cached, summary, badge };
 })();

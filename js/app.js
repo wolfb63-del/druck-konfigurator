@@ -77,7 +77,7 @@ function renderPartList(){
     const slot=p.slot!=null?'<span class="pslot" style="background:'+col+'"></span>Slot '+(p.slot+1)+' · ':'';
     const plate=project.threemf&&project.threemf.plates.length>1?'Platte '+p.plate+' · ':'';
     return '<li><button type="button" data-part="'+i+'"'+(sel?' aria-current="true"':'')+' title="'+esc(p.name)+'"><span class="pname">'+esc(p.name)+'</span>'+
-      '<span class="pmeta">'+slot+plate+de(g.x,0)+'×'+de(g.y,0)+'×'+de(g.z,0)+' mm</span><span class="plevel '+lv+'">'+label[lv]+'</span></button></li>';
+      '<span class="pmeta">'+slot+plate+de(g.x,0)+'×'+de(g.y,0)+'×'+de(g.z,0)+' mm</span><span class="plevel '+lv+'">'+label[lv]+'</span>'+(typeof Stability!=='undefined'?Stability.badge(g,renderPartList):'')+'</button></li>';
   }).join('');
 }
 $('partList').addEventListener('click',e=>{const b=e.target.closest('[data-part]');if(b&&+b.dataset.part!==project.selected){selectPart(+b.dataset.part);const nb=$('partList').querySelector('[data-part="'+b.dataset.part+'"]');if(nb)nb.focus()}});

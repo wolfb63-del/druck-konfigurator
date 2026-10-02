@@ -94,6 +94,8 @@ async function runSmoke(opts={}){
   $('partList').querySelector('[data-part="1"]').click();await wait(50);
   ok($('material').value==='petg'&&$('object').value==='holder'&&$('partSlot').value==='1','Teil 2: PETG, Halterung, Slot 2 gemerkt');
   ok($('partList').querySelector('[data-part="1"]').textContent.includes('Slot 2'),'Teileliste zeigt Slot von Teil 2');
+  for(let t=0;t<50&&$('partList').querySelector('.pstab.wait');t++)await wait(100);
+  ok([...$('partList').querySelectorAll('.pstab')].length===items.length&&!$('partList').querySelector('.pstab.wait,.pstab.err'),'Teileliste: Stabilitäts-Kennzahl für jedes Teil');
   const lastBefore=JSON.parse(JSON.stringify(store.last));
   menuClick('export3mf');await wait(50);
   ok(!$('partPlan').classList.contains('hidden')&&$('partPlanTable').querySelectorAll('tbody tr').length===4,'Export-Dialog: Tabelle mit 4 Teilen');

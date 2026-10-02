@@ -99,7 +99,7 @@ Körper, die sich berühren oder überlappen, bleiben ein Teil – z. B. Hohlkö
 
 ## 4. Mehrere Teile
 
-Bei mehreren Teilen erscheint in der Modellkarte eine **Teileliste**. Jede Zeile zeigt Name, Maße, Slot und ob das Teil Stützen braucht.
+Bei mehreren Teilen erscheint in der Modellkarte eine **Teileliste**. Jede Zeile zeigt Name, Maße, Slot, ob das Teil Stützen braucht und darunter die **Stabilität** (stabil / schwach / kritisch, dazu die dünnste Wand und „Z“ bei einer schlanken Stelle in Z; Details beim Darüberfahren). Die Stabilität wird nach dem Laden Teil für Teil im Hintergrund berechnet („Stabilität …“) – nur Hinweis, siehe 3D-Ansicht.
 
 - **Anklicken wählt ein Teil.** Das Formular links, das Datenblatt und die 3D-Ansicht gelten dann für dieses Teil – oben im Formular steht **„Einstellungen für Teil“** mit dem Namen.
 - Jedes Teil merkt sich **eigenes Filament, Objektart, Priorität, Belastung, Support und Stützreduzierung**.

@@ -185,6 +185,13 @@ body.dragging .model-card { border-color: var(--accent); background: var(--accen
 .plevel.none { color: var(--ok); background: var(--ok-soft); border-color: var(--ok-rule); }
 .plevel.few { color: var(--warn); background: var(--warn-soft); border-color: var(--warn-rule); }
 .plevel.needed { color: var(--bad); background: var(--bad-soft); border-color: var(--bad-rule); }
+/* Stabilitäts-Kennzahl unter der Stützen-Plakette */
+.part-list .plevel { grid-row: 1; }
+.part-list .pstab { grid-row: 2; grid-column: 2; justify-self: end; font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+.pstab.ok { color: var(--ok); background: var(--ok-soft); border-color: var(--ok-rule); }
+.pstab.warn { color: var(--warn); background: var(--warn-soft); border-color: var(--warn-rule); }
+.pstab.critical { color: var(--bad); background: var(--bad-soft); border-color: var(--bad-rule); }
+.pstab.wait, .pstab.err { color: var(--ink-3); border-color: var(--rule); border-style: dashed; }
 /* Lage auf dem Bett */
 .orient { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--rule); }
 .orient-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
