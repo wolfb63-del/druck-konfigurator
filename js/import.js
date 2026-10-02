@@ -126,7 +126,7 @@ function parseModelSettings(text) {
   const meta = (xml, key) => { const m = new RegExp('<metadata key="' + key + '" value="([^"]*)"').exec(xml); return m ? m[1] : null; };
   for (const m of text.matchAll(blockRe('object'))) {
     const head = m[2].split('<part')[0], parts = new Map();
-    for (const p of m[2].matchAll(blockRe('part'))) { const pa = attrsOf(p[1] || ''); parts.set(pa.id, { subtype: pa.subtype || 'normal_part', extruder: meta(p[2], 'extruder') }); }
+    for (const p of m[2].matchAll(blockRe('part'))) { const pa = attrsOf(p[1] || ''); parts.set(pa.id, { subtype: pa.subtype || 'normal_part', extruder: meta(p[2], 'extruder'), name: meta(p[2], 'name') }); }
     objects.set(attrsOf(m[1] || '').id, { name: meta(head, 'name'), extruder: meta(head, 'extruder'), parts });
   }
   for (const m of text.matchAll(/<plate>([\s\S]*?)<\/plate>/g)) {
@@ -180,13 +180,40 @@ function parse3MF(fileName, zip, zipLib) {
     const skipPart = pid => { const p = ms && ms.parts.get(pid); const skip = !!p && p.subtype !== 'normal_part'; if (skip) skipped++; return skip; };
     const instance = seen.get(item.objectid) || 0;
     seen.set(item.objectid, instance + 1);
+    const objName = unxml((ms && ms.name) || obj.name || 'Objekt ' + item.objectid);
+    const plate = plateOf.get(item.objectid + '#' + instance) || 1;
+    /* Mehrfarbig aus Teilen: ein Objekt, dessen druckbare Teile verschiedene Slots haben (z. B. Schild in
+       Weiß + Relief in Schwarz), wird je Teil einzeln geführt – sonst gingen Slots und Farben im Tool
+       verloren und die berechneten Werte landeten im Slot des Objekts statt in den gedruckten Slots
+       (gemeldet 2026-10-01). partId = id des Teils in model_settings.config, für den Export. */
+    const normal = ms ? [...ms.parts].filter(([, p]) => p.subtype === 'normal_part') : [];
+    const slotOf = p => +(p.extruder || (ms && ms.extruder) || 0) || null;
+    if (obj.components.length > 1 && normal.length > 1 && new Set(normal.map(([, p]) => slotOf(p))).size > 1) {
+      for (const c of obj.components) {
+        const p = ms.parts.get(c.objectid);
+        if (p && p.subtype !== 'normal_part') { skipped++; continue; }
+        const out = [];
+        collect(c.path ? c.path.replace(/^\//, '') : rootPath, c.objectid, mulTransform(c.transform, item.transform), () => false, out, 1);
+        if (!out.length) continue;
+        parts.push({
+          name: objName + ' · ' + unxml((p && p.name) || 'Teil ' + c.objectid),
+          pos: Float32Array.from(out), objectId: item.objectid, partId: c.objectid, instance,
+          extruder: p ? slotOf(p) : (ms && ms.extruder ? +ms.extruder : null), plate, printable: item.printable
+        });
+      }
+      return;
+    }
     const out = [];
     collect(rootPath, item.objectid, item.transform, skipPart, out, 0);
     if (!out.length) return;
+    // Alle Teile mit demselben eigenen Slot: der gilt (Orca nimmt den Teil-Slot vor dem Objekt-Slot), und
+    // beim Export muss ein geänderter Slot auch an diesen Teilen gesetzt werden (partIds)
+    const own = normal.filter(([, p]) => p.extruder).map(([id]) => id);
+    const common = own.length && own.length === normal.length ? slotOf(ms.parts.get(own[0])) : null;
     parts.push({
-      name: unxml((ms && ms.name) || obj.name || 'Objekt ' + item.objectid),
-      pos: Float32Array.from(out), objectId: item.objectid, instance,
-      extruder: ms && ms.extruder ? +ms.extruder : null, plate: plateOf.get(item.objectid + '#' + instance) || 1, printable: item.printable
+      name: objName,
+      pos: Float32Array.from(out), objectId: item.objectid, instance, partIds: own.length ? own : undefined,
+      extruder: common || (ms && ms.extruder ? +ms.extruder : null), plate, printable: item.printable
     });
   });
   if (!parts.length) throw Error('keine druckbaren Objekte in ' + fileName);

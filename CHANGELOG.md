@@ -2,6 +2,11 @@
 
 Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](https://semver.org/lang/de/): Hauptversion bei grundlegenden Änderungen, Nebenversion bei neuen Funktionen, Patch bei Fehlerbehebungen.
 
+## [Unreleased]
+
+### Behoben
+- **Mehrfarbige 3MF aus Teilen** (ein Objekt, dessen Teile verschiedene Slots haben, z. B. Schild in Weiß + Relief in Schwarz): wurden im Tool zu einem Teil zusammengefasst, Farben/Slots waren nicht sichtbar, und die berechneten Filamentwerte landeten im Slot des Objekts statt in den tatsächlich gedruckten Slots. Jetzt erscheint jedes Teil einzeln mit Namen und Slot (Teileliste, 3D-Ansicht), der Slot lässt sich je Teil ändern, und der Export setzt ihn am Teil selbst. Gegen die Orca-CLI geprüft: Druck bleibt zweifarbig, ein umgestellter Slot kommt im G-Code an.
+
 ## [6.4.1] – 2026-09-30
 
 ### Behoben

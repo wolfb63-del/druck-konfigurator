@@ -381,7 +381,18 @@ function patchObjectHead(head, extruder, own, computedKeys) {
   return h;
 }
 
-/* jobs: [{geom, r, slot, part:{objectId, plate}}] wie aus partJobs(); threemf = Import-Ergebnis mit zip. */
+// Slot eines einzelnen Teils (<part id> innerhalb von <object id>) in model_settings.config setzen
+function patchPartExtruder(ms, objectId, partId, extruder) {
+  const oe = String(objectId).replace(/[^\w-]/g, ''), pe = String(partId).replace(/[^\w-]/g, '');
+  return ms.replace(new RegExp('(<object id="' + oe + '">[\\s\\S]*?<part id="' + pe + '"[^>]*>)([\\s\\S]*?)(</part>)'), (all, open, body, close) => {
+    const re = /(<metadata key="extruder" value=")[^"]*(")/;
+    if (re.test(body)) return open + body.replace(re, '$1' + extruder + '$2') + close;
+    return open + '\n      <metadata key="extruder" value="' + extruder + '"/>' + body + close;
+  });
+}
+
+/* jobs: [{geom, r, slot, part:{objectId, partId?, plate}}] wie aus partJobs(); threemf = Import-Ergebnis mit zip.
+   partId: Teil eines mehrfarbigen Objekts (import.js) – dessen Slot wird am Teil selbst gesetzt. */
 function build3mfFromProject(tpl, r, jobs, slot, zipLib, liveSlots, threemf) {
   const items = jobs.map(j => ({ ...j, plate: j.part && j.part.plate }));
   const { extra, notes, partSlot } = slotPlan(items, r, slot);
@@ -418,6 +429,7 @@ function build3mfFromProject(tpl, r, jobs, slot, zipLib, liveSlots, threemf) {
   let ms = zipLib.strFromU8(out['Metadata/model_settings.config'] || zipLib.strToU8('<?xml version="1.0" encoding="UTF-8"?>\n<config>\n</config>\n'));
   const done = new Set(); // Objekt mit mehreren Instanzen nur einmal anpassen
   for (const j of items) {
+    for (const pid of j.part.partId ? [j.part.partId] : j.part.partIds || []) ms = patchPartExtruder(ms, j.part.objectId, pid, Math.min(partSlot(j), nFil - 1) + 1);
     if (done.has(j.part.objectId)) continue;
     done.add(j.part.objectId);
     const own = objectOverrides(settings, j.r);

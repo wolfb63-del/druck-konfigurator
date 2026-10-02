@@ -86,6 +86,29 @@ check('3MF Slot/Platte', halter && halter.extruder === 2 && halter.plate === 1 &
 check('3MF Modifier-Hinweis', r.notes.some(n => /Modifier/.test(n)), r.notes.join('|'));
 check('3MF threemf', r.threemf && r.threemf.plates.length === 2 && r.threemf.settings.printer_settings_id.indexOf('Bambu') === 0);
 
+// 5b) Mehrfarbig aus Teilen (gemeldet 2026-10-01, Hausschild): ein Objekt, zwei druckbare Teile mit
+//     verschiedenen Slots → zwei Teile im Tool, mit partId und Slot je Teil; gleiche Slots → bleibt ein Teil
+const twoColour = (exA, exB) => fflate.zipSync({
+  '_rels/.rels': u8('<Relationships><Relationship Target="/3D/3dmodel.model" Id="rel-1"/></Relationships>'),
+  '3D/3dmodel.model': u8('<?xml version="1.0"?><model unit="millimeter" xmlns:p="x"><resources><object id="3" type="model"><components>' +
+    '<component p:path="/3D/Objects/object_1.model" objectid="1" transform="1 0 0 0 1 0 0 0 1 0 0 0"/>' +
+    '<component p:path="/3D/Objects/object_1.model" objectid="2" transform="1 0 0 0 1 0 0 0 0.5 0 0 4"/></components></object></resources>' +
+    '<build><item objectid="3" transform="1 0 0 0 1 0 0 0 1 100 50 2"/></build></model>'),
+  '3D/Objects/object_1.model': u8(objFile),
+  'Metadata/model_settings.config': u8('<?xml version="1.0"?><config><object id="3"><metadata key="name" value="Schild"/><metadata key="extruder" value="1"/>' +
+    '<part id="1" subtype="normal_part"><metadata key="name" value="Platte"/><metadata key="extruder" value="' + exA + '"/></part>' +
+    '<part id="2" subtype="normal_part"><metadata key="name" value="Relief"/><metadata key="extruder" value="' + exB + '"/></part></object>' +
+    '<plate><metadata key="plater_id" value="1"/><model_instance><metadata key="object_id" value="3"/></model_instance></plate></config>'),
+  'Metadata/project_settings.config': u8('{"printer_settings_id":"Snapmaker U1"}')
+});
+r = imp([{ name: 'schild.3mf', bytes: twoColour(4, 3) }]);
+check('Mehrfarbig: zwei Teile', r.parts.length === 2, r.parts.length);
+check('Mehrfarbig: Namen, Slots, partId', r.parts.length === 2 && r.parts[0].name === 'Schild · Platte' && r.parts[0].extruder === 4 && r.parts[0].partId === '1' &&
+  r.parts[1].name === 'Schild · Relief' && r.parts[1].extruder === 3 && r.parts[1].partId === '2', r.parts.map(p => p.name + '/' + p.extruder + '/' + p.partId).join(' | '));
+check('Mehrfarbig: Teil-Transformation (Relief halb so hoch)', r.parts.length === 2 && dims(r.parts[1].pos) === '2x2x1', r.parts[1] && dims(r.parts[1].pos));
+r = imp([{ name: 'schild.3mf', bytes: twoColour(2, 2) }]);
+check('Gleicher Slot je Teil: ein Teil, Slot der Teile (2) statt Objekt-Slot (1)', r.parts.length === 1 && !r.parts[0].partId && r.parts[0].extruder === 2 && String(r.parts[0].partIds) === '1,2', r.parts.map(p => p.extruder + '/' + p.partIds).join());
+
 // 6) ZIP mit einer 3MF und STLs → 3MF hat Vorrang
 r = imp([{ name: 'mw.zip', bytes: fflate.zipSync({ 'projekt.3mf': tmf, 'teil.stl': stlBytes(boxTris(0, 0, 0, 5, 5, 5)) }) }]);
 check('ZIP: 3MF hat Vorrang', r.parts.length === 2 && r.threemf && r.notes.some(n => /ignoriert/.test(n)), r.notes.join('|'));

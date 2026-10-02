@@ -25,7 +25,8 @@ f.onload=()=>{const w=f.contentWindow,d=w.document;
  const htris=plateHole(40,6,2.5,20,20,32),hbuf=new ArrayBuffer(84+htris.length*50),hdv=new DataView(hbuf);hdv.setUint32(80,htris.length,true);htris.forEach((t,i)=>t.flat().forEach((c,j)=>hdv.setFloat32(84+i*50+12+j*4,c,true)));
  if(q.get('printer'))d.querySelector('.printer-switch [data-printer="'+q.get('printer')+'"]').click();
  // model=N: N Pilze als Teile (Teileliste); hole=1: Platte mit Ø5-Loch statt Pilz
- const loaded=q.get('hole')?w.loadFiles([new w.File([hbuf],'platte-loch.stl')]):q.get('model')?w.loadFiles(Array.from({length:Math.max(1,+q.get('model')||1)},(_,i)=>new w.File([buf],i?'pilz-'+(i+1)+'.stl':'pilz.stl'))):Promise.resolve();
+ // file=<Name>: Datei aus tests/ laden (z. B. eine echte 3MF, vorübergehend hineinkopiert)
+ const loaded=q.get('file')?fetch(q.get('file')).then(r=>r.arrayBuffer()).then(b=>w.loadFiles([new w.File([b],q.get('file'))])):q.get('hole')?w.loadFiles([new w.File([hbuf],'platte-loch.stl')]):q.get('model')?w.loadFiles(Array.from({length:Math.max(1,+q.get('model')||1)},(_,i)=>new w.File([buf],i?'pilz-'+(i+1)+'.stl':'pilz.stl'))):Promise.resolve();
  loaded.then(()=>{
   if(q.get('scroll'))w.document.querySelector('.inputs').scrollIntoView();if(q.get('card'))d.getElementById('modelCard').scrollIntoView();
   if(q.get('tab')==='3d')d.getElementById('tab3d').click();
