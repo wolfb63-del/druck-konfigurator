@@ -161,8 +161,18 @@ const ACTIONS={
   profiles:()=>{renderMyList();$('profilesDlg').showModal()},
   help:()=>$('helpDlg').showModal(),
   disclaimer:()=>{if($('helpDlg').open)$('helpDlg').close();$('disclaimerDlg').showModal()},
-  privacy:()=>{if($('helpDlg').open)$('helpDlg').close();$('privacyDlg').showModal()}
+  privacy:()=>{if($('helpDlg').open)$('helpDlg').close();$('privacyDlg').showModal()},
+  copymail:()=>copyText(CONTACT_MAIL,'Adresse kopiert: '+CONTACT_MAIL)
 };
+/* Kontakt nur zum Kopieren statt mailto: – ein mailto-Link öffnet das Standard-Mailprogramm von Windows
+   (oft Outlook), auch wenn jemand im Browser mailt (gemeldet 2026-10-02). */
+const CONTACT_MAIL='bw.3d.druck@gmail.com';
+function copyText(text,msg){
+  const fallback=()=>{const t=document.createElement('textarea');t.value=text;t.setAttribute('readonly','');t.style.position='fixed';t.style.opacity='0';
+    document.body.appendChild(t);t.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}t.remove();
+    toast(ok?msg:'Kopieren nicht möglich – Adresse: '+text)};
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(text).then(()=>toast(msg),fallback);else fallback();
+}
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-action]');if(a&&ACTIONS[a.dataset.action])ACTIONS[a.dataset.action]();
   const c=e.target.closest('[data-click]');if(c)$(c.dataset.click).click();
