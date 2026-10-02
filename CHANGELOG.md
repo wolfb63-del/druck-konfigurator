@@ -11,6 +11,7 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 - **Bohrlöcher verstärken auch bei 3MF-Projekten** (Orca, Bambu Studio, Makerworld): Der Kasten erscheint jetzt auch dort; angehakte Löcher bekommen in der übernommenen Datei einen Orca-Modifikator mit 100 % Füllung. Lage, Platten und Farben des Designers bleiben.
 
 ### Geändert
+- **Kontakt:** Die E-Mail-Adresse steht als Text mit **Kopieren**-Knopf da statt als mailto-Link – der öffnete immer das Standard-Mailprogramm von Windows (oft Outlook), auch bei Nutzern, die im Browser mailen.
 - **Einfache 3MF** ohne Orca-/Bambu-Projektdaten (z. B. aus Cura, PrusaSlicer, CAD) werden wie eine STL behandelt: nur die Form, mit Lage-Tasten und Lochverstärkung. Eine Bemalung aus PrusaSlicer geht dabei verloren.
 
 ### Behoben
