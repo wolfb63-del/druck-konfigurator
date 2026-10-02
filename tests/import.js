@@ -123,6 +123,28 @@ const inchModel = '<?xml version="1.0"?><m:model unit="inch" xmlns:m="x"><m:reso
 r = imp([{ name: 'zoll.3mf', bytes: fflate.zipSync({ '3D/3dmodel.model': u8(inchModel) }) }]);
 { const g = r.parts[0] && K.makeGeom('z', r.parts[0].pos);
   check('Zoll-3MF mit Präfixen: 25,4 mm groß, um 50,8 mm verschoben', g && Math.abs(g.x - 25.4) < 1e-3 && Math.abs(g.mn[0] - 50.8) < 1e-3, g && g.x + ' / ' + g.mn[0]); }
+// 6c) Einfache 3MF ohne model_settings.config (Cura, PrusaSlicer, CAD) → wie STL, kein Projekt (2026-10-02)
+check('Einfache 3MF: kein Projekt, Hinweis', r.threemf === null && r.notes.some(n => /Einfache 3MF/.test(n)), r.notes.join('|'));
+// 6d) Befund 2026-10-02: gespiegeltes Item (x → −x) – Normalen müssen nach außen zeigen (Volumen > 0, Soll 2·3·4 = 24)
+r = imp([{ name: 'spiegel.3mf', bytes: fflate.zipSync({ '3D/3dmodel.model': u8('<?xml version="1.0"?><model unit="millimeter"><resources>' +
+  meshXml(1, boxTris(0, 0, 0, 2, 3, 4)) + '</resources><build><item objectid="1" transform="-1 0 0 0 1 0 0 0 1 10 0 0"/></build></model>') }) }]);
+{ const p = r.parts[0].pos; let vol = 0;
+  for (let i = 0; i < p.length; i += 9) vol += (p[i] * (p[i + 4] * p[i + 8] - p[i + 5] * p[i + 7]) - p[i + 1] * (p[i + 3] * p[i + 8] - p[i + 5] * p[i + 6]) + p[i + 2] * (p[i + 3] * p[i + 7] - p[i + 4] * p[i + 6])) / 6;
+  check('Gespiegeltes 3MF-Item: Normalen nach außen (Volumen +24)', Math.abs(vol - 24) < 1e-3, vol); }
+// 6e) Prüf-Agent 2026-10-02: Spiegelung in Komponenten, doppelt (hebt sich auf) und verschachtelt über drei Ebenen.
+//     Sollwert unverändert aus der Konstruktion: Quader 2·3·4 → Volumen +24, egal wie oft gespiegelt wird
+const volOf = p => { let v = 0; for (let i = 0; i < p.length; i += 9) v += (p[i] * (p[i + 4] * p[i + 8] - p[i + 5] * p[i + 7]) - p[i + 1] * (p[i + 3] * p[i + 8] - p[i + 5] * p[i + 6]) + p[i + 2] * (p[i + 3] * p[i + 7] - p[i + 4] * p[i + 6])) / 6; return v; };
+const mirrorCase = (objs, item) => imp([{ name: 'spiegel2.3mf', bytes: fflate.zipSync({ '3D/3dmodel.model': u8('<?xml version="1.0"?><model unit="millimeter"><resources>' +
+  meshXml(1, boxTris(0, 0, 0, 2, 3, 4)) + objs + '</resources><build><item objectid="' + item[0] + '" transform="' + item[1] + '"/></build></model>') }) }]);
+const comp = (id, ref, t) => '<object id="' + id + '" type="model"><components><component objectid="' + ref + '" transform="' + t + '"/></components></object>';
+for (const [name, objs, item] of [
+  ['Komponente gespiegelt (x)', comp(2, 1, '-1 0 0 0 1 0 0 0 1 0 0 0'), [2, '1 0 0 0 1 0 0 0 1 10 10 0']],
+  ['Komponente und Item gespiegelt (doppelt)', comp(2, 1, '-1 0 0 0 1 0 0 0 1 0 0 0'), [2, '-1 0 0 0 1 0 0 0 1 10 10 0']],
+  ['drei Ebenen gespiegelt (z, y, x)', comp(2, 1, '1 0 0 0 1 0 0 0 -1 0 0 4') + comp(3, 2, '1 0 0 0 -1 0 0 0 1 0 3 0'), [3, '-1 0 0 0 1 0 0 0 1 10 10 0']]]) {
+  r = mirrorCase(objs, item);
+  const v = r.parts.length === 1 ? volOf(r.parts[0].pos) : NaN;
+  check('Spiegelung, ' + name + ': Volumen +24', Math.abs(v - 24) < 1e-3, r.parts.length + ' Teile, Volumen ' + v);
+}
 
 // 7) Fehlerfälle
 let err = '';

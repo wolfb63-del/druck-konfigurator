@@ -159,7 +159,11 @@ function parse3MF(fileName, zip, zipLib) {
     if (!obj) throw Error('Objekt ' + id + ' fehlt in ' + path);
     if (obj.mesh) {
       const { v, t } = obj.mesh;
-      for (let i = 0; i < t.length; i++) {
+      // Gespiegelt (Determinante < 0): Umlaufsinn tauschen, sonst zeigen die Normalen nach innen
+      const det = T[0] * (T[4] * T[8] - T[5] * T[7]) - T[1] * (T[3] * T[8] - T[5] * T[6]) + T[2] * (T[3] * T[7] - T[4] * T[6]);
+      const order = det < 0 ? [0, 2, 1] : [0, 1, 2];
+      for (let j = 0; j < t.length; j++) {
+        const i = j - j % 3 + order[j % 3];
         const k = t[i] * 3, x = v[k], y = v[k + 1], z = v[k + 2];
         out.push(x * T[0] + y * T[3] + z * T[6] + T[9], x * T[1] + y * T[4] + z * T[7] + T[10], x * T[2] + y * T[5] + z * T[8] + T[11]);
       }
@@ -197,7 +201,7 @@ function parse3MF(fileName, zip, zipLib) {
         if (!out.length) continue;
         parts.push({
           name: objName + ' · ' + unxml((p && p.name) || 'Teil ' + c.objectid),
-          pos: Float32Array.from(out), objectId: item.objectid, partId: c.objectid, instance,
+          pos: Float32Array.from(out), objectId: item.objectid, partId: c.objectid, instance, transform: item.transform,
           extruder: p ? slotOf(p) : (ms && ms.extruder ? +ms.extruder : null), plate, printable: item.printable
         });
       }
@@ -212,7 +216,7 @@ function parse3MF(fileName, zip, zipLib) {
     const common = own.length && own.length === normal.length ? slotOf(ms.parts.get(own[0])) : null;
     parts.push({
       name: objName,
-      pos: Float32Array.from(out), objectId: item.objectid, instance, partIds: own.length ? own : undefined,
+      pos: Float32Array.from(out), objectId: item.objectid, instance, transform: item.transform, partIds: own.length ? own : undefined,
       extruder: common || (ms && ms.extruder ? +ms.extruder : null), plate, printable: item.printable
     });
   });
@@ -220,6 +224,13 @@ function parse3MF(fileName, zip, zipLib) {
   if (skipped) notes.push(skipped + ' Modifier/Hilfskörper ausgelassen (werden nicht gedruckt).');
   let projectSettings = null;
   try { projectSettings = JSON.parse(text('Metadata/project_settings.config') || 'null'); } catch (e) { notes.push('Einstellungen der 3MF nicht lesbar – nur die Geometrie wird verwendet.'); }
+  /* Nur Orca-/Bambu-Projekte (mit model_settings.config) werden als Projekt übernommen. Einfache 3MF aus
+     Cura, PrusaSlicer oder CAD liefern nur die Form – wie eine STL, mit Lage-Tasten und Lochverstärkung
+     (Entscheidung 2026-10-02). Bemalung aus PrusaSlicer geht dabei verloren. */
+  if (!zip['Metadata/model_settings.config']) {
+    notes.push('Einfache 3MF ohne Orca-/Bambu-Projektdaten: nur die Form wird übernommen, wie bei einer STL.');
+    return { parts, notes, threemf: null };
+  }
   return { parts, notes, threemf: { name: fileName, zip, plates: settings.plates, settings: projectSettings } };
 }
 
