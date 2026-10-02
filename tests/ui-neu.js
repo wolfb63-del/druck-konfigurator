@@ -52,6 +52,14 @@ for (const [name, fg, bg, min] of cases) {
   console.log('  ' + name.padEnd(58) + (r ? r.toFixed(2) : '-') + ':1 (mind. ' + min + ')');
   check(name, r >= min, r);
 }
+// Logo-Schriftzug in der dunklen Kopfzeile (Lesbarkeit) – 12-px-Zeile braucht 4,5:1
+for (const [name, fg] of [['Logo „BW 3D-Druck“ weiß auf Kopfzeile', '#ffffff'], ['Logo-Unterzeile #bdb8ad auf Kopfzeile', '#bdb8ad']]) {
+  const r = ratio(fg, ink);
+  console.log('  ' + name.padEnd(58) + r.toFixed(2) + ':1 (mind. 4.5)');
+  check(name, r >= 4.5, r);
+}
+check('Logo im Original verborgen (hidden), in ui-neu.css eingeblendet',
+  /<span class="brand-bw" hidden>/.test(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8')) && /html\[data-ui="neu"\] \.brand-bw \{ display: flex/.test(neu));
 // Die Ausgangswerte des Reviews: ohne ui-neu.css lagen diese Stellen unter dem Mindestwert
 check('Vorher: Akzent als Fokus auf Kopfzeile < 3:1', ratio(accents.kobra, ink) < 3, ratio(accents.kobra, ink));
 check('Vorher: --rule-strong als Feldrand < 3:1', ratio(token(app, 'rule-strong'), '#ffffff') < 3);

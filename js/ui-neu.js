@@ -12,6 +12,16 @@ function applyUiMode(mode) {
   const d = document.documentElement.dataset;
   if (mode === 'original') delete d.ui; else d.ui = 'neu';
   if (mode === 'schlicht') d.stil = 'schlicht'; else delete d.stil;
+  setFavicon(mode !== 'original');
+}
+// Favicon (3D-Drucker) nur in den neuen Stufen; das Original hatte keins
+function setFavicon(on) {
+  const head = document.head, old = head && head.querySelector('link[data-ui-icon]');
+  if (!head || on === !!old) return;
+  if (!on) { old.remove(); return; }
+  const l = document.createElement('link');
+  l.rel = 'icon'; l.type = 'image/svg+xml'; l.href = 'img/favicon.svg'; l.dataset.uiIcon = '';
+  head.appendChild(l);
 }
 function setUiMode(mode) {
   applyUiMode(mode);

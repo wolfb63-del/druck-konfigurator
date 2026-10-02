@@ -52,3 +52,12 @@ html[data-ui="neu"] .sheet { grid-template-columns: 360px 300px minmax(0, 1fr); 
 @media (max-width: 1240px) {
   html[data-ui="neu"] .sheet { grid-template-columns: 360px minmax(0, 1fr); }
 }
+
+/* Logo „BW 3D-Druck“ statt Quadrat-Zeichen (img/bw-logo.svg, inline in index.html, im Original verborgen) */
+html[data-ui="neu"] .brand-mark,
+html[data-ui="neu"] .brand-text { display: none; }
+html[data-ui="neu"] .brand-bw { display: flex; align-items: center; gap: 10px; color: #fff; }
+html[data-ui="neu"] .brand-bw-mark { width: 54px; height: 36px; flex: none; }
+html[data-ui="neu"] .brand-word { display: flex; flex-direction: column; line-height: 1.15; }
+html[data-ui="neu"] .brand-word b { font-size: 15px; font-weight: 600; letter-spacing: .08em; text-transform: none; color: #fff; }
+html[data-ui="neu"] .brand-word small { font-size: 12px; letter-spacing: .06em; text-transform: none; color: #bdb8ad; }

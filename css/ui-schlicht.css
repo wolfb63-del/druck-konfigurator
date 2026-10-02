@@ -77,3 +77,8 @@ html[data-stil="schlicht"] .btn,
 html[data-stil="schlicht"] .export-cta-action .btn-accent { border-radius: 980px; padding-left: 20px; padding-right: 20px; }
 html[data-stil="schlicht"] dialog { border-radius: 18px; }
 html[data-stil="schlicht"] .ed-foot { border-radius: 0 0 18px 18px; }
+
+/* Logo in der hellen Kopfzeile dunkel */
+html[data-stil="schlicht"] .brand-bw,
+html[data-stil="schlicht"] .brand-word b { color: var(--ink); }
+html[data-stil="schlicht"] .brand-word small { color: var(--ink-3); letter-spacing: 0; }

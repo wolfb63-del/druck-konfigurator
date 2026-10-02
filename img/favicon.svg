@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="#1d1d1f" stroke-width="7" role="img" aria-label="3D-Drucker">
+  <!-- Gehäuse (Box-Drucker) mit Füßen -->
+  <rect x="10" y="8" width="80" height="80" rx="6"/>
+  <path d="M20 88 v6 M80 88 v6"/>
+  <!-- Achse oben, Druckkopf mit Düse -->
+  <path d="M10 24 H90"/>
+  <g stroke="none" fill="#1d1d1f">
+    <path d="M38 24 h22 v14 h-6 l-4 6 h-2 l-4 -6 h-6 z"/>
+    <!-- gedrucktes Teil: Lagen -->
+    <rect x="34" y="56" width="30" height="4"/>
+    <rect x="31" y="62" width="36" height="4"/>
+    <rect x="28" y="68" width="42" height="4"/>
+  </g>
+  <!-- Druckbett -->
+  <path d="M18 75.5 H82"/>
+</svg>

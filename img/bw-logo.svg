@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" fill="none" stroke="currentColor" stroke-width="9" role="img" aria-label="BW">
+  <!-- B: Stamm + zwei Bögen; im unteren Bogen hängt die Düse am Mittelsteg über den gedruckten Lagen -->
+  <path d="M14.5 10 V90 M10 10.5 H48 a17.75 17.75 0 0 1 0 35.5 H14.5 M14.5 46 H52 a21.75 21.75 0 0 1 0 43.5 H10"/>
+  <g stroke="none" fill="currentColor">
+    <path d="M28 50 h16 v9 h-4 l-3.5 6 h-1 l-3.5 -6 h-4 z"/>
+    <rect x="24" y="71" width="24" height="3.2"/>
+    <rect x="21" y="77.5" width="30" height="3.2"/>
+  </g>
+  <!-- W: breit, Spitzen unten -->
+  <path d="M84 8 L99 90 L115 34 L131 90 L146 8" stroke-linejoin="miter" stroke-miterlimit="10"/>
+</svg>
