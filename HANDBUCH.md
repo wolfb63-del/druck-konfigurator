@@ -45,8 +45,9 @@ Alles läuft lokal in deinem Browser. Es werden keine Modelle oder Daten ins Int
 
 ![Übersicht](docs/img/uebersicht.png)
 
+- **Fußzeile:** Haftungsausschluss, **Datenschutz**, **Kontakt** (E-Mail an bw.3d.druck@gmail.com) und der Link zu **Facebook**.
 - **Kopfzeile:** Drucker umschalten (**Kobra S1** / **U1** / **Anderer Drucker …**), Düsengröße und Düsenmaterial.
-- **Oberfläche:** unter **Profile → Oberfläche** wählbar. **Verbesserte Lesbarkeit** (Standard): kräftigere Kontraste und Feldränder, gut sichtbarer Tastatur-Fokus, keine Schrift unter 12 px, größere „?“-Punkte. **Schlicht:** reduzierte, helle Gestaltung nach Apple-Prinzipien mit denselben Verbesserungen. In beiden Stufen zeigt die Kopfzeile das Logo „BW 3D-Druck“. **Original:** die bisherige Oberfläche. Die Wahl merkt sich der Browser.
+- **Oberfläche:** unter **Profile → Oberfläche** wählbar. **Verbesserte Lesbarkeit** (Standard): kräftigere Kontraste und Feldränder, gut sichtbarer Tastatur-Fokus, keine Schrift unter 12 px, größere „?“-Punkte. **Schlicht:** reduzierte, helle Gestaltung nach Apple-Prinzipien mit denselben Verbesserungen. In beiden Stufen zeigt die Kopfzeile das Logo „BW 3D-Druck“. Während Lage und Stabilität berechnet werden, läuft unter dem Hinweistext ein Fortschrittsbalken. **Original:** die bisherige Oberfläche. Die Wahl merkt sich der Browser.
 
 ### Anderer Drucker
 
