@@ -11,6 +11,7 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 - **Einfache 3MF** ohne Orca-/Bambu-Projektdaten (z. B. aus Cura, PrusaSlicer, CAD) werden wie eine STL behandelt: nur die Form, mit Lage-Tasten und Lochverstärkung. Eine Bemalung aus PrusaSlicer geht dabei verloren.
 
 ### Behoben
+- **Hinweis „Die 3MF wurde von BambuStudio erstellt“** beim Öffnen umgestellter Makerworld-Projekte in Orca: Die Datei trägt jetzt die Orca-Kennung mit der Version der Vorlage – die Druckeinstellungen stammen ja aus der Orca-Vorlage. Die Herkunftsangabe des Designers bleibt erhalten.
 - **Gespiegelte Objekte in 3MF** wurden mit nach innen zeigenden Flächen eingelesen: Löcher wurden dort nicht erkannt, Überhänge falsch bewertet.
 
 ## [6.5.0] – 2026-10-02
