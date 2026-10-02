@@ -4,6 +4,9 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Druck-Konfigurator</title>
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/ui-neu.css">
+<link rel="stylesheet" href="css/ui-schlicht.css">
+<script src="js/ui-neu.js"></script>
 </head>
 <body data-printer="kobra_s1" data-tab="settings">
 
@@ -45,6 +48,10 @@
         <hr>
         <button type="button" role="menuitem" id="settingsBtn">Düsen-Umrechnung …</button>
         <button type="button" role="menuitem" data-action="link">Drucker-Verbindung …</button>
+        <hr>
+        <button type="button" role="menuitemradio" aria-checked="false" data-ui-mode="original">Oberfläche: Original <small>wie bisher</small></button>
+        <button type="button" role="menuitemradio" aria-checked="true" data-ui-mode="neu">Oberfläche: Verbesserte Lesbarkeit <small>Original mit besseren Kontrasten</small></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-ui-mode="schlicht">Oberfläche: Schlicht <small>reduziert, nach Apple-Prinzipien</small></button>
       </div>
     </div>
     <div class="menu">

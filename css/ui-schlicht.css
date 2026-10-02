@@ -1,0 +1,79 @@
+/* Stil „Schlicht“ nach Apple-Prinzipien (Reduktion aufs Wesentliche, viel Weißraum, Systemschrift,
+   eine Akzentfarbe, weiche Flächen statt Linien). Gilt nur bei html[data-stil="schlicht"]; js/ui-neu.js setzt
+   dabei immer auch data-ui="neu", die Lesbarkeits-Regeln aus ui-neu.css gelten also mit.
+   Die Akzentfarbe folgt weiter dem Drucker. Kontraste nachgerechnet in tests/ui-neu.js. */
+
+html[data-stil="schlicht"] {
+  --paper: #f5f5f7;
+  --paper-2: #e8e8ed;
+  --sheet: #ffffff;
+  --ink: #1d1d1f;
+  --ink-2: #424245;
+  --ink-3: #636366;
+  --rule: #e3e3e8;
+  --rule-strong: #d2d2d7;
+  --field-border: #86868b;
+  --f-display: -apple-system, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --f-body: -apple-system, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --r-s: 8px;
+  --r-m: 14px;
+}
+html[data-stil="schlicht"] body { background: var(--paper); background-image: none; -webkit-font-smoothing: antialiased; }
+
+/* Kopfzeile hell und ruhig; Fokus wieder in Akzentfarbe (auf Hell ≥ 3:1) */
+/* backdrop-filter macht die Kopfzeile zu einem eigenen Stapelkontext: ohne eigenes z-index lägen die
+   aufgeklappten Menüs (z-index 30) dann unter dem Datenblatt */
+html[data-stil="schlicht"] .topbar { position: relative; z-index: 40; background: rgba(255, 255, 255, .86); backdrop-filter: saturate(180%) blur(20px); color: var(--ink); border-bottom: 1px solid var(--rule); }
+html[data-stil="schlicht"] .topbar :focus-visible { outline-color: var(--accent); }
+html[data-stil="schlicht"] .brand { color: var(--ink); text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 14px; }
+html[data-stil="schlicht"] .brand-mark { border-radius: 7px; border-width: 2px; }
+html[data-stil="schlicht"] .printer-switch { background: var(--paper-2); border-radius: 10px; padding: 3px; gap: 2px; }
+html[data-stil="schlicht"] .printer-switch button { color: var(--ink-2); border-radius: 8px; font-size: 17px; font-weight: 600; padding: 6px 16px 7px; }
+html[data-stil="schlicht"] .printer-switch button:hover { color: var(--ink); }
+html[data-stil="schlicht"] .printer-switch button small { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink-3); }
+html[data-stil="schlicht"] .printer-switch button[aria-checked="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 0 0 .5px rgba(0, 0, 0, .04); }
+html[data-stil="schlicht"] .printer-switch button[aria-checked="true"] small { color: var(--accent); }
+html[data-stil="schlicht"] .nozzle { color: var(--ink-3); text-transform: none; letter-spacing: 0; }
+html[data-stil="schlicht"] .nozzle select { background: #fff; color: var(--ink); border-color: var(--field-border); border-radius: var(--r-s); }
+html[data-stil="schlicht"] .nozzle .help { color: var(--ink-2); background: #fff; border-color: var(--field-border); }
+html[data-stil="schlicht"] .menu-btn { color: var(--ink); font-weight: 500; }
+html[data-stil="schlicht"] .menu-btn:hover,
+html[data-stil="schlicht"] .menu-btn[aria-expanded="true"] { background: var(--paper-2); color: var(--ink); }
+html[data-stil="schlicht"] .help-btn { border-color: var(--field-border); }
+html[data-stil="schlicht"] .menu-list { border: 0; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, .14), 0 0 0 .5px rgba(0, 0, 0, .08); }
+
+/* Tabs als ruhige Leiste */
+html[data-stil="schlicht"] .tabs { border-bottom: 1px solid var(--rule); }
+html[data-stil="schlicht"] .tabs button { font-weight: 500; }
+html[data-stil="schlicht"] .tabs button[aria-selected="true"] { border-color: var(--rule); box-shadow: inset 0 -2px 0 var(--accent); }
+
+/* Überschriften und Beschriftungen ohne Versalien und Sperrung */
+html[data-stil="schlicht"] .eyebrow,
+html[data-stil="schlicht"] .field label,
+html[data-stil="schlicht"] .order-title,
+html[data-stil="schlicht"] .ed-group h4 { text-transform: none; letter-spacing: 0; font-weight: 600; }
+html[data-stil="schlicht"] .eyebrow { font-size: 13px; }
+html[data-stil="schlicht"] .field label { font-size: 13px; color: var(--ink-2); }
+html[data-stil="schlicht"] .order-title { font-size: 14px; background: var(--paper); }
+
+/* Eingaben */
+/* Innenabstand wie im Original: in den halbbreiten Feldern (Priorität/Belastung) wird sonst Text abgeschnitten */
+html[data-stil="schlicht"] .field select,
+html[data-stil="schlicht"] .field input { background: #fff; box-shadow: none; }
+
+/* Flächen statt Linien: Datenblatt als Karte ohne Akzentbalken */
+html[data-stil="schlicht"] .result { border: 0; border-radius: 18px; padding: 28px 30px 22px; box-shadow: 0 2px 6px rgba(0, 0, 0, .04), 0 12px 40px rgba(0, 0, 0, .06); }
+html[data-stil="schlicht"] .result::before { display: none; }
+html[data-stil="schlicht"] .result-head h2 { font-weight: 700; font-size: 34px; letter-spacing: -.02em; }
+html[data-stil="schlicht"] .spec { border-top: 1px solid var(--rule); }
+html[data-stil="schlicht"] .spec-cell .v { font-weight: 600; letter-spacing: -.01em; }
+html[data-stil="schlicht"] .fold > summary { font-weight: 600; }
+html[data-stil="schlicht"] .model-card { border-radius: var(--r-m); border-color: var(--rule-strong); }
+html[data-stil="schlicht"] .model-card.loaded { border-color: transparent; box-shadow: 0 1px 4px rgba(0, 0, 0, .06); }
+html[data-stil="schlicht"] .export-cta { border: 0; border-radius: var(--r-m); }
+
+/* Knöpfe als Pillen */
+html[data-stil="schlicht"] .btn,
+html[data-stil="schlicht"] .export-cta-action .btn-accent { border-radius: 980px; padding-left: 20px; padding-right: 20px; }
+html[data-stil="schlicht"] dialog { border-radius: 18px; }
+html[data-stil="schlicht"] .ed-foot { border-radius: 0 0 18px 18px; }

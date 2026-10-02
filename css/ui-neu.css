@@ -1,0 +1,54 @@
+/* Verbesserte Lesbarkeit (Design-Review 2026-10-02, Skill ui-ux-pro-max).
+   Gilt nur bei html[data-ui="neu"]; ohne das Attribut sieht alles aus wie in app.css (Original).
+   Umschalten: Menü Profile → „Verbesserte Lesbarkeit“ (js/ui-neu.js). app.css bleibt unverändert.
+   Kontraste nachgerechnet in tests/ui-neu.js (WCAG 2.x). */
+
+html[data-ui="neu"] {
+  --field-border: #8c8578;    /* Umriss von Eingabefeldern und Knöpfen: ≥ 3:1 auf Weiß und Blatt (WCAG 1.4.11) */
+  --ok: #19663d;              /* etwas dunkler: Abstand zu 4,5:1 auch auf --ok-soft */
+}
+
+/* 1) Fokus in der dunklen Kopfzeile: Akzentfarbe hatte dort nur 2,3–2,9:1 */
+html[data-ui="neu"] .topbar :focus-visible { outline-color: #fff; }
+
+/* 2) Ränder der Bedienelemente kräftiger; Trennlinien (--rule-strong) bleiben hell */
+html[data-ui="neu"] .field select,
+html[data-ui="neu"] .field input,
+html[data-ui="neu"] .ed-in input,
+html[data-ui="neu"] .ed-in select,
+html[data-ui="neu"] .ed-in textarea,
+html[data-ui="neu"] .picker-row select,
+html[data-ui="neu"] .picker-row input,
+html[data-ui="neu"] .slot-edit-row input[type="color"],
+html[data-ui="neu"] .orient-tools button,
+html[data-ui="neu"] .btn-accent,
+html[data-ui="neu"] .help { border-color: var(--field-border); }
+html[data-ui="neu"] .field select:hover { border-color: var(--ink-2); }
+
+/* 4) Druckerumschalter: Unterzeile lesbar, Abstufung über Farbe statt Transparenz */
+html[data-ui="neu"] .printer-switch button small { font-size: 12px; letter-spacing: .1em; opacity: 1; }
+html[data-ui="neu"] .printer-switch button[data-printer="orca"] .orca-edit { opacity: 1; }
+
+/* 5) Keine Schrift unter 12 px */
+html[data-ui="neu"] .eyebrow,
+html[data-ui="neu"] .nozzle,
+html[data-ui="neu"] .part-list .plevel,
+html[data-ui="neu"] .part-list .pstab,
+html[data-ui="neu"] .badge,
+html[data-ui="neu"] .tab-badge,
+html[data-ui="neu"] .part-list .pmeta { font-size: 12px; }
+html[data-ui="neu"] .eyebrow { letter-spacing: .12em; }
+
+/* 6) „?“-Hilfepunkte: sichtbar 17 px, Klickfläche 25 px (WCAG 2.2: 24 px) */
+html[data-ui="neu"] .help { position: relative; }
+html[data-ui="neu"] .help::before { content: ""; position: absolute; inset: -4px; border-radius: 50%; }
+
+/* 7) Modellkarte deckend: halbtransparent ließ das Millimeterraster durch und senkte den Kontrast */
+html[data-ui="neu"] .model-card { background: var(--sheet); }
+
+/* Breitere Auswahlspalte: in den halbbreiten Feldern (Priorität/Belastung) wurden längere Einträge wie
+   „Maximale Stabilität“ abgeschnitten (gemeldet 2026-10-02). Gilt auch für „Schlicht“. */
+html[data-ui="neu"] .sheet { grid-template-columns: 360px 300px minmax(0, 1fr); }
+@media (max-width: 1240px) {
+  html[data-ui="neu"] .sheet { grid-template-columns: 360px minmax(0, 1fr); }
+}
