@@ -78,6 +78,7 @@ html[data-stil="schlicht"] .lang-btn { border-color: var(--field-border); }
 
 /* Hersteller-Auswahl beim Filament (js/filament-ui.js) */
 .fdb-row { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 6px 0 2px; }
+.fdb-sel { display: flex; flex: 1 1 100%; gap: 6px 8px; }
 .fdb-row select { flex: 1 1 8em; min-width: 0; padding: 6px 8px; border: 1px solid var(--field-border, #8c8578); border-radius: var(--r-s); background: var(--sheet); color: var(--ink); font: inherit; font-size: 13px; }
 .fdb-row small { flex-basis: 100%; color: var(--ink-3); font-size: 12px; }
 

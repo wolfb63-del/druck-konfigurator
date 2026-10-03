@@ -74,10 +74,14 @@ function setupFilamentMain() {
   const mf = $('fdbMf'), mat = $('fdbMat'), note = $('fdbNote');
   let db = null;
   const resetMat = () => { mat.innerHTML = fpOpts(E_TR('Material …'), []); mat.disabled = true; };
+  const sel = $('fdbSel');
+  // Klick auf den Link: Auswahl öffnen; ist sie offen, wieder zuklappen. Nach einer Wahl bleibt nur der Hinweis stehen.
   btn.addEventListener('click', () => {
-    row.classList.toggle('hidden');
-    if (row.classList.contains('hidden') || db) return;
+    const open = !row.classList.contains('hidden') && !sel.classList.contains('hidden');
+    row.classList.toggle('hidden', open); sel.classList.remove('hidden');
+    if (open) return;
     note.textContent = '';
+    if (db) { note.textContent = E_TR('Nur Materialien, für die das Tool Werte kennt (PLA, PETG, ABS, ASA, TPU).'); return; }
     loadFilamentDb().then(d => {
       db = d;
       mf.innerHTML = fpOpts(E_TR('Hersteller …'), fdbManufacturers(db).filter(m => fdbProfileMaterials(db, m).length).map(m => [m, m]));
@@ -98,6 +102,7 @@ function setupFilamentMain() {
     note.textContent = fresh ? E_TF('Eigenes Filament „{name}“ angelegt: Standardprofil {base} mit den Temperaturen der Datenbank (Herstellerangabe). Übrige Werte prüfen – „Werte anpassen“.', { name, base: E_TR(base.name) })
       : E_TF('Eigenes Filament „{name}“ gewählt.', { name });
     mf.value = ''; resetMat();
+    sel.classList.add('hidden');   // Auswahl zuklappen, der Hinweis bleibt
   });
   resetMat();
 }
