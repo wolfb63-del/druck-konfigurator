@@ -219,6 +219,77 @@ for (const R of [10, 20]) {
   check('Hinweistext nennt Näherung und unveränderte Druckwerte', /Näherung/.test(vm.runInContext('FRAG_DISCLAIMER', ctx)) && /unverändert/.test(vm.runInContext('FRAG_DISCLAIMER', ctx)));
 }
 
+// 5b) Sehr ungleich große Dreiecke (gemeldet 2026-10-03, Trommel-Segment: 156 s statt Sekunden): Platte
+//     60 × 60 × 1,2 mm, Oberseite grob, nur ein Fleck 2 × 2 mm in der Mitte fein (20.000 Dreiecke) – wie
+//     Prägung neben großen Flächen. Darauf ein loser Klotz 2 × 2 × 5 mm (nicht verschmolzen).
+//     Sollwerte aus der Konstruktion: Wanddicke unter jedem Fleck-Dreieck 1,2 mm; die Unterseite des Klotzes
+//     liegt auf dem Fleck (Innenfläche, hidden = 1), seine übrigen Flächen nicht.
+{
+  const W = 60, T = 1.2, c0 = 29, c1 = 31, N = 100, tris = [];
+  const quad = (a, b, c, d) => { tris.push([a, b, c], [a, c, d]); };
+  quad([0, 0, 0], [0, W, 0], [W, W, 0], [W, 0, 0]);                                   // Unterseite (nach unten)
+  quad([0, 0, 0], [W, 0, 0], [W, 0, T], [0, 0, T]); quad([W, 0, 0], [W, W, 0], [W, W, T], [W, 0, T]);
+  quad([W, W, 0], [0, W, 0], [0, W, T], [W, W, T]); quad([0, W, 0], [0, 0, 0], [0, 0, T], [0, W, T]);
+  quad([0, 0, T], [W, 0, T], [W, c0, T], [0, c0, T]); quad([0, c1, T], [W, c1, T], [W, W, T], [0, W, T]);   // Oberseite grob
+  quad([0, c0, T], [c0, c0, T], [c0, c1, T], [0, c1, T]); quad([c1, c0, T], [W, c0, T], [W, c1, T], [c1, c1, T]);
+  const fine0 = tris.length, h = (c1 - c0) / N;
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) quad([c0 + i * h, c0 + j * h, T], [c0 + (i + 1) * h, c0 + j * h, T], [c0 + (i + 1) * h, c0 + (j + 1) * h, T], [c0 + i * h, c0 + (j + 1) * h, T]);
+  const fine1 = tris.length;
+  const klotz = box(c0, c0, T, c1, c1, T + 5), k0 = tris.length;
+  for (const t of klotz) tris.push(t);
+  const pos = Float32Array.from(tris.flat(2));
+  t0 = Date.now();
+  const g = K.makeGeom('fleck', pos);
+  const tGeom = Date.now() - t0;
+  // Klotz-Dreiecke 0/1 = Unterseite (z = T, nach unten) → Innenfläche; Seiten und Deckel nicht
+  check('Fleck: Klotz-Unterseite liegt auf dem feinen Fleck (hidden = 1)', g.hidden[k0] > 0.99 && g.hidden[k0 + 1] > 0.99, g.hidden[k0] + ' / ' + g.hidden[k0 + 1]);
+  check('Fleck: übrige Klotz-Flächen nicht verdeckt', [...g.hidden.slice(k0 + 2, k0 + 12)].every(v => v === 0));
+  const grid = K.fragBuildGrid(pos, g.n, g.mn, g.mx, g.total);
+  check('Fleck: überfüllte Zellen bekommen ein Unterraster', grid.sub && grid.sub.size > 0, grid.sub && grid.sub.size);
+  // Strahlen von Fleck-Dreiecken nach unten: Unterraster = Brute Force = Plattendicke
+  const all = { cs: 1e9, dims: [1, 1, 1], cells: new Map([[0, [...Array(g.n).keys()]]]), mn: g.mn, stamp: new Int32Array(g.n), ray: 0 };
+  let diff = 0, wrong = 0, tested = 0;
+  for (let i = fine0; i < fine1; i += 97) {
+    const o = i * 9, c3 = [0, 1, 2].map(k => (pos[o + k] + pos[o + 3 + k] + pos[o + 6 + k]) / 3);
+    const a = K.fragCastRay(pos, grid, i, ...c3, 0, 0, -1, 10, 1), b = K.fragCastRay(pos, all, i, ...c3, 0, 0, -1, 10, 1);
+    tested++; if (a !== b) diff++; if (Math.abs(a - T) > 1e-3) wrong++;
+  }
+  check('Fleck: Unterraster liefert dieselben Abstände wie Brute Force', diff === 0 && tested > 100, diff + ' / ' + tested);
+  check('Fleck: gemessener Abstand = Plattendicke 1,2 mm', wrong === 0, wrong + ' / ' + tested);
+  t0 = Date.now();
+  const f = K.analyzeFragility(g, { lineWidth: LW });
+  const tFrag = Date.now() - t0;
+  let off = 0;
+  for (let i = fine0; i < fine1; i++) if (!(Math.abs(f.thick[i] - T) < 1e-3)) off++;
+  check('Fleck: Wanddicke aller ' + (fine1 - fine0) + ' Fleck-Dreiecke = 1,2 mm', off === 0, off);
+  console.log('Fleck ' + g.n + ' Dreiecke: makeGeom ' + tGeom + ' ms, Stabilität ' + tFrag + ' ms');
+  // Zeitlimit: abgelaufene Frist → Abbruch mit .timeout; ohne Frist normal zu Ende
+  let thrown = null;
+  try { K.analyzeFragility(g, { lineWidth: LW, deadline: Date.now() - 1 }); } catch (e) { thrown = e; }
+  check('Zeitlimit: abgelaufene Frist bricht mit timeout ab', thrown && thrown.timeout === true, thrown && thrown.message);
+  check('Zeitlimit: ohne Frist gleiches Ergebnis wie vorher', K.analyzeFragility(g, { lineWidth: LW }).level === f.level);
+}
+
+// 5c) Befund Prüf-Agent 2026-10-03: Ausrichtungshinweis nach Zeitlimit nicht bei jedem update() neu rechnen.
+//     fragility-ui.js mit Attrappen laden; analyzeFragility wirft immer „Zeitlimit“ und zählt die Aufrufe.
+{
+  const el = () => ({ textContent: '', innerHTML: '', classList: { add() {}, remove() {}, toggle() {} }, addEventListener() {}, querySelectorAll: () => [] });
+  let calls = 0;
+  const uctx = vm.createContext({
+    $: el, document: { querySelectorAll: () => [] }, setTimeout: fn => fn(), WeakMap, Date, Error,
+    NOZ: { '0.4': { lwo: 0.42 } }, nkey: () => '0.4', geom: null, project: null,
+    analyzeFragility: () => { calls++; const e = Error('Zeitlimit überschritten'); e.timeout = true; throw e; },
+    makeGeom: () => ({}), rotatePositions: () => [], orientationZText: () => '', orientationZCheck: () => null, de: String, esc: String
+  });
+  vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', 'fragility-ui.js'), 'utf8') + '\n;globalThis.Stability = Stability;', uctx);
+  const part = { name: 't', geom: {}, origPos: [] }, box2 = el();
+  uctx.geom = part.geom;
+  uctx.Stability.orientNote(part, [1, 0, 0, 0, 1, 0, 0, 0, 1], box2);
+  const first = calls;
+  for (let i = 0; i < 5; i++) uctx.Stability.orientNote(part, [1, 0, 0, 0, 1, 0, 0, 0, 1], box2);
+  check('Ausrichtungshinweis: nach Zeitlimit kein erneuter Rechenversuch', first === 1 && calls === 1, first + ' / ' + calls);
+}
+
 // 6) Echte Mehrteile-3MF: Analyse ändert weder Teile, Slots noch Geometrie
 const real = process.env.FRAG3MF;
 if (real && fs.existsSync(real)) {

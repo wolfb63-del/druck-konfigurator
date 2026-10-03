@@ -20,6 +20,8 @@ const FRAG_RAY_CAP = 1.25;         // Strahl nur bis 1,25 × Warnschwelle verfol
 const FRAG_SUB_MM2 = 4;            // große Dreiecke an mehreren Punkten (≈ 2 mm) messen
 const FRAG_MAX_SUB = 4;
 const FRAG_GRID_MAX = 128;         // höchstens so viele Zellen je Achse (Strahlsuche)
+const FRAG_SUB_LIMIT = 64;         // Zellen mit mehr Dreiecken bekommen ein feineres Unterraster …
+const FRAG_SUB_MAXK = 16;          // … mit höchstens so vielen Unterzellen je Achse
 const FRAG_SLICE_MIN = 0.2;        // mm, feinster Scheibenabstand
 const FRAG_SLICE_MAX_N = 200;      // höchstens so viele Scheiben
 const FRAG_SLENDER_WARN = 30;      // Höhe darüber / Trägheitsradius: ab hier schwach in Z
@@ -28,6 +30,14 @@ const FRAG_MIN_AREA = 20;          // mm²: so viel kritische/dünne Fläche, be
 const FRAG_MIN_SHARE = 0.01;       // … oder dieser Anteil der Oberfläche
 const FRAG_NECK_MIN = 2;          // mm: so weit muss ein schmaler Querschnitt nach oben reichen
 const FRAG_NECK_GROW = 2;         // … wobei der Trägheitsradius höchstens auf das Doppelte wächst
+/* Zeitlimit (opts.deadline, Zeitpunkt in ms): die automatische Analyse für die Teileliste läuft im
+   Hauptthread – bei sehr detailreichen Netzen bricht sie ab, statt die Seite minutenlang zu blockieren
+   (gemeldet 2026-10-03). Abbruch = Fehler mit .timeout = true; ohne deadline wird immer zu Ende gerechnet.
+   Bekannte Grenze: geprüft wird in Wandstärke und Z-Scheiben; Körpersuche und Rasteraufbau laufen ohne
+   Prüfung durch (bei der Trommel zusammen unter 1 s), die Frist kann also um diese Zeit überschritten werden. */
+function fragCheckDeadline(deadline) {
+  if (deadline && Date.now() > deadline) { const e = Error('Zeitlimit überschritten'); e.timeout = true; throw e; }
+}
 // Klassen je Dreieck: 0 stabil, 1 dünn/schwach, 2 kritisch
 const FRAG_OK = 0, FRAG_WARN = 1, FRAG_CRIT = 2;
 
@@ -57,7 +67,42 @@ function fragBuildGrid(pos, n, mn, mx, total) {
       if (list) list.push(i); else cells.set(key, [i]);
     }
   }
-  return { cs, dims, cells, mn, stamp: new Int32Array(n), ray: 0, stamp2: new Int32Array(n), ray2: 0 };
+  return { cs, dims, cells, mn, sub: fragRefineGrid(pos, cells, cs, dims, mn), stamp: new Int32Array(n), ray: 0, stamp2: new Int32Array(n), ray2: 0 };
+}
+
+/* Unterraster für überfüllte Zellen (gemeldet 2026-10-03): Netze mit sehr ungleich großen Dreiecken (z. B.
+   feine Prägung neben großen Flächen) legen tausende Dreiecke in eine Zelle; jeder Strahl dort prüfte sie
+   alle (Trommel-Segment: 12.000 Tests je Strahl, 156 s). Zellen über FRAG_SUB_LIMIT werden in k³ Unterzellen
+   geteilt, gleiche Zuordnungsregel wie oben (Ebene ≤ halbe Unterzellen-Diagonale). Ändert nur die Suche:
+   ein Treffer im Punkt P steht in der (Unter-)Zelle, die P enthält – das Ergebnis bleibt das nächste. */
+function fragRefineGrid(pos, cells, cs, dims, mn) {
+  const sub = new Map();
+  for (const [key, list] of cells) {
+    if (list.length <= FRAG_SUB_LIMIT) continue;
+    const x = key % dims[0], y = Math.floor(key / dims[0]) % dims[1], z = Math.floor(key / (dims[0] * dims[1]));
+    const k = Math.min(FRAG_SUB_MAXK, Math.max(2, Math.ceil(Math.cbrt(list.length / 8))));
+    const scs = cs / k, half = scs * Math.sqrt(3) / 2, org = [mn[0] + x * cs, mn[1] + y * cs, mn[2] + z * cs];
+    const lists = new Array(k * k * k);
+    const at = (a, v) => Math.min(k - 1, Math.max(0, Math.floor((v - org[a]) / scs)));
+    for (const i of list) {
+      const o = i * 9;
+      const ux = pos[o + 3] - pos[o], uy = pos[o + 4] - pos[o + 1], uz = pos[o + 5] - pos[o + 2];
+      const wx = pos[o + 6] - pos[o], wy = pos[o + 7] - pos[o + 1], wz = pos[o + 8] - pos[o + 2];
+      let nx = uy * wz - uz * wy, ny = uz * wx - ux * wz, nz = ux * wy - uy * wx;
+      const len = Math.hypot(nx, ny, nz);
+      nx /= len; ny /= len; nz /= len;
+      const lo = [0, 1, 2].map(a => at(a, Math.min(pos[o + a], pos[o + 3 + a], pos[o + 6 + a])));
+      const hi = [0, 1, 2].map(a => at(a, Math.max(pos[o + a], pos[o + 3 + a], pos[o + 6 + a])));
+      for (let sx = lo[0]; sx <= hi[0]; sx++) for (let sy = lo[1]; sy <= hi[1]; sy++) for (let sz = lo[2]; sz <= hi[2]; sz++) {
+        const cx = org[0] + (sx + 0.5) * scs, cy = org[1] + (sy + 0.5) * scs, cz = org[2] + (sz + 0.5) * scs;
+        if (Math.abs(nx * (cx - pos[o]) + ny * (cy - pos[o + 1]) + nz * (cz - pos[o + 2])) > half) continue;
+        const sk = (sz * k + sy) * k + sx;
+        if (lists[sk]) lists[sk].push(i); else lists[sk] = [i];
+      }
+    }
+    sub.set(key, { k, scs, org, lists });
+  }
+  return sub;
 }
 
 /* Strahl durch das Raster (Zellen in Strahlrichtung nacheinander, Amanatides/Woo), je Zelle
@@ -68,16 +113,8 @@ function fragBuildGrid(pos, n, mn, mx, total) {
 function fragCastRay(pos, grid, self, ox, oy, oz, dx, dy, dz, maxT, out) {
   const { cs, dims, cells, mn, stamp } = grid, ray = ++grid.ray, o3 = [ox, oy, oz], d3 = [dx, dy, dz];
   const c = [0, 0, 0], step = [0, 0, 0], tMax = [0, 0, 0], tDelta = [0, 0, 0];
-  for (let k = 0; k < 3; k++) {
-    c[k] = Math.min(dims[k] - 1, Math.max(0, Math.floor((o3[k] - mn[k]) / cs)));
-    step[k] = d3[k] > 0 ? 1 : -1;
-    tMax[k] = d3[k] ? ((c[k] + (d3[k] > 0 ? 1 : 0)) * cs + mn[k] - o3[k]) / d3[k] : Infinity;
-    tDelta[k] = d3[k] ? cs / Math.abs(d3[k]) : Infinity;
-  }
-  let best = Infinity;
-  for (;;) {
-    const list = cells.get((c[2] * dims[1] + c[1]) * dims[0] + c[0]);
-    if (list) for (const j of list) {
+  let best = Infinity, tIn = 0;
+  const test = list => { for (const j of list) {
       if (j === self || stamp[j] === ray) continue;
       stamp[j] = ray;
       const o = j * 9;
@@ -96,9 +133,37 @@ function fragCastRay(pos, grid, self, ox, oy, oz, dx, dy, dz, maxT, out) {
       if (v < -1e-6 || u + v > 1 + 1e-6) continue;
       const d = (e2x * qx + e2y * qy + e2z * qz) * inv;
       if (d > 1e-5 && d < best && !(grid.multi && fragInsideOther(pos, grid, [ox + dx * d, oy + dy * d, oz + dz * d], grid.body[j]))) best = d;
+    } };
+  // Überfüllte Zelle: nur die Unterzellen entlang des Strahls zwischen Eintritt t0 und Austritt t1
+  const testSub = (sb, t0, t1) => {
+    const { k, scs, org, lists } = sb, s = [0, 0, 0], sMax = [0, 0, 0], sDelta = [0, 0, 0];
+    for (let a = 0; a < 3; a++) {
+      s[a] = Math.min(k - 1, Math.max(0, Math.floor((o3[a] + d3[a] * t0 - org[a]) / scs)));
+      sMax[a] = d3[a] ? ((s[a] + (d3[a] > 0 ? 1 : 0)) * scs + org[a] - o3[a]) / d3[a] : Infinity;
+      sDelta[a] = d3[a] ? scs / Math.abs(d3[a]) : Infinity;
     }
+    for (;;) {
+      const l = lists[(s[2] * k + s[1]) * k + s[0]];
+      if (l) test(l);
+      const a = sMax[0] < sMax[1] ? (sMax[0] < sMax[2] ? 0 : 2) : (sMax[1] < sMax[2] ? 1 : 2);
+      if (best <= sMax[a] || sMax[a] >= t1) break;
+      s[a] += step[a];
+      if (s[a] < 0 || s[a] >= k) break;
+      sMax[a] += sDelta[a];
+    }
+  };
+  for (let k = 0; k < 3; k++) {
+    c[k] = Math.min(dims[k] - 1, Math.max(0, Math.floor((o3[k] - mn[k]) / cs)));
+    step[k] = d3[k] > 0 ? 1 : -1;
+    tMax[k] = d3[k] ? ((c[k] + (d3[k] > 0 ? 1 : 0)) * cs + mn[k] - o3[k]) / d3[k] : Infinity;
+    tDelta[k] = d3[k] ? cs / Math.abs(d3[k]) : Infinity;
+  }
+  for (;;) {
+    const key = (c[2] * dims[1] + c[1]) * dims[0] + c[0], sb = grid.sub && grid.sub.get(key);
     const k = tMax[0] < tMax[1] ? (tMax[0] < tMax[2] ? 0 : 2) : (tMax[1] < tMax[2] ? 1 : 2);
+    if (sb) testSub(sb, tIn, Math.min(tMax[k], maxT)); else { const list = cells.get(key); if (list) test(list); }
     if (best <= tMax[k] || tMax[k] > maxT) break;     // nähere Treffer kann es weiter hinten nicht geben
+    tIn = tMax[k];
     c[k] += step[k];
     if (c[k] < 0 || c[k] >= dims[k]) break;
     tMax[k] += tDelta[k];
@@ -170,7 +235,7 @@ function fragInsideOther(pos, grid, p, skip) {
 /* Wandstärke je Dreieck (Median der Messpunkte) und Flächen je Klasse (je Messpunkt gewichtet).
    Strahlen gehen nach innen; Körper mit nach innen zeigenden Normalen (negatives Volumen) werden
    erkannt und umgekehrt gemessen. Innenflächen unverschmolzener Körper (geom.hidden) werden übersprungen. */
-function measureThickness(geom, lw, bodies) {
+function measureThickness(geom, lw, bodies, deadline) {
   const { pos, n } = geom, warnT = FRAG_THIN_WARN * lw, critT = FRAG_THIN_CRIT * lw, maxT = warnT * FRAG_RAY_CAP;
   const grid = fragBuildGrid(pos, n, geom.mn, geom.mx, geom.total);
   Object.assign(grid, { triOut: bodies.triOut, body: bodies.body, multi: bodies.count > 1 });
@@ -178,6 +243,7 @@ function measureThickness(geom, lw, bodies) {
   let critArea = 0, warnArea = 0, measured = 0;
   const samples = [];                // [dicke, fläche] für das Perzentil
   for (let i = 0; i < n; i++) {
+    if ((i & 255) === 0) fragCheckDeadline(deadline);
     const area = geom.area[i];
     if (!area || (geom.hidden && geom.hidden[i] > 0.5)) continue;
     const o = i * 9;
@@ -323,7 +389,7 @@ function fragLinked(a, b) {
   return fragInside(b.ipt, a.pts) || fragInside(a.ipt, b.pts);
 }
 
-function measureZSections(geom, lw, triOut) {
+function measureZSections(geom, lw, triOut, deadline) {
   const { pos, n, mn, mx } = geom, height = mx[2] - mn[2], minArea = (FRAG_THIN_CRIT * lw) ** 2;
   if (!triOut) triOut = new Int8Array(n).fill(1);
   const empty = { cls: new Uint8Array(n), worst: null, open: 0, slices: 0 };
@@ -331,6 +397,7 @@ function measureZSections(geom, lw, triOut) {
   const step = Math.max(FRAG_SLICE_MIN, height / FRAG_SLICE_MAX_N), ns = Math.floor(height / step);
   const zOf = k => mn[2] + (k + 0.5) * step + step * 1e-3, segs = Array.from({ length: ns }, () => []);
   for (let i = 0; i < n; i++) {
+    if ((i & 1023) === 0) fragCheckDeadline(deadline);
     const o = i * 9, z0 = Math.min(pos[o + 2], pos[o + 5], pos[o + 8]), z1 = Math.max(pos[o + 2], pos[o + 5], pos[o + 8]);
     for (let k = Math.max(0, Math.floor((z0 - mn[2]) / step - 0.5)); k < ns && zOf(k) < z1; k++) {
       if (zOf(k) <= z0) continue;
@@ -339,7 +406,7 @@ function measureZSections(geom, lw, triOut) {
     }
   }
   let open = 0;
-  const layers = segs.map(s => { const r = fragIslands(s, triOut); open += r.open; return r.islands; });
+  const layers = segs.map(s => { fragCheckDeadline(deadline); const r = fragIslands(s, triOut); open += r.open; return r.islands; });
   // Verbindungen nach oben und oberstes erreichbares z (von oben nach unten aufgebaut)
   for (let k = ns - 1; k >= 0; k--) for (const I of layers[k]) {
     I.up = k + 1 < ns ? layers[k + 1].filter(J => fragLinked(I, J)) : [];
@@ -369,12 +436,12 @@ function measureZSections(geom, lw, triOut) {
   return { cls, worst, open, slices: ns };
 }
 
-/* Gesamtergebnis je Teil. opts.lineWidth: Linienbreite der Düse in mm.
+/* Gesamtergebnis je Teil. opts.lineWidth: Linienbreite der Düse in mm; opts.deadline: siehe fragCheckDeadline.
    cls je Dreieck = schlechtere Klasse aus Wandstärke und Z-Schwäche; level 'ok' | 'warn' | 'critical'. */
 function analyzeFragility(geom, opts) {
-  const lw = (opts && opts.lineWidth) || FRAG_LINE_WIDTH;
+  const lw = (opts && opts.lineWidth) || FRAG_LINE_WIDTH, deadline = opts && opts.deadline;
   const bodies = fragBodies(geom.pos, geom.n);
-  const th = measureThickness(geom, lw, bodies), zs = measureZSections(geom, lw, bodies.triOut);
+  const th = measureThickness(geom, lw, bodies, deadline), zs = measureZSections(geom, lw, bodies.triOut, deadline);
   const cls = new Uint8Array(geom.n);
   let critArea = 0, warnArea = 0;
   for (let i = 0; i < geom.n; i++) {
