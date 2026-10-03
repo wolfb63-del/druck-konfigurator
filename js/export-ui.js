@@ -160,13 +160,18 @@ const zOffsetFor=id=>((store.settings.zOffset||{})[id]??'');
 function showZOffset(tpl,id){
   const inp=$('zOffset');if(!inp)return;
   inp.value=zOffsetFor(id);inp.placeholder=String((tpl.settings||{}).z_offset??'0').replace('.',',');
+  // Sicherheitshinweis (Wunsch des Nutzers 2026-10-03): ohne eigenen Wert gilt der Vorlagenwert, meist 0 mm
+  const warn=()=>{const eff=Number(String(inp.value.trim()||inp.placeholder).replace(',','.'));
+    $('zOffsetWarn').innerHTML=E_TF('<b>Achtung Z-Offset:</b> Die Datei startet mit {v} mm. Braucht dein Drucker einen anderen Wert (z. B. 0,25 mm beim Kobra S1), trage ihn oben ein – sonst liegt die erste Schicht zu nah an der Platte oder haftet nicht.',{v:E_NUM(eff||0,2)});
+    $('zOffsetWarn').classList.toggle('hidden',!!eff)};
+  warn();
   $('zOffsetNote').textContent=E_TF('leer = Wert der Vorlage ({v} mm) · gilt für jeden Export mit diesem Drucker',{v:inp.placeholder});
   inp.onchange=()=>{
     const raw=inp.value.trim(),z={...(store.settings.zOffset||{})};
     if(raw==='')delete z[id];
     else if(withZOffset(tpl,raw)!==tpl)z[id]=raw.replace(',','.');
     else{inp.value=zOffsetFor(id);toast(E_TF('Z-Offset bitte zwischen −2 und 2 mm'));return}
-    store.settings.zOffset=z;persist();
+    store.settings.zOffset=z;persist();warn();
   };
 }
 function openExportDialog(){

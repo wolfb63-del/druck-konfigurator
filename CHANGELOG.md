@@ -5,7 +5,7 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 ## [Unreleased]
 
 ### Neu
-- **Z-Offset je Drucker** im Export-Dialog: einmal eintragen (z. B. 0,25 mm beim Kobra S1), der Browser merkt ihn sich, jede 3MF startet in Orca mit diesem Wert. Leer = Wert der Vorlage (0).
+- **Z-Offset je Drucker** im Export-Dialog: einmal eintragen (z. B. 0,25 mm beim Kobra S1), der Browser merkt ihn sich, jede 3MF startet in Orca mit diesem Wert. Leer = Wert der Vorlage (0); solange 0 mm gilt, warnt der Dialog, dass die erste Schicht sonst zu nah an der Platte liegen oder nicht haften kann.
 - **Lightning-Füllung für Deko/Figur:** Objekt „Dekoration / Figur“ bekommt Lightning statt Gyroid (nicht bei hoher Belastung oder „Maximale Stabilität“). Orca-Gegenrechnung an einer Figur: 2 h 33 min → 1 h 57 min, 46 → 29 g.
 - **Sprachwahl Deutsch/Englisch** (Knopf EN/DE in der Kopfzeile; ohne eigene Wahl nach der Browsersprache), die ganze Oberfläche: Menüs, Felder, Datenblatt samt Zusammenfassung, Hinweisen und Hilfetexten, Modell-Karte, Bohrlöcher, Lage, Stabilität, Export-Dialog und alle Dialoge; Zahlen im englischen Format. Orca-Begriffe wörtlich wie im englischen OrcaSlicer (aus Orcas Quellcode, per Test geprüft). Übersetzt wird an der Anzeige – Rechenkern und Export sind unverändert. Das Handbuch bleibt deutsch; rechtlich maßgeblich bleibt die deutsche Fassung.
 - **Hell/Dunkel-Schalter** (Mond-/Sonnen-Knopf in der Kopfzeile): jede Ansicht gibt es hell und dunkel. Ohne eigene Wahl richtet sich die Seite nach der Einstellung von System bzw. Browser; Ausdruck/PDF bleibt hell.
