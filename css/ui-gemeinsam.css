@@ -63,3 +63,9 @@ html[data-stil="schlicht"] .theme-btn { border-color: var(--field-border); }
 .lang-btn { width: 34px; height: 34px; padding: 0; margin-left: 8px; border: 1px solid #4b515a; border-radius: 50%; font-size: 12px; font-weight: 700; letter-spacing: .02em; }
 .lang-btn::after { content: none; }
 html[data-stil="schlicht"] .lang-btn { border-color: var(--field-border); }
+
+/* Z-Offset im Export-Dialog (js/export-ui.js) */
+.zoff-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 12px 0 4px; font-size: 14px; }
+.zoff-row label { font-weight: 600; }
+.zoff-row input { width: 6em; padding: 6px 8px; border: 1px solid var(--field-border, #8c8578); border-radius: var(--r-s); background: var(--sheet); color: var(--ink); font: inherit; }
+.zoff-row small { flex-basis: 100%; color: var(--ink-3); font-size: 12px; }

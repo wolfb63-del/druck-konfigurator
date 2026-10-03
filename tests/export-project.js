@@ -11,7 +11,7 @@ const ROOT = path.join(__dirname, '..');
 const ctx = vm.createContext({ console, TextDecoder });
 for (const f of ['util', 'data', 'stl', 'orient', 'holes', 'store', 'engine', 'orca-templates', 'export3mf', 'import'])
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
-const K = vm.runInContext('({importModels, makeGeom, compute, getMat, store, exportTemplate, build3mfFromProject, findHoles, HOLE_RING_MM})', ctx);
+const K = vm.runInContext('({importModels, makeGeom, compute, getMat, store, exportTemplate, build3mfFromProject, findHoles, HOLE_RING_MM, withZOffset, build3mf})', ctx);
 
 let pass = 0, fail = 0;
 function check(name, ok, detail) { if (ok) pass++; else { fail++; console.log('FEHLER ' + name + (detail !== undefined ? ': ' + detail : '')); } }
@@ -228,6 +228,39 @@ hp = runHoles(holeProject(two, { plate2: true }), (j, i) => i === 1 ? j.found : 
   // Hauptmodell mit Namensraum-Präfix: Kennung mit demselben Präfix, sonst liest Orca sie nicht als metadata
   o = runHoles(mwZip(mw.replace('<model ', '<m:model xmlns:m="x" ').replace('</model>', '</m:model>').replace(/<metadata /, '<m:metadata ').replace('</metadata>', '</m:metadata>')), () => []);
   check('Präfix m: → <m:metadata name="OrcaSlicer">', new RegExp('<m:metadata name="OrcaSlicer">' + tplVer.replace(/\./g, '\.') + '</m:metadata>').test(o.root), o.root.slice(0, 300));
+}
+
+// Z-Offset je Drucker (Auftrag 2026-10-03): Vorlagen haben z_offset 0; der eingetragene Wert landet in der 3MF
+{
+  const tpl = K.exportTemplate('kobra_s1', '0.4'), before = JSON.stringify(tpl.settings);
+  check('Vorlage Kobra S1: z_offset 0 (Ausgangslage)', String(tpl.settings.z_offset) === '0', tpl.settings.z_offset);
+  const z = K.withZOffset(tpl, '0,25');
+  check('Z-Offset 0,25 → Kopie mit z_offset "0.25", Vorlage unverändert', z !== tpl && z.settings.z_offset === '0.25' && JSON.stringify(tpl.settings) === before);
+  check('Ungültig/leer → Vorlage unverändert', K.withZOffset(tpl, '') === tpl && K.withZOffset(tpl, 'abc') === tpl && K.withZOffset(tpl, 5) === tpl && K.withZOffset(tpl, null) === tpl);
+  // Ende-zu-Ende: STL-Export und Makerworld-Projekt tragen den Wert in project_settings
+  const v = [[0,0,0],[20,0,0],[20,20,0],[0,20,0],[0,0,10],[20,0,10],[20,20,10],[0,20,10]];
+  const cube = [[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]].map(t => t.map(i => v[i]));
+  const g = K.makeGeom('w', Float32Array.from(cube.flat(2)));
+  const r = K.compute({ printer: 'kobra_s1', nozD: '0.4', nozM: 'steel_hardened', material: 'pla_hs', object: 'general', goal: 'balanced', load: 'medium', support: 'auto', supportLevel: 'balanced', thresh: '45' }, g, { getMat: K.getMat, settings: K.store.settings });
+  const stl = K.build3mf(z, r, [{ geom: g, slot: null, r, part: {} }], 0, fflate, null);
+  const zs = JSON.parse(fflate.strFromU8(fflate.unzipSync(stl.bytes)['Metadata/project_settings.config'])).z_offset;
+  check('STL-Export: z_offset 0.25 in der 3MF', zs === '0.25', zs);
+}
+
+// Lightning für Deko/Figur (Auftrag 2026-10-03): nur bei Objekt „decor“, nicht bei hoher Belastung oder „strong“
+{
+  const v = [[0,0,0],[20,0,0],[20,20,0],[0,20,0],[0,0,10],[20,0,10],[20,20,10],[0,20,10]];
+  const g = K.makeGeom('w', Float32Array.from([[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]].map(t => t.map(i => v[i])).flat(2)));
+  const pat = (object, goal, load) => {
+    const r = K.compute({ printer: 'kobra_s1', nozD: '0.4', nozM: 'steel_hardened', material: 'pla_hs', object, goal, load, support: 'auto', supportLevel: 'balanced', thresh: '45' }, g, { getMat: K.getMat, settings: K.store.settings });
+    const b = K.build3mf(K.exportTemplate('kobra_s1', '0.4'), r, [{ geom: g, slot: null, r, part: {} }], 0, fflate, null);
+    return JSON.parse(fflate.strFromU8(fflate.unzipSync(b.bytes)['Metadata/project_settings.config'])).sparse_infill_pattern;
+  };
+  check('Deko · ausgewogen → lightning', pat('decor', 'balanced', 'low') === 'lightning', pat('decor', 'balanced', 'low'));
+  check('Deko · schnell → lightning', pat('decor', 'fast', 'medium') === 'lightning');
+  check('Deko · Maximale Stabilität → nicht lightning', pat('decor', 'strong', 'low') !== 'lightning');
+  check('Deko · hohe Belastung → nicht lightning', pat('decor', 'balanced', 'high') !== 'lightning');
+  check('Funktionsteil → gyroid', pat('general', 'balanced', 'medium') === 'gyroid', pat('general', 'balanced', 'medium'));
 }
 
 console.log(pass + '/' + (pass + fail) + ' bestanden');

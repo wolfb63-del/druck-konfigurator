@@ -20,7 +20,7 @@ function exportTemplate(printerId, nozD) {
 }
 
 // Gleiche Zuordnung wie buildOrcaProcessJSON: Gyroid ist in beiden Mustervorschlägen die Primärempfehlung.
-function orcaInfillPattern(pattern) { return pattern.indexOf('Gyroid') === 0 ? 'gyroid' : 'crosshatch'; }
+function orcaInfillPattern(pattern) { return pattern.indexOf('Blitz') === 0 ? 'lightning' : pattern.indexOf('Gyroid') === 0 ? 'gyroid' : 'crosshatch'; }
 const numStr = v => String(Math.round(Number(v) * 1000) / 1000);
 
 // Brim-Empfehlung ("5–8 mm", "Nicht nötig", "0–5 mm") → [brim_type, brim_width]; untere Grenze als Startwert.
@@ -505,6 +505,15 @@ function markAsOrca(root, version) {
   const existing = /<((?:\w+:)?)metadata\b[^>]*\bname="OrcaSlicer"[^>]*>[^<]*<\/(?:\w+:)?metadata>/;
   if (existing.test(root)) return root.replace(existing, (all, pre) => tag.replace('<metadata', '<' + pre + 'metadata').replace('</metadata', '</' + pre + 'metadata'));
   return root.replace(/<((?:\w+:)?)model\b[^>]*>/, (open, pre) => open + '\n <' + pre + 'metadata name="OrcaSlicer">' + xmlEsc(version) + '</' + pre + 'metadata>');
+}
+
+/* Z-Offset je Drucker (Auftrag 2026-10-03): Die Vorlagen enthalten z_offset = 0; der richtige Wert hängt am
+   einzelnen Drucker (Kobra S1 des Nutzers: 0,2–0,25 mm). Liefert eine Kopie der Vorlage mit diesem Wert;
+   ohne gültige Zahl (−2 … 2 mm) die Vorlage unverändert. Die Vorlage selbst wird nie verändert. */
+function withZOffset(tpl, mm) {
+  const v = typeof mm === 'string' ? Number(mm.replace(',', '.')) : mm;
+  if (!tpl || mm === '' || mm == null || !Number.isFinite(v) || v < -2 || v > 2) return tpl;
+  return { ...tpl, settings: { ...tpl.settings, z_offset: String(Math.round(v * 1000) / 1000) } };
 }
 
 /* jobs: [{geom, r, slot, part:{objectId, partId?, plate}}] wie aus partJobs(); threemf = Import-Ergebnis mit zip.

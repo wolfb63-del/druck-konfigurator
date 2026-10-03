@@ -62,7 +62,7 @@ function buildOrcaProcessJSON(r){
   const inherits=orcaProcessInherits(r.printer.id,r.dSel);
   const name='Druck-Konfigurator '+r.m.name+' - '+r.ob.label;
   // Gyroid ist in beiden Pattern-Vorschlägen ("Gyroid" / "Gyroid oder Kubisch") die Primärempfehlung.
-  const orcaPattern = r.pattern.indexOf('Gyroid')===0 ? 'gyroid' : 'crosshatch';
+  const orcaPattern = r.pattern.indexOf('Blitz')===0 ? 'lightning' : r.pattern.indexOf('Gyroid')===0 ? 'gyroid' : 'crosshatch';   // wie orcaInfillPattern (export3mf.js); engine.js muss allein laufen
   return JSON.stringify({
     type:'process',
     name:name,
@@ -141,6 +141,10 @@ function compute(I,geom,ctx){
     if(g==='strong'){w+=1;inf+=10;pattern='Gyroid oder Kubisch'}
     t=Math.max(t,Math.ceil(0.8/layer-1e-9));b=Math.max(b,Math.ceil(0.6/layer-1e-9));
   }else if(o==='tire'&&l==='high'){inf=25}
+  /* Deko/Figur: Lightning stützt nur die Oberseiten von innen – trägt nichts, spart aber viel (Auftrag
+     2026-10-03; Orca-Gegenrechnung an einer 1,25-Mio.-Dreiecke-Figur: 2 h 33 → 1 h 57, 46 → 29 g).
+     Nicht bei hoher Belastung oder „Maximale Stabilität“ (dort bleibt Gyroid/Kubisch). */
+  if(o==='decor'&&pattern==='Gyroid')pattern='Blitz (Lightning)';
   if(ob.tpuOnly&&!tpu)warn.push('<b>Hinweis:</b> „'+ob.label+'“ ist ein TPU-Objekt. Mit '+esc(short)+' wird es steif; die Werte sind allgemeine Startwerte.');
 
   // Geschwindigkeiten (Slicer-Wert + effektive Grenze durch Volumenstrom)

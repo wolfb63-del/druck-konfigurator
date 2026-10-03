@@ -4,6 +4,8 @@
    Satzvorlagen werden im Code mit trf()/den lokalen Helfern (A_TF, P_TF, E_TF …) befüllt; Zahlen mit num().
    Orca-Begriffe wie in js/i18n-en.js und tools/orca-labels-en.json. */
 Object.assign(I18N_EN, {
+  'leer = Wert der Vorlage ({v} mm) · gilt für jeden Export mit diesem Drucker': 'empty = template value ({v} mm) · applies to every export with this printer',
+  'Z-Offset bitte zwischen −2 und 2 mm': 'Please enter a Z offset between −2 and 2 mm',
   'Lesefehler': 'Read error',
   'Lese {name} …': 'Reading {name} …',
   'Lese {n} Dateien …': 'Reading {n} files …',

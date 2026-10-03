@@ -51,7 +51,7 @@ const EN = dctx.I18N_EN;
 
 // 3) Vollständigkeit
 {
-  const SKIP = /^(EN|DE|Anycubic|Snapmaker|Kobra S1|U1|Anycubic Kobra S1|Anycubic Kobra S1 Combo|Snapmaker U1|Snapmaker U1:|Kobra S1:|Rinkhals|Facebook|OK|STL, 3MF, ZIP|Filament-JSON|Process-JSON|bw\.3d\.druck@gmail\.com|Gyroid|Smooth Plate|ABS|ASA|PETG|PETG High Speed|PLA Silk|TPU 95A|Anycubic PLA High Speed|ELEGOO Rapid PLA\+ High Speed|[\d.,\s]+mm)$/;
+  const SKIP = /^(EN|DE|mm|Anycubic|Snapmaker|Kobra S1|U1|Anycubic Kobra S1|Anycubic Kobra S1 Combo|Snapmaker U1|Snapmaker U1:|Kobra S1:|Rinkhals|Facebook|OK|STL, 3MF, ZIP|Filament-JSON|Process-JSON|bw\.3d\.druck@gmail\.com|Gyroid|Smooth Plate|ABS|ASA|PETG|PETG High Speed|PLA Silk|TPU 95A|Anycubic PLA High Speed|ELEGOO Rapid PLA\+ High Speed|[\d.,\s]+mm)$/;
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '').replace(/<style[\s\S]*?<\/style>/g, '').replace(/<svg[\s\S]*?<\/svg>/g, '');
   const clean = s => s.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim();
   const want = new Set();

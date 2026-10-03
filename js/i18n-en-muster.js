@@ -47,6 +47,7 @@ const I18N_EN_PATTERNS = [
   [/^umgerechnet für (\d+(?:,\d+)?) mm (Gehärteter Stahl|Edelstahl \(Standard\)|Messing)$/, (m, d, mat) => 'converted for ' + muNum(d) + ' mm ' + muTr(mat)],
   [/^kleine Aufstandsfläche erkannt \(([\d.,]+) mm²\)$/, (m, a) => 'small footprint detected (' + muNum(a) + ' mm²)'],
   [/^([\d–]+ %) \/ Gyroid oder Kubisch$/, '$1 / Gyroid or Cubic'],
+  [/^([\d–]+ %) \/ Blitz \(Lightning\)$/, '$1 / Lightning'],
   [/^Multiplikator ([\d.,]+)$/, (m, v) => 'Multiplier ' + muNum(v)],
   [new RegExp('^' + MU_NOZ + '$'), (m, d, mat) => muNum(d) + ' mm ' + muTr(mat)],
   [/^Düse (\d+(?:,\d+)?) mm (Gehärteter Stahl|Edelstahl \(Standard\)|Messing)$/, (m, d, mat) => 'Nozzle ' + muNum(d) + ' mm ' + muTr(mat)],

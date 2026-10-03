@@ -199,6 +199,7 @@ Der Knopf **„3MF für OrcaSlicer speichern“** direkt oben im Datenblatt (ode
 
 1. **Belegung prüfen** – was steckt in welchem Slot? **Belegung eintragen** öffnet je Slot eine Auswahl für Filamenttyp und Farbe; das bleibt gespeichert, bis du es änderst (z. B. nach einem Spulenwechsel). **Eingabe löschen** entfernt sie wieder. Ohne Eingabe oder Live-Abfrage zeigt das Tool nur die Slot-Nummern – welches Filament wo steckt, weißt du selbst am besten. Mit Rinkhals/Moonraker holt **Vom Drucker laden** die Belegung automatisch.
 2. **Slot wählen** – bei einem Teil der Slot, bei mehreren der Standard-Slot für Teile ohne eigenen Slot. Bringen die Teile schon Slots mit (z. B. aus einer Makerworld-3MF), wählst du zusätzlich: **Alle Teile in den gewählten Slot** oder **Slots je Teil beibehalten** – bei einfarbigen Projekten ist Ersteres voreingestellt.
+   **Z-Offset:** Das Feld darunter trägt deinen Z-Offset in die 3MF ein (z. B. 0,25 mm). Der Wert gilt je Drucker und bleibt im Browser gespeichert; leer lassen = Wert aus der Orca-Vorlage.
 3. Bei mehreren Teilen zeigt die Tabelle **Teil · Slot · Filament · eigene Werte**. Passt das Filament eines Teils nicht zum Slot, hilft **„Filament … passend zur Belegung wählen“**.
 4. **Was geändert wird** – alle Werte, die gegenüber deiner Orca-Vorlage geändert werden.
 5. **3MF speichern** – die Datei landet in deinem Download-Ordner, z. B. `modell_KobraS1_Slot2.3mf`.

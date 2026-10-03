@@ -155,6 +155,20 @@ async function loadLiveSlots(){
   renderExportDialog();
 }
 
+/* Z-Offset je Drucker: im Browser gespeichert (store.settings.zOffset), leer = Wert der Vorlage */
+const zOffsetFor=id=>((store.settings.zOffset||{})[id]??'');
+function showZOffset(tpl,id){
+  const inp=$('zOffset');if(!inp)return;
+  inp.value=zOffsetFor(id);inp.placeholder=String((tpl.settings||{}).z_offset??'0').replace('.',',');
+  $('zOffsetNote').textContent=E_TF('leer = Wert der Vorlage ({v} mm) · gilt für jeden Export mit diesem Drucker',{v:inp.placeholder});
+  inp.onchange=()=>{
+    const raw=inp.value.trim(),z={...(store.settings.zOffset||{})};
+    if(raw==='')delete z[id];
+    else if(withZOffset(tpl,raw)!==tpl)z[id]=raw.replace(',','.');
+    else{inp.value=zOffsetFor(id);toast(E_TF('Z-Offset bitte zwischen −2 und 2 mm'));return}
+    store.settings.zOffset=z;persist();
+  };
+}
 function openExportDialog(){
   const r=lastResult,tpl=exportTemplate(r.printer.id,r.dSel);
   if(!tpl||!project)return;
@@ -170,6 +184,7 @@ function openExportDialog(){
   }else tooBig=arrangeParts(project.parts.map(p=>p.geom),tpl).oversize.map(i=>project.parts[i].name);
   $('sizeWarn').textContent=tooBig.length?E_TF('Größer als das Bett ({w} × {d} mm): {list}. Bitte drehen oder in Orca skalieren/teilen.',{w:E_NUM(bw,0),d:E_NUM(bd,0),list:tooBig.join(', ')}):'';
   $('sizeWarn').classList.toggle('hidden',!tooBig.length);
+  showZOffset(tpl,r.printer.id);
   renderSlotList(tpl,preferredSlot(tpl,r));
   slotPicked=false;
   $('slotList').onchange=()=>{slotPicked=true;renderExportDialog()};
@@ -186,7 +201,7 @@ function openExportDialog(){
 }
 
 function save3mf(){
-  const tpl=exportTemplate(lastResult.printer.id,lastResult.dSel);
+  const tpl=withZOffset(exportTemplate(lastResult.printer.id,lastResult.dSel),zOffsetFor(lastResult.printer.id));
   const plan=dialogPlan(),r=plan.r,slot=plan.slot;
   try{
     const live=exportSlots(tpl);
