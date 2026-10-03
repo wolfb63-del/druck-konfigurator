@@ -111,7 +111,7 @@ const EN = dctx.I18N_EN;
   check('Übersetzer: unbekannter Text bleibt deutsch', t2.nodeValue === 'Unbekannter Satz 42');
   check('Übersetzer: tr() englisch', ctx.tr('Datei') === 'File' && ctx.tr('Gibt es nicht') === 'Gibt es nicht');
   check('trf(): Vorlage mit Werten', vm.runInContext("trf('Loch {id}', { id: 3 })", ctx) === 'Hole 3');
-  check('num(): englisches Zahlenformat', vm.runInContext('num(27073.4, 0) + "|" + num(4.25, 1)', ctx) === '27,073|4.3', vm.runInContext('num(27073.4, 0) + "|" + num(4.25, 1)', ctx));
+  check('fmtNum(): englisches Zahlenformat', vm.runInContext('fmtNum(27073.4, 0) + "|" + fmtNum(4.25, 1)', ctx) === '27,073|4.3', vm.runInContext('fmtNum(27073.4, 0) + "|" + fmtNum(4.25, 1)', ctx));
   check('Übersetzer: Sprache gespeichert, html lang = en', mem['druckKonfigurator.lang'] === 'en' && ctx.document.documentElement.lang === 'en');
   // Seite schreibt neuen deutschen Text in denselben Knoten → wird übersetzt; zurück auf Deutsch → neuer Text
   t1.nodeValue = 'Export'; ctx.I18N.textNode(t1);
@@ -119,7 +119,7 @@ const EN = dctx.I18N_EN;
   t1.nodeValue = 'Ansicht'; ctx.I18N.textNode(t1);
   check('Übersetzer: neu geschriebener Text (Ansicht → View)', t1.nodeValue === 'View', t1.nodeValue);
   ctx.I18N.setLang('de');
-  check('num(): deutsches Zahlenformat nach Umschalten', (ctx.I18N.setLang('de'), vm.runInContext('num(27073.4, 0) + "|" + num(4.25, 1)', ctx)) === '27.073|4,3');
+  check('fmtNum(): deutsches Zahlenformat nach Umschalten', (ctx.I18N.setLang('de'), vm.runInContext('fmtNum(27073.4, 0) + "|" + fmtNum(4.25, 1)', ctx)) === '27.073|4,3');
   check('Übersetzer: zurück auf Deutsch, Originale wieder da', t1.nodeValue === 'Ansicht' && btn.getAttribute('title') === 'Hilfe' && btn.getAttribute('aria-label') === 'Menü', t1.nodeValue + ' / ' + btn.getAttribute('title'));
   // Befunde Prüf-Agent 2026-10-03
   const fuge = mkText(' sichern oder teilen.'), tipEl = mkEl('SPAN', { 'data-tip': 'Wirkt nur, wenn Stützen nötig sind. Weniger Stützen sparen Material, erhöhen aber das Risiko für Durchhängen.' }, []);

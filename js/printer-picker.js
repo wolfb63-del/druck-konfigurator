@@ -3,17 +3,33 @@
    Die Daten eines Herstellers werden erst bei Bedarf per <script> nachgeladen – das funktioniert auch
    per Doppelklick (file://), anders als fetch(). Kobra S1 und U1 behalten ihre eigenen Vorlagen. */
 
+// Sprachwahl (js/i18n.js); ohne sie deutsch. Zahlen: fmtNum aus i18n.js
+// (util.js überdeckt den Namen num() mit dem Zahlen-Parser)
+const K_TF = (s, v) => typeof trf === 'function' ? trf(s, v) : s.replace(/\{(\w+)\}/g, (m, k) => (v && k in v ? v[k] : m));
+const K_NUM = (v, d) => typeof fmtNum === 'function' ? fmtNum(v, d) : de(v, d);
+
+/* Kopfzeilen-Knopf „Anderer Drucker“: Modell, Hersteller (null = „Eigener“) und Hilfetext. Der Zustand wird
+   gemerkt, damit panel.js die Beschriftung nach einem Sprachwechsel neu schreiben kann (renderOrcaBtn). */
+let orcaBtn = null;   // { label, vendor, name, change: true = „zum Ändern“, false = „zum Auswählen“ }
+function setOrcaBtn(label, vendor, name, change) { orcaBtn = { label, vendor, name, change }; renderOrcaBtn(); }
+function renderOrcaBtn() {
+  if (!orcaBtn) return;
+  $('printerOrcaLabel').textContent = orcaBtn.label;
+  $('printerOrcaVendor').textContent = orcaBtn.vendor === null ? K_TF('Eigener') : orcaBtn.vendor;
+  $('printerOrcaBtn').title = K_TF(orcaBtn.change ? '{name} – zum Ändern anklicken' : '{name} – zum Auswählen anklicken', { name: orcaBtn.name });
+}
+
 const loadedVendors = new Map();   // Hersteller → Promise
 function loadOrcaVendor(vendor) {
   if (ORCA_PRINTER_DATA[vendor]) return Promise.resolve();
   if (!loadedVendors.has(vendor)) {
     const info = ORCA_PRINTER_INDEX.vendors[vendor];
     loadedVendors.set(vendor, new Promise((ok, fail) => {
-      if (!info) { fail(Error('Hersteller unbekannt: ' + vendor)); return; }
+      if (!info) { fail(Error(K_TF('Hersteller unbekannt: {v}', { v: vendor }))); return; }
       const s = document.createElement('script');
       s.src = 'js/orca-printers/' + info.file;
-      s.onload = () => (ORCA_PRINTER_DATA[vendor] ? ok() : fail(Error('Profildaten fehlen')));
-      s.onerror = () => { loadedVendors.delete(vendor); fail(Error('Profildatei nicht ladbar: ' + info.file)); };
+      s.onload = () => (ORCA_PRINTER_DATA[vendor] ? ok() : fail(Error(K_TF('Profildaten fehlen'))));
+      s.onerror = () => { loadedVendors.delete(vendor); fail(Error(K_TF('Profildatei nicht ladbar: {f}', { f: info.file }))); };
       document.head.appendChild(s);
     }));
   }
@@ -29,12 +45,10 @@ const shortModelLabel = (label, vendor) => { const f = vendorLabel(vendor); retu
 async function activateOrcaPrinter(vendor, name) {
   await loadOrcaVendor(vendor);
   const entry = orcaPrinterEntry(vendor, name);
-  if (!entry) throw Error('Drucker nicht gefunden: ' + name);
+  if (!entry) throw Error(K_TF('Drucker nicht gefunden: {n}', { n: name }));
   PRINTERS.orca = entry;
   store.last.orcaPrinter = { vendor, name };
-  $('printerOrcaLabel').textContent = shortModelLabel(entry.label, vendor);
-  $('printerOrcaVendor').textContent = vendorLabel(vendor);
-  $('printerOrcaBtn').title = entry.label + ' – zum Ändern anklicken';
+  setOrcaBtn(shortModelLabel(entry.label, vendor), vendorLabel(vendor), entry.label, true);
   $('printer').value = 'orca';
   $('printer').dispatchEvent(new Event('change'));
   if (pickerNozzleOk(entry.orca.nozzle)) { $('nozD').value = nkey(entry.orca.nozzle); $('nozD').dispatchEvent(new Event('change')); }
@@ -55,7 +69,7 @@ function fillPickerVendors() {
   let opt = sel.querySelector('option[value="' + CUSTOM_GROUP + '"]');
   if (!n) { if (opt) opt.remove(); return; }
   if (!opt) { opt = document.createElement('option'); opt.value = CUSTOM_GROUP; sel.prepend(opt); }
-  opt.textContent = '★ Eigene Drucker (' + n + ')';
+  opt.textContent = K_TF('★ Eigene Drucker ({n})', { n });
 }
 function renderCustomList(q) {
   const cur = store.last.orcaPrinter && store.last.orcaPrinter.vendor === 'custom' && store.last.orcaPrinter.name;
@@ -64,7 +78,7 @@ function renderCustomList(q) {
     const tpl = customPrinterTemplate(store.customPrinters[n].settings, n), noz = String(first((store.customPrinters[n].settings || {}).nozzle_diameter) || '');
     const ok = pickerNozzleOk(noz);
     return '<li class="pick-custom"><button type="button" data-pick="' + esc(n) + '"' + (n === cur ? ' aria-current="true"' : '') + (ok ? '' : ' disabled title="Diese Düsengröße kann das Tool nicht umrechnen"') + '>' +
-      '<b>' + esc(n) + '</b><small>Düse ' + de(Number(noz), 2) + ' mm' + (tpl.bed ? ' · Bett ' + de(tpl.bed[0], 0) + ' × ' + de(tpl.bed[1], 0) + ' mm' : '') + '</small></button>' +
+      '<b translate="no">' + esc(n) + '</b><small>' + K_TF('Düse {d} mm', { d: K_NUM(Number(noz), 2) }) + (tpl.bed ? ' · ' + K_TF('Bett {w} × {h} mm', { w: K_NUM(tpl.bed[0], 0), h: K_NUM(tpl.bed[1], 0) }) : '') + '</small></button>' +
       '<button type="button" class="linkbtn" data-remove-custom="' + esc(n) + '" title="Aus der Liste entfernen">Entfernen</button></li>';
   }).join('') : '<li class="muted">Kein Drucker gefunden.</li>';
 }
@@ -78,8 +92,8 @@ function renderPickerList() {
   $('pickList').innerHTML = printers.length ? printers.map(([n, p]) => {
     const ok = pickerNozzleOk(p.nozzle);
     return '<li><button type="button" data-pick="' + esc(n) + '"' + (n === cur ? ' aria-current="true"' : '') + (ok ? '' : ' disabled title="Diese Düsengröße kann das Tool nicht umrechnen"') + '>' +
-      '<b>' + esc(p.model) + '</b><small>Düse ' + de(Number(p.nozzle), 2) + ' mm · Bett ' + de(p.bed[0], 0) + ' × ' + de(p.bed[1], 0) + ' mm</small></button></li>';
-  }).join('') : '<li class="muted pick-empty">Kein Drucker gefunden. Nicht in der Liste? Oben über <b>Eigenes Orca-Profil verwenden</b> dein eigenes Profil einlesen.</li>';
+      '<b translate="no">' + esc(p.model) + '</b><small>' + K_TF('Düse {d} mm · Bett {w} × {h} mm', { d: K_NUM(Number(p.nozzle), 2), w: K_NUM(p.bed[0], 0), h: K_NUM(p.bed[1], 0) }) + '</small></button></li>';
+  }).join('') : '<li class="muted pick-empty">' + K_TF('Kein Drucker gefunden. Nicht in der Liste? Oben über <b>Eigenes Orca-Profil verwenden</b> dein eigenes Profil einlesen.') + '</li>';
 }
 function openPrinterPicker() {
   fillPickerVendors();
@@ -97,7 +111,7 @@ $('pickList').addEventListener('click', async e => {
   const rm = e.target.closest('[data-remove-custom]');
   if (rm) {
     const n = rm.dataset.removeCustom;
-    if (!confirm('Eigenen Drucker „' + n + '“ aus der Liste entfernen?')) return;
+    if (!confirm(K_TF('Eigenen Drucker „{name}“ aus der Liste entfernen?', { name: n }))) return;
     delete store.customPrinters[n];
     persist();
     fillPickerVendors();
@@ -110,8 +124,8 @@ $('pickList').addEventListener('click', async e => {
   try {
     if ($('pickVendor').value === CUSTOM_GROUP) activateCustomPrinter(store.customPrinters[b.dataset.pick], b.dataset.pick);
     else await activateOrcaPrinter($('pickVendor').value, b.dataset.pick);
-    $('pickerDlg').close(); toast('Drucker: ' + PRINTERS.orca.label);
-  } catch (err) { toast('Drucker konnte nicht geladen werden: ' + err.message); renderPickerList(); }
+    $('pickerDlg').close(); toast(K_TF('Drucker: {label}', { label: PRINTERS.orca.label }));
+  } catch (err) { toast(K_TF('Drucker konnte nicht geladen werden: {msg}', { msg: err.message })); renderPickerList(); }
 });
 $('pickerDlg').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
 
@@ -122,12 +136,8 @@ if (store.last.printer === 'orca' && store.last.orcaPrinter && store.last.orcaPr
 } else if (store.last.printer === 'orca' && store.last.orcaPrinter) {
   activateOrcaPrinter(store.last.orcaPrinter.vendor, store.last.orcaPrinter.name).catch(() => { /* bleibt beim S1 */ });
 } else if (store.last.orcaPrinter && store.last.orcaPrinter.vendor === 'custom' && store.customPrinters[store.last.orcaPrinter.name]) {
-  $('printerOrcaLabel').textContent = store.last.orcaPrinter.name;
-  $('printerOrcaVendor').textContent = 'Eigener';
-  $('printerOrcaBtn').title = store.last.orcaPrinter.name + ' – zum Auswählen anklicken';
+  setOrcaBtn(store.last.orcaPrinter.name, null, store.last.orcaPrinter.name, false);
 } else if (store.last.orcaPrinter && ORCA_PRINTER_INDEX.vendors[store.last.orcaPrinter.vendor]) {
   const fullName = store.last.orcaPrinter.name.replace(/ \d+(\.\d+)? nozzle$/, '');
-  $('printerOrcaLabel').textContent = shortModelLabel(fullName, store.last.orcaPrinter.vendor);
-  $('printerOrcaVendor').textContent = vendorLabel(store.last.orcaPrinter.vendor);
-  $('printerOrcaBtn').title = fullName + ' – zum Auswählen anklicken';
+  setOrcaBtn(shortModelLabel(fullName, store.last.orcaPrinter.vendor), vendorLabel(store.last.orcaPrinter.vendor), fullName, false);
 }

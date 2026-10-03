@@ -2,13 +2,20 @@
 /* Bedienung des 3MF-Exports: Menüpunkt freischalten, Belegung live vom Drucker laden,
    Slot wählen, Änderungen zeigen, speichern. Dazu der Dialog „Drucker-Verbindung“. */
 
+// Sprachwahl (js/i18n.js); ohne sie deutsch. Zahlen: fmtNum aus i18n.js
+// (util.js überdeckt den Namen num() mit dem Zahlen-Parser)
+const E_TF=(s,v)=>typeof trf==='function'?trf(s,v):s.replace(/\{(\w+)\}/g,(m,k)=>v&&k in v?v[k]:m);
+const E_TR=s=>typeof tr==='function'?tr(s):s;
+const E_NUM=(v,d)=>typeof fmtNum==='function'?fmtNum(v,d):de(v,d);
+const E_LOC=()=>typeof I18N!=='undefined'&&I18N.lang()==='en'?'en-US':'de-DE';
+
 // Menüpunkt nach jeder Neuberechnung aktualisieren (aufgerufen aus update()).
 function updateExportMenu(r){
   const btn=$('export3mf'),note=$('export3mfNote'),cta=$('export3mfCta'),ctaNote=$('export3mfCtaNote');
   const tpl=exportTemplate(r.printer.id,r.dSel);
   let reason='';
-  if(!tpl&&r.printer.orca)reason='Düse passt nicht zum Orca-Profil ('+de(+r.printer.orca.nozzle,2)+' mm) – unter „Drucker …“ das Profil mit '+de(+r.dSel,2)+' mm wählen';
-  else if(!tpl)reason='nur mit 0,4-mm-Düse (keine Vorlage für '+de(+r.dSel,r.dSel==='0.25'?2:1)+' mm)';
+  if(!tpl&&r.printer.orca)reason=E_TF('Düse passt nicht zum Orca-Profil ({a} mm) – unter „Drucker …“ das Profil mit {b} mm wählen',{a:E_NUM(+r.printer.orca.nozzle,2),b:E_NUM(+r.dSel,2)});
+  else if(!tpl)reason=E_TF('nur mit 0,4-mm-Düse (keine Vorlage für {d} mm)',{d:E_NUM(+r.dSel,r.dSel==='0.25'?2:1)});
   else if(!project)reason='zuerst ein Modell laden';
   btn.disabled=!!reason;
   note.textContent=reason||'Slot wählen und speichern';
@@ -51,15 +58,15 @@ function exportSlots(tpl){const s=slotSource(tpl);return s.kind==='template'?nul
 function renderSlotList(tpl,preselect){
   const slots=dialogSlots(tpl);
   $('slotList').innerHTML=slots.map(s=>
-    '<label class="slot'+(s.present?'':' absent')+'" title="'+esc(s.name)+'"><input type="radio" name="slot" value="'+s.idx+'"'+(s.idx===preselect?' checked':'')+'>'+
+    '<label class="slot'+(s.present?'':' absent')+'" title="'+esc(E_TR(s.name))+'"><input type="radio" name="slot" value="'+s.idx+'"'+(s.idx===preselect?' checked':'')+'>'+
     '<span class="swatch" style="background:'+esc(/^#[0-9a-f]{6}$/i.test(s.colour)?s.colour:'#888888')+'"></span>'+
-    '<span class="slot-text"><b>Slot '+(s.idx+1)+'</b>'+(s.type?' · '+esc(s.type):s.present?'':' · leer')+'<small>'+esc(!s.present?'kein Filament':s.name||'unbekannt')+'</small></span></label>').join('');
+    '<span class="slot-text"><b>'+E_TF('Slot {n}',{n:s.idx+1})+'</b>'+(s.type?' · '+esc(s.type):s.present?'':' · '+E_TF('leer'))+'<small>'+esc(!s.present?E_TF('kein Filament'):s.name?E_TR(s.name):E_TF('unbekannt'))+'</small></span></label>').join('');
   const src=document.querySelector('.slot-source'),kind=slotSource(tpl).kind;
   src.classList.toggle('live',kind!=='template');src.classList.toggle('fallback',kind==='template'&&!!slotState.note);
   $('slotSource').textContent=kind==='live'
-    ?'Live vom Drucker ('+slotState.live.host+') · Stand '+slotState.live.time.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})
-    :kind==='manual'?'Von Hand eingetragen – gilt, bis du es änderst'
-    :(slotState.note?slotState.note+' – ':'')+'Belegung unbekannt – wähle den Slot, in dem dein Filament steckt';
+    ?E_TF('Live vom Drucker ({host}) · Stand {time}',{host:slotState.live.host,time:slotState.live.time.toLocaleTimeString(E_LOC(),{hour:'2-digit',minute:'2-digit'})})
+    :kind==='manual'?E_TF('Von Hand eingetragen – gilt, bis du es änderst')
+    :(slotState.note?slotState.note+' – ':'')+E_TF('Belegung unbekannt – wähle den Slot, in dem dein Filament steckt');
 }
 
 // Vorauswahl: passender Filamenttyp (live oder eingetragen), sonst zuletzt genutzter Slot
@@ -78,20 +85,20 @@ function renderExportDialog(){
   renderPartPlan(tpl,plan,partSlot,notes,settings);
   // Das Tool weiß ohne Belegung nicht, was im Drucker steckt: den Nutzer den passenden Slot wählen lassen
   const kinds=[...new Set(plan.jobs.filter(j=>j.slot===null).map(j=>ORCA_KIND[j.r.m.kind]||j.r.m.name))];
-  $('slotHint').innerHTML=kinds.length>1?'<b>Wähle den Slot, in dem das Filament der Teile ohne eigenen Slot steckt</b> – siehe Tabelle unten.'
-    :'<b>Wähle den Slot, in dem dein '+esc(kinds[0]||ORCA_KIND[r.m.kind]||r.m.name)+' steckt</b> – die Werte in der Datei gelten für '+esc(kinds[0]||ORCA_KIND[r.m.kind]||r.m.name)+'.';
+  $('slotHint').innerHTML=kinds.length>1?E_TF('<b>Wähle den Slot, in dem das Filament der Teile ohne eigenen Slot steckt</b> – siehe Tabelle unten.')
+    :E_TF('<b>Wähle den Slot, in dem dein {kind} steckt</b> – die Werte in der Datei gelten für {kind}.',{kind:esc(kinds[0]||ORCA_KIND[r.m.kind]||r.m.name)});
   const kind=ORCA_KIND[r.m.kind]||'PLA',s=dialogSlots(tpl)[slot];
   const warn=$('slotWarn');
-  const where={live:'laut Drucker',manual:'laut deiner Eingabe',template:'in deiner Vorlage'}[slotSource(tpl).kind];
+  const where={live:E_TF('laut Drucker'),manual:E_TF('laut deiner Eingabe'),template:E_TF('in deiner Vorlage')}[slotSource(tpl).kind];
   if(plan.jobs.length>1)warn.classList.add('hidden');
   else if(s&&!s.present){
-    warn.innerHTML='<b>Hinweis:</b> In Slot '+(slot+1)+' hat der Drucker kein Filament erkannt.';warn.classList.remove('hidden');
+    warn.innerHTML=E_TF('<b>Hinweis:</b> In Slot {n} hat der Drucker kein Filament erkannt.',{n:slot+1});warn.classList.remove('hidden');
   }else if(s&&s.type&&!slotMatchesKind(s.type,r.m.kind)){
-    warn.innerHTML='<b>Hinweis:</b> In Slot '+(slot+1)+' steckt '+where+' <b>'+esc(s.type)+'</b>, gewählt ist <b>'+esc(r.m.name)+'</b> ('+kind+'). Die Werte werden trotzdem für '+kind+' geschrieben.';
+    warn.innerHTML=E_TF('<b>Hinweis:</b> In Slot {n} steckt {where} <b>{type}</b>, gewählt ist <b>{name}</b> ({kind}). Die Werte werden trotzdem für {kind} geschrieben.',{n:slot+1,where,type:esc(s.type),name:esc(E_TR(r.m.name)),kind});
     warn.classList.remove('hidden');
   }else warn.classList.add('hidden');
   const objCount=plan.jobs.reduce((n,j)=>n+objectOverrides(settings,j.r).length,0)*(plan.jobs.length>1?1:0);
-  $('changesTitle').textContent='Was geändert wird ('+changes.length+' Werte'+(objCount?' + '+objCount+' je Teil':'')+')';
+  $('changesTitle').textContent=objCount?E_TF('Was geändert wird ({n} Werte + {m} je Teil)',{n:changes.length,m:objCount}):E_TF('Was geändert wird ({n} Werte)',{n:changes.length});
   $('changesList').innerHTML='<table class="changes"><thead><tr><th>Einstellung</th><th>Vorlage</th><th>Neu</th></tr></thead><tbody>'+
     changes.map(c=>'<tr><td>'+esc(c.label)+'<small>'+esc(c.key)+'</small></td><td>'+esc(c.before??'–')+'</td><td><b>'+esc(c.after)+'</b></td></tr>').join('')+'</tbody></table>';
 }
@@ -112,13 +119,13 @@ function renderPartPlan(tpl,plan,partSlot,notes,settings){
       const si=partSlot(j),s=slots[si],bad=s&&s.type&&!slotMatchesKind(s.type,j.r.m.kind);
       if(bad)mismatch++;
       const own=objectOverrides(settings,j.r);
-      return '<tr><td>'+esc(j.geom.name)+'</td><td>'+(si+1)+(j.slot===null?' <small>Standard</small>':'')+(s&&s.type?'<small>'+esc(s.type)+'</small>':'')+'</td>'+
-        '<td'+(bad?' class="bad"':'')+'>'+esc(j.r.m.name)+(bad?'<small>passt nicht zu '+esc(s.type)+'</small>':'')+'</td>'+
-        '<td title="'+esc(own.map(c=>c.label+': '+c.value).join('\n'))+'">'+(own.length?own.length+' Werte':'–')+'</td></tr>';
+      return '<tr><td translate="no">'+esc(j.geom.name)+'</td><td>'+(si+1)+(j.slot===null?' <small>Standard</small>':'')+(s&&s.type?'<small>'+esc(s.type)+'</small>':'')+'</td>'+
+        '<td'+(bad?' class="bad"':'')+'>'+esc(j.r.m.name)+(bad?'<small>'+E_TF('passt nicht zu {type}',{type:esc(s.type)})+'</small>':'')+'</td>'+
+        '<td title="'+esc(own.map(c=>E_TR(c.label)+': '+E_TR(String(c.value))).join('\n'))+'">'+(own.length?E_TF('{n} Werte',{n:own.length}):'–')+'</td></tr>';
     }).join('')+'</tbody></table>';
   $('partPlanNotes').innerHTML=notes.map(n=>'<li>'+esc(n)+'</li>').join('');
   $('matchLive').classList.toggle('hidden',!mismatch);
-  $('matchLive').textContent='Filament von '+mismatch+' Teil'+(mismatch>1?'en':'')+' passend zur Belegung wählen';
+  $('matchLive').textContent=E_TF(mismatch>1?'Filament von {n} Teilen passend zur Belegung wählen':'Filament von {n} Teil passend zur Belegung wählen',{n:mismatch});
 }
 $('matchLive').addEventListener('click',()=>{
   const tpl=exportTemplate(lastResult.printer.id,lastResult.dSel),slots=dialogSlots(tpl),def=chosenSlot();
@@ -128,13 +135,13 @@ $('matchLive').addEventListener('click',()=>{
     const m=materialForSlotType(s.type,p.input.material);if(m!==p.input.material){p.input.material=m;n++}
   }
   loadPartIntoForm(project.parts[project.selected]);update();renderExportDialog();
-  toast(n?n+' Teil'+(n>1?'e':'')+' auf das Filament im Slot umgestellt':'Nichts umzustellen');
+  toast(n?E_TF(n>1?'{n} Teile auf das Filament im Slot umgestellt':'{n} Teil auf das Filament im Slot umgestellt',{n}):E_TF('Nichts umzustellen'));
 });
 
 async function loadLiveSlots(){
   const r=lastResult,tpl=exportTemplate(r.printer.id,r.dSel),host=printerHost(r.printer.id);
   if(!host){slotState={printer:r.printer.id,live:null,note:''};renderSlotList(tpl,chosenSlot());renderExportDialog();return}
-  $('slotSource').textContent='Frage '+host+' ab … (bis zu 16 s)';$('slotReload').disabled=true;
+  $('slotSource').textContent=E_TF('Frage {host} ab … (bis zu 16 s)',{host});$('slotReload').disabled=true;
   try{
     const live=await fetchLiveSlots(r.printer.id,host);
     if(slotState.printer!==r.printer.id&&slotState.printer!==null)return; // Drucker inzwischen gewechselt
@@ -152,16 +159,16 @@ function openExportDialog(){
   const r=lastResult,tpl=exportTemplate(r.printer.id,r.dSel);
   if(!tpl||!project)return;
   if(slotState.printer!==r.printer.id)slotState={printer:r.printer.id,live:null,note:''};
-  $('exportSub').textContent=project.name+(project.parts.length>1&&!/Teile$/.test(project.name)?' ('+project.parts.length+' Teile)':'')+' · '+r.m.name+' · Vorlage: '+tpl.printerPreset+' (OrcaSlicer '+tpl.orcaVersion+')';
+  $('exportSub').textContent=project.name+(project.parts.length>1&&!/Teile$/.test(project.name)?' ('+E_TF('{n} Teile',{n:project.parts.length})+')':'')+' · '+E_TR(r.m.name)+' · '+E_TF('Vorlage: {preset} (OrcaSlicer {ver})',{preset:tpl.printerPreset,ver:tpl.orcaVersion});
   const [bw,bd]=bedSize(tpl);
   let tooBig=[];
   if(project.threemf){
     // Makerworld-3MF: Platten bleiben, geprüft wird je Platte
     const {oversize}=plateShifts(project.parts.map(p=>({geom:p.geom,plate:p.plate})),tpl);
-    tooBig=oversize.map(id=>'Platte '+id);
-    $('exportSub').textContent+=' · Einstellungen von „'+((project.threemf.settings||{}).printer_settings_id||'?')+'“ werden ersetzt, Platten und Farben bleiben';
+    tooBig=oversize.map(id=>E_TF('Platte {n}',{n:id}));
+    $('exportSub').textContent+=' · '+E_TF('Einstellungen von „{p}“ werden ersetzt, Platten und Farben bleiben',{p:(project.threemf.settings||{}).printer_settings_id||'?'});
   }else tooBig=arrangeParts(project.parts.map(p=>p.geom),tpl).oversize.map(i=>project.parts[i].name);
-  $('sizeWarn').textContent=tooBig.length?'Größer als das Bett ('+de(bw,0)+' × '+de(bd,0)+' mm): '+tooBig.join(', ')+'. Bitte drehen oder in Orca skalieren/teilen.':'';
+  $('sizeWarn').textContent=tooBig.length?E_TF('Größer als das Bett ({w} × {d} mm): {list}. Bitte drehen oder in Orca skalieren/teilen.',{w:E_NUM(bw,0),d:E_NUM(bd,0),list:tooBig.join(', ')}):'';
   $('sizeWarn').classList.toggle('hidden',!tooBig.length);
   renderSlotList(tpl,preferredSlot(tpl,r));
   slotPicked=false;
@@ -170,7 +177,7 @@ function openExportDialog(){
   // verschiedene Slots (mehrfarbig) → „je Teil beibehalten“
   const own=ownSlots();
   $('slotMode').classList.toggle('hidden',!own.length);
-  $('slotModeKeep').textContent=own.length===1?'(Slot '+(own[0]+1)+(project.threemf?' aus der Datei':'')+')':own.length?'(Slots '+own.map(s=>s+1).join(', ')+')':'';
+  $('slotModeKeep').textContent=own.length===1?'('+E_TF(project.threemf?'Slot {n} aus der Datei':'Slot {n}',{n:own[0]+1})+')':own.length?'('+E_TF('Slots {list}',{list:own.map(s=>s+1).join(', ')})+')':'';
   document.querySelector('input[name="slotMode"][value="'+(own.length>1?'keep':'all')+'"]').checked=true;
   $('slotMode').onchange=renderExportDialog;
   renderExportDialog();
@@ -194,10 +201,10 @@ function save3mf(){
     document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
     if(plan.usesDefault){store.last[slotKey(r.printer.id)]=slot;persist()}
     $('exportDlg').close();
-    toast('3MF gespeichert: '+a.download);
+    toast(E_TF('3MF gespeichert: {file}',{file:a.download}));
     if(typeof markExported==='function')markExported();
   }catch(e){
-    toast('3MF konnte nicht erstellt werden: '+e.message);
+    toast(E_TF('3MF konnte nicht erstellt werden: {msg}',{msg:E_TR(e.message)}));
   }
 }
 
@@ -213,9 +220,9 @@ function openSlotEditor(){
   const types=[...new Set(SLOT_TYPES.concat(Object.keys(tpl.filamentPresets||{})))];
   $('slotEditRows').innerHTML=cur.map(s=>{
     const col=/^#[0-9a-f]{6}$/i.test(s.colour)?s.colour:'#888888',t=String(s.present?s.type:'').toUpperCase();
-    return '<div class="slot-edit-row"><b>Slot '+(s.idx+1)+'</b><select data-slot-type="'+s.idx+'" aria-label="Filament in Slot '+(s.idx+1)+'"><option value="">leer</option>'+
+    return '<div class="slot-edit-row"><b>'+E_TF('Slot {n}',{n:s.idx+1})+'</b><select data-slot-type="'+s.idx+'" aria-label="'+esc(E_TF('Filament in Slot {n}',{n:s.idx+1}))+'"><option value="">leer</option>'+
       types.map(x=>'<option'+(x===t?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select>'+
-      '<input type="color" data-slot-colour="'+s.idx+'" value="'+col+'" aria-label="Farbe Slot '+(s.idx+1)+'"></div>';
+      '<input type="color" data-slot-colour="'+s.idx+'" value="'+col+'" aria-label="'+esc(E_TF('Farbe Slot {n}',{n:s.idx+1}))+'"></div>';
   }).join('');
   $('slotEdit').classList.remove('hidden');$('slotEditBtn').classList.add('hidden');
 }
@@ -247,12 +254,12 @@ function openLinkDialog(){
 }
 async function testLink(id){
   const host=$('host_'+id).value.trim(),res=$('linkRes_'+id);
-  res.className='muted small link-result';res.textContent='Frage '+host+' ab …';
+  res.className='muted small link-result';res.textContent=E_TF('Frage {host} ab …',{host});
   try{
-    if(!IP_PATTERN.test(host))throw Error('Bitte eine IP-Adresse wie 192.168.1.50 eintragen');
+    if(!IP_PATTERN.test(host))throw Error(E_TF('Bitte eine IP-Adresse wie 192.168.1.50 eintragen'));
     const live=await fetchLiveSlots(id,host);
     res.classList.add('good');
-    res.textContent='Verbunden: '+live.slots.map((s,i)=>'Slot '+(i+1)+' '+(s.present?s.type||'?':'leer')).join(' · ');
+    res.textContent=E_TF('Verbunden: {list}',{list:live.slots.map((s,i)=>E_TF('Slot {n} {t}',{n:i+1,t:s.present?s.type||'?':E_TF('leer')})).join(' · ')});
   }catch(e){res.classList.add('bad');res.textContent=e.message}
 }
 document.querySelectorAll('#linkDlg [data-test]').forEach(b=>b.addEventListener('click',()=>testLink(b.dataset.test)));

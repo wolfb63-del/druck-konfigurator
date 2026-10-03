@@ -7,7 +7,7 @@
 const AXIS_LABEL = { z: 'senkrecht', x: 'waagerecht (X)', y: 'waagerecht (Y)' };
 // Sprachwahl (js/i18n.js); ohne sie deutsch
 const H_TF = (s, v) => typeof trf === 'function' ? trf(s, v) : s.replace(/\{(\w+)\}/g, (m, k) => v[k]);
-const H_NUM = (v, d) => typeof num === 'function' ? num(v, d) : de(v, d);
+const H_NUM = (v, d) => typeof fmtNum === 'function' ? fmtNum(v, d) : de(v, d);
 
 
 function partHoles(part) {

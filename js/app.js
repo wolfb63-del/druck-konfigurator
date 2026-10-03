@@ -1,6 +1,13 @@
 'use strict';
 /* Start und Bedienrahmen: Datei laden, Menüs, Tabs, Druckerumschaltung, Viewer-Bedienung. */
 
+// Sprachwahl (js/i18n.js); ohne sie deutsch. Zahlen: fmtNum aus i18n.js
+// (util.js überdeckt den Namen num() mit dem Zahlen-Parser)
+const A_TF=(s,v)=>typeof trf==='function'?trf(s,v):s.replace(/\{(\w+)\}/g,(m,k)=>v&&k in v?v[k]:m);
+const A_NUM=(v,d)=>typeof fmtNum==='function'?fmtNum(v,d):de(v,d);
+// Meldungen aus import.js/stl.js (feste Sätze und Sätze mit Namen/Zahlen, Regeln in js/i18n-en-ui.js)
+const A_MSG=s=>typeof uiRules==='function'?uiRules(s,'import'):s;
+
 /* ================= DATEI LADEN (aus v4) ================= */
 const input=$('file');
 let dragDepth=0;
@@ -14,11 +21,11 @@ document.addEventListener('drop',e=>{
 input.addEventListener('change',()=>{if(input.files.length)loadFiles([...input.files])});
 $('clear').addEventListener('click',()=>{input.value='';project=null;geom=null;$('fileinfo').textContent='Noch keine Datei geladen.';clearModel();update()});
 
-const readBytes=file=>new Promise((ok,fail)=>{const r=new FileReader();r.onload=()=>ok(new Uint8Array(r.result));r.onerror=()=>fail(r.error||Error('Lesefehler'));r.readAsArrayBuffer(file)});
+const readBytes=file=>new Promise((ok,fail)=>{const r=new FileReader();r.onload=()=>ok(new Uint8Array(r.result));r.onerror=()=>fail(r.error||Error(A_TF('Lesefehler')));r.readAsArrayBuffer(file)});
 
 // Eine oder mehrere Dateien (STL, 3MF, ZIP) → Projekt mit Teileliste
 async function loadFiles(files){
-  $('fileinfo').textContent='Lese '+(files.length===1?files[0].name:files.length+' Dateien')+' …';
+  $('fileinfo').textContent=files.length===1?A_TF('Lese {name} …',{name:files[0].name}):A_TF('Lese {n} Dateien …',{n:files.length});
   try{
     const entries=await Promise.all(files.map(async f=>({name:f.name,bytes:await readBytes(f)})));
     const imp=importModels(entries,fflate);
@@ -26,21 +33,29 @@ async function loadFiles(files){
     const parts=imp.parts.map((p,i)=>({id:i,name:p.name,origPos:p.pos,R:IDENTITY3,geom:makeGeom(p.name,p.pos),slot:p.extruder?p.extruder-1:null,plate:p.plate||1,objectId:p.objectId||null,partId:p.partId||null,partIds:p.partIds||null,instance:p.instance||0,transform:p.transform||null,input:null}));
     showProject({name:imp.name,parts,threemf:imp.threemf,notes:imp.notes});
   }catch(e){
-    $('fileinfo').textContent='Modell konnte nicht gelesen werden: '+e.message+'. Bitte die Datei prüfen oder erneut exportieren.';
+    $('fileinfo').textContent=A_TF('Modell konnte nicht gelesen werden: {msg}. Bitte die Datei prüfen oder erneut exportieren.',{msg:A_MSG(e.message)});
   }
 }
 
 function showProject(p){
   project=p;
   initPartInputs(p.parts);
-  const n=p.parts.reduce((s,x)=>s+x.geom.n,0);
-  $('fileinfo').innerHTML='<b>'+esc(p.name)+'</b><br>'+(p.parts.length>1?p.parts.length+' Teile · ':'')+n.toLocaleString('de-DE')+' Dreiecke'+
-    (p.threemf&&p.threemf.plates.length>1?' · '+p.threemf.plates.length+' Platten':'')+
-    (p.threemf&&p.threemf.settings&&p.threemf.settings.printer_settings_id?'<br><small>Ursprünglich für: '+esc(p.threemf.settings.printer_settings_id)+'</small>':'');
-  const notes=$('importNotes');notes.textContent=p.notes.join(' ');notes.classList.toggle('hidden',!p.notes.length);
+  renderFileInfo();
+  $('importNotes').classList.toggle('hidden',!p.notes.length);
   $('partList').classList.toggle('hidden',p.parts.length<2);
   $('modelCard').classList.add('loaded');$('modelBadge').classList.remove('hidden');
   selectPart(0);
+}
+
+// Modell-Karte: Name, Anzahl Teile/Dreiecke/Platten, ursprünglicher Drucker, Lesemeldungen (auch nach Sprachwechsel neu)
+function renderFileInfo(){
+  const p=project;if(!p)return;
+  const n=p.parts.reduce((s,x)=>s+x.geom.n,0),plates=p.threemf&&p.threemf.plates.length>1?p.threemf.plates.length:0;
+  const orig=p.threemf&&p.threemf.settings&&p.threemf.settings.printer_settings_id;
+  $('fileinfo').innerHTML='<b translate="no">'+esc(p.name)+'</b><br>'+(p.parts.length>1?A_TF('{n} Teile',{n:p.parts.length})+' · ':'')+A_TF('{n} Dreiecke',{n:A_NUM(n,0)})+
+    (plates?' · '+A_TF('{n} Platten',{n:plates}):'')+
+    (orig?'<br><small>'+esc(A_TF('Ursprünglich für: {name}',{name:orig}))+'</small>':'');
+  $('importNotes').textContent=p.notes.map(A_MSG).join(' ');
 }
 
 // Gewähltes Teil bestimmt Datenblatt, Überhanganalyse und 3D-Ansicht
@@ -69,24 +84,28 @@ function renderPartList(){
   renderPartSwitch3d();
   const list=$('partList');
   if(!project||project.parts.length<2){list.innerHTML='';return}
-  const th=+$('thresh').value,label={none:'ohne Stützen',few:'wenig Stützen',needed:'Stützen nötig'};
+  const th=+$('thresh').value,label={none:A_TF('ohne Stützen'),few:A_TF('wenig Stützen'),needed:'Stützen nötig'};
   const slots=typeof slotChoices==='function'?slotChoices():[];
   list.innerHTML=project.parts.map((p,i)=>{
     const g=p.geom,lv=analyze(g,th).level,sel=i===project.selected;
     const sc=p.slot!=null&&slots[p.slot],col=sc&&/^#[0-9a-f]{6}$/i.test(sc.colour)?sc.colour:'#999999';
-    const slot=p.slot!=null?'<span class="pslot" style="background:'+col+'"></span>Slot '+(p.slot+1)+' · ':'';
-    const plate=project.threemf&&project.threemf.plates.length>1?'Platte '+p.plate+' · ':'';
+    const slot=p.slot!=null?'<span class="pslot" style="background:'+col+'"></span>'+A_TF('Slot {n}',{n:p.slot+1})+' · ':'';
+    const plate=project.threemf&&project.threemf.plates.length>1?A_TF('Platte {n}',{n:p.plate})+' · ':'';
     return '<li><button type="button" data-part="'+i+'"'+(sel?' aria-current="true"':'')+' title="'+esc(p.name)+'"><span class="pname" translate="no">'+esc(p.name)+'</span>'+
-      '<span class="pmeta">'+slot+plate+de(g.x,0)+'×'+de(g.y,0)+'×'+de(g.z,0)+' mm</span><span class="plevel '+lv+'">'+label[lv]+'</span>'+(typeof Stability!=='undefined'?Stability.badge(g):'')+'</button></li>';
+      '<span class="pmeta">'+slot+plate+A_NUM(g.x,0)+'×'+A_NUM(g.y,0)+'×'+A_NUM(g.z,0)+' mm</span><span class="plevel '+lv+'">'+label[lv]+'</span>'+(typeof Stability!=='undefined'?Stability.badge(g):'')+'</button></li>';
   }).join('');
 }
 $('partList').addEventListener('click',e=>{const b=e.target.closest('[data-part]');if(b&&+b.dataset.part!==project.selected){selectPart(+b.dataset.part);const nb=$('partList').querySelector('[data-part="'+b.dataset.part+'"]');if(nb)nb.focus()}});
 
+// Maße und Dreiecke des gewählten Teils (auch nach Sprachwechsel neu: Zahlenformat)
+function renderModelStats(g){
+  if(!g)return;
+  $('sx').textContent=A_NUM(g.x,1)+' mm';$('sy').textContent=A_NUM(g.y,1)+' mm';$('sz').textContent=A_NUM(g.z,1)+' mm';$('sv').textContent=A_NUM(g.vol/1000,1)+' cm³';
+  $('info').textContent=g.name+'  —  '+A_NUM(g.x,1)+' × '+A_NUM(g.y,1)+' × '+A_NUM(g.z,1)+' mm  —  '+A_TF('{n} Dreiecke',{n:A_NUM(g.n,0)});
+}
 function showModel(g){
   geom=g;
-  const n=g.n;
-  $('sx').textContent=de(g.x,1)+' mm';$('sy').textContent=de(g.y,1)+' mm';$('sz').textContent=de(g.z,1)+' mm';$('sv').textContent=de(g.vol/1000,1)+' cm³';
-  $('info').textContent=g.name+'  —  '+de(g.x,1)+' × '+de(g.y,1)+' × '+de(g.z,1)+' mm  —  '+n.toLocaleString('de-DE')+' Dreiecke';
+  renderModelStats(g);
   $('ohBar').classList.remove('hidden');
   // Ohne Renderer bleibt der Hinweis „3D-Ansicht nicht verfügbar“ sichtbar (wie in v4).
   if(Viewer.show(g))$('viewerEmpty').classList.add('hidden');
@@ -162,7 +181,7 @@ const ACTIONS={
   help:()=>$('helpDlg').showModal(),
   disclaimer:()=>{if($('helpDlg').open)$('helpDlg').close();$('disclaimerDlg').showModal()},
   privacy:()=>{if($('helpDlg').open)$('helpDlg').close();$('privacyDlg').showModal()},
-  copymail:()=>copyText(CONTACT_MAIL,'Adresse kopiert: '+CONTACT_MAIL)
+  copymail:()=>copyText(CONTACT_MAIL,A_TF('Adresse kopiert: {mail}',{mail:CONTACT_MAIL}))
 };
 /* Kontakt nur zum Kopieren statt mailto: – ein mailto-Link öffnet das Standard-Mailprogramm von Windows
    (oft Outlook), auch wenn jemand im Browser mailt (gemeldet 2026-10-02). */
@@ -170,7 +189,7 @@ const CONTACT_MAIL='bw.3d.druck@gmail.com';
 function copyText(text,msg){
   const fallback=()=>{const t=document.createElement('textarea');t.value=text;t.setAttribute('readonly','');t.style.position='fixed';t.style.opacity='0';
     document.body.appendChild(t);t.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}t.remove();
-    toast(ok?msg:'Kopieren nicht möglich – Adresse: '+text)};
+    toast(ok?msg:A_TF('Kopieren nicht möglich – Adresse: {text}',{text}))};
   if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(text).then(()=>toast(msg),fallback);else fallback();
 }
 document.addEventListener('click',e=>{

@@ -176,7 +176,7 @@ const Viewer = (() => {
     if (measure.points.length === 2) {
       measure.line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(measure.points), new THREE.LineBasicMaterial({ color: MARKER_COLOR }));
       scene.add(measure.line);
-      measure.onChange(`Abstand: ${measure.points[0].distanceTo(measure.points[1]).toFixed(2)} mm`);
+      measure.onChange(typeof trf === 'function' ? trf('Abstand: {d} mm', { d: measure.points[0].distanceTo(measure.points[1]).toFixed(2) }) : `Abstand: ${measure.points[0].distanceTo(measure.points[1]).toFixed(2)} mm`);
     } else {
       measure.onChange('Zweiten Punkt anklicken …');
     }

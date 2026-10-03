@@ -4,6 +4,14 @@
    Gerechnet wird erst, wenn die Ansicht eingeschaltet ist; das Ergebnis bleibt je Teil-Geometrie und
    Linienbreite gespeichert (nach dem Drehen eines Teils entsteht eine neue Geometrie → neu rechnen). */
 const Stability = (() => {
+  // Sprachwahl (js/i18n.js); ohne sie deutsch. Zahlen über fmtNum aus i18n.js
+  const F_TF = (s, v) => typeof trf === 'function' ? trf(s, v) : s.replace(/\{(\w+)\}/g, (m, k) => (v && k in v ? v[k] : m));
+  const F_NUM = (v, d) => typeof fmtNum === 'function' ? fmtNum(v, d) : de(v, d);
+  const F_EN = () => typeof I18N !== 'undefined' && I18N.lang() === 'en';
+  // Texte aus fragility.js (Hinweise, Haftungstext, Ausrichtungs-Warnung): Regeln in js/i18n-en-ui.js
+  const F_ADV = s => typeof uiRules === 'function' ? uiRules(s, 'fragility') : s;
+  // wie fragHeightText (fragility.js), aber in der Sprache der Oberfläche
+  const F_HEIGHT = z => (z < 0.5 ? F_TF('direkt über dem Bett') : F_TF('bei {z} mm Höhe', { z: F_EN() ? z.toFixed(1) : z.toFixed(1).replace('.', ',') }));
   const cache = new WeakMap();   // geom → { lw, result }
   let mode = 'overhang', pending = 0;
 
@@ -23,14 +31,19 @@ const Stability = (() => {
   }
   const slow = g => { const e = g && cache.get(g); return !!(e && e.lw === lineWidth() && e.slow); };
 
+  // Kurzbewertung in Teilen: head + sep + body (+ ' ' + hint) = summary(); die Modell-Karte zeigt nur body
+  function summaryParts(r) {
+    const t = r.thresholds, parts = [], w = F_NUM(t.warn, 1);
+    if (r.reasons.includes('thin')) parts.push(r.minThick !== null ? F_TF('dünne Wände (unter {w} mm, dünnste ≈ {m} mm)', { w, m: F_NUM(r.minThick, 1) }) : F_TF('dünne Wände (unter {w} mm)', { w }));
+    if (r.reasons.includes('z')) parts.push(F_TF('schwach in Z {h} (schmaler Querschnitt, {n} mm Material darüber)', { h: F_HEIGHT(r.zWorst.z), n: F_NUM(r.zWorst.above, 0) }));
+    const head = { ok: F_TF('Stabil'), warn: F_TF('Schwache Stellen'), critical: F_TF('Kritisch') }[r.level];
+    return { head, sep: parts.length ? ': ' : ' – ', hint: F_TF('Nur Hinweis, die Druckeinstellungen bleiben unverändert.'),
+      body: parts.length ? parts.join('; ') + '.' : F_TF('keine dünnen Wände unter {w} mm, keine schlanken Stellen in Z.', { w }) };
+  }
   function summary(r) {
     if (!r) return '';
-    const t = r.thresholds, parts = [];
-    if (r.reasons.includes('thin')) parts.push('dünne Wände (unter ' + de(t.warn, 1) + ' mm' + (r.minThick !== null ? ', dünnste ≈ ' + de(r.minThick, 1) + ' mm' : '') + ')');
-    if (r.reasons.includes('z')) parts.push('schwach in Z ' + fragHeightText(r.zWorst.z) + ' (schmaler Querschnitt, ' + de(r.zWorst.above, 0) + ' mm Material darüber)');
-    const head = { ok: 'Stabil', warn: 'Schwache Stellen', critical: 'Kritisch' }[r.level];
-    return head + (parts.length ? ': ' + parts.join('; ') + '.' : ' – keine dünnen Wände unter ' + de(t.warn, 1) + ' mm, keine schlanken Stellen in Z.') +
-      ' Nur Hinweis, die Druckeinstellungen bleiben unverändert.';
+    const p = summaryParts(r);
+    return p.head + p.sep + p.body + ' ' + p.hint;
   }
 
   function render() {
@@ -60,7 +73,7 @@ const Stability = (() => {
         Viewer.colorizeClasses(res.cls);
         $('stabInfo').textContent = summary(res);
       } catch (e) {
-        $('stabInfo').textContent = 'Stabilität konnte nicht berechnet werden: ' + e.message;
+        $('stabInfo').textContent = F_TF('Stabilität konnte nicht berechnet werden: {msg}', { msg: e.message });
         Viewer.colorize(+$('thresh').value);
       }
     }, 30);
@@ -99,7 +112,7 @@ const Stability = (() => {
     if (slow(g)) return '<span class="pstab wait" title="Sehr detailreiches Modell – Stabilität in der Modell-Karte per Klick berechnen">Stabilität: per Klick</span>';
     if (!r) { schedule(g); return '<span class="pstab wait">Stabilität …</span>'; }
     const thin = r.reasons.includes('thin') && r.minThick !== null, z = r.reasons.includes('z');
-    const detail = (thin ? ' · ' + de(r.minThick, 1) + ' mm' : '') + (z ? (thin ? ' · Z' : ' · in Z') : '');
+    const detail = (thin ? ' · ' + F_NUM(r.minThick, 1) + ' mm' : '') + (z ? (thin ? ' · Z' : ' · in Z') : '');
     return '<span class="pstab ' + r.level + '" title="' + esc(summary(r)) + '">' + SHORT[r.level] + detail + '</span>';
   }
 
@@ -111,7 +124,7 @@ const Stability = (() => {
     $('stabPart').textContent = project && project.parts.length > 1 ? project.parts[project.selected].name : '';
     const r = cached(g), e = cache.get(g);
     if (!r && slow(g)) {
-      $('stabText').innerHTML = 'Sehr detailreiches Modell – die Stabilität wird nicht automatisch berechnet, damit die Seite nicht hängt. <button class="linkbtn" type="button" id="stabRun">Jetzt berechnen</button> (kann einige Sekunden dauern)';
+      $('stabText').innerHTML = F_TF('Sehr detailreiches Modell – die Stabilität wird nicht automatisch berechnet, damit die Seite nicht hängt.') + ' <button class="linkbtn" type="button" id="stabRun">' + F_TF('Jetzt berechnen') + '</button> ' + F_TF('(kann einige Sekunden dauern)');
       $('stabAdvice').innerHTML = ''; $('stabNote').classList.add('hidden');
       $('stabRun').onclick = () => {
         $('stabText').textContent = 'Stabilität wird berechnet …'; $('stabText').classList.add('busy');
@@ -124,15 +137,15 @@ const Stability = (() => {
       return;
     }
     if (!r) {
-      $('stabText').textContent = e && e.lw === lineWidth() && e.error ? 'Stabilität konnte nicht berechnet werden: ' + e.error : 'Stabilität wird berechnet …';
+      $('stabText').textContent = e && e.lw === lineWidth() && e.error ? F_TF('Stabilität konnte nicht berechnet werden: {msg}', { msg: e.error }) : F_TF('Stabilität wird berechnet …');
       $('stabAdvice').innerHTML = ''; $('stabNote').classList.add('hidden');
       if (!(e && e.lw === lineWidth() && e.error)) schedule(g);
       return;
     }
-    $('stabText').innerHTML = badge(g) + ' ' + esc(summary(r).replace(/ Nur Hinweis.*$/, '').replace(/^(Stabil|Schwache Stellen|Kritisch)(: | – )/, ''));
+    $('stabText').innerHTML = badge(g) + ' ' + esc(summaryParts(r).body);
     const adv = fragilityAdvice(r);
-    $('stabAdvice').innerHTML = adv.map(a => '<li>' + esc(a.text) + '</li>').join('');
-    $('stabNote').textContent = FRAG_DISCLAIMER;
+    $('stabAdvice').innerHTML = adv.map(a => '<li>' + esc(F_ADV(a.text)) + '</li>').join('');
+    $('stabNote').textContent = F_ADV(FRAG_DISCLAIMER);
     $('stabNote').classList.toggle('hidden', !adv.length);
   }
 
@@ -140,7 +153,8 @@ const Stability = (() => {
   function hintLine(g) {
     const r = cached(g);
     if (!r || r.level === 'ok') return '';
-    return '<b>Stabilität (Näherung):</b> ' + esc(summary(r).replace(/ Nur Hinweis.*$/, '')) + ' ' + fragilityAdvice(r).map(a => esc(a.text)).join(' ') + ' <i>' + esc(FRAG_DISCLAIMER) + '</i>';
+    const p = summaryParts(r);
+    return '<b>' + F_TF('Stabilität (Näherung):') + '</b> ' + esc(p.head + p.sep + p.body) + ' ' + fragilityAdvice(r).map(a => esc(F_ADV(a.text))).join(' ') + ' <i>' + esc(F_ADV(FRAG_DISCLAIMER)) + '</i>';
   }
 
   /* Ausrichtungsvorschlag: würde die neue Lage ein (dann) kritisches Teil in Z schwächen? Rechnet die
@@ -148,7 +162,7 @@ const Stability = (() => {
   const orientChecks = new WeakMap();   // Teil → { key, lw, text }
   function orientNote(part, R, el) {
     const key = R.join(','), lw = lineWidth(), c = orientChecks.get(part);
-    if (c && c.key === key && c.lw === lw) { el.textContent = c.text; el.classList.toggle('hidden', !c.text); return; }
+    if (c && c.key === key && c.lw === lw) { el.textContent = F_ADV(c.text); el.classList.toggle('hidden', !c.text); return; }
     el.textContent = ''; el.classList.add('hidden');
     // Zu detailreich für die automatische Rechnung: Hinweis entfällt, und es wird nicht bei jedem update()
     // neu versucht (Prüfung 2026-10-03: sonst bis zu 4 s Blockade bei jeder Änderung)
@@ -160,7 +174,7 @@ const Stability = (() => {
         const after = analyzeFragility(makeGeom(part.name, rotatePositions(part.origPos, R)), { lineWidth: lw, deadline: Date.now() + AUTO_MS });
         const text = orientationZText(orientationZCheck(before, after));
         orientChecks.set(part, { key, lw, text });
-        if (part.geom === geom) { el.textContent = text; el.classList.toggle('hidden', !text); }
+        if (part.geom === geom) { el.textContent = F_ADV(text); el.classList.toggle('hidden', !text); }
       } catch (err) {
         // nur Hinweis – ohne Ergebnis bleibt er weg; bei Zeitlimit merken, damit nicht ständig neu gerechnet wird
         if (err && err.timeout) orientChecks.set(part, { key, lw, text: '' });

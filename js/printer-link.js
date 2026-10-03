@@ -5,6 +5,9 @@
    Funktioniert nur, wenn die Seite über http://127.0.0.1 läuft (Moonraker-CORS);
    per Doppelklick (file://) blockiert der Browser die Antwort. */
 
+// Sprachwahl (js/i18n.js); ohne sie deutsch. Die Fehlermeldungen erscheinen im Export- und Verbindungs-Dialog.
+const L_TF = (s, v) => typeof trf === 'function' ? trf(s, v) : s.replace(/\{(\w+)\}/g, (m, k) => (v && k in v ? v[k] : m));
+
 const MOONRAKER_PORT = 7125;
 const LINK_TIMEOUT_MS = 8000;  // Kobra S1 (Rinkhals) antwortet gemessen zwischen 0,2 und 15 s
 const LINK_ATTEMPTS = 2;
@@ -18,7 +21,7 @@ const SLOT_ADAPTERS = {
     query: 'filament_hub',
     parse: status => {
       const hub = ((status.filament_hub || {}).filament_hubs || [])[0];
-      if (!hub || !Array.isArray(hub.slots)) throw Error('keine ACE-Daten (filament_hub) gefunden');
+      if (!hub || !Array.isArray(hub.slots)) throw Error(L_TF('keine ACE-Daten (filament_hub) gefunden'));
       return hub.slots.slice().sort((a, b) => a.index - b.index).map(s => {
         const c = Array.isArray(s.color) ? s.color : [136, 136, 136];
         return { type: normType(s.type), colour: '#' + hex2(c[0]) + hex2(c[1]) + hex2(c[2]), name: normType(s.type) || 'leer', present: s.status === 'ready' };
@@ -29,7 +32,7 @@ const SLOT_ADAPTERS = {
     query: 'print_task_config',
     parse: status => {
       const p = status.print_task_config;
-      if (!p || !Array.isArray(p.filament_type)) throw Error('keine Werkzeugkopf-Daten (print_task_config) gefunden');
+      if (!p || !Array.isArray(p.filament_type)) throw Error(L_TF('keine Werkzeugkopf-Daten (print_task_config) gefunden'));
       return p.filament_type.map((t, i) => {
         const rgba = String((p.filament_color_rgba || [])[i] || '888888FF');
         const vendor = (p.filament_vendor || [])[i] || '';
@@ -46,11 +49,11 @@ function linkAvailable() { return location.protocol === 'http:'; }
 // Liefert {slots, host, time} oder wirft einen Fehler mit verständlicher Meldung.
 async function fetchLiveSlots(printerId, host) {
   const adapter = SLOT_ADAPTERS[printerId];
-  if (!adapter) throw Error('für diesen Drucker gibt es keine Live-Abfrage');
-  if (!host) throw Error('keine IP-Adresse eingetragen');
+  if (!adapter) throw Error(L_TF('für diesen Drucker gibt es keine Live-Abfrage'));
+  if (!host) throw Error(L_TF('keine IP-Adresse eingetragen'));
   if (!linkAvailable()) throw Error(location.protocol === 'https:'
-    ? 'Live-Abfrage geht in der Online-Version nicht – dafür das Tool herunterladen und über den lokalen Server starten'
-    : 'Live-Abfrage nur beim Start über „Konfigurator starten.cmd“ bzw. tools/serve.py (nicht per Doppelklick auf index.html)');
+    ? L_TF('Live-Abfrage geht in der Online-Version nicht – dafür das Tool herunterladen und über den lokalen Server starten')
+    : L_TF('Live-Abfrage nur beim Start über „Konfigurator starten.cmd“ bzw. tools/serve.py (nicht per Doppelklick auf index.html)'));
   for (let attempt = 1; ; attempt++) {
     try { return await querySlotsOnce(adapter, host); }
     catch (e) { if (attempt >= LINK_ATTEMPTS || !e.retryable) throw e; }
@@ -61,12 +64,12 @@ async function querySlotsOnce(adapter, host) {
   const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), LINK_TIMEOUT_MS);
   try {
     const res = await fetch('http://' + host + ':' + MOONRAKER_PORT + '/printer/objects/query?' + adapter.query, { signal: ctrl.signal });
-    if (!res.ok) throw Error('Drucker antwortet mit HTTP ' + res.status);
+    if (!res.ok) throw Error(L_TF('Drucker antwortet mit HTTP {code}', { code: res.status }));
     const data = await res.json();
     return { slots: adapter.parse((data.result || {}).status || {}), host, time: new Date() };
   } catch (e) {
-    const err = e.name === 'AbortError' ? Error('Drucker unter ' + host + ' antwortet nicht (Zeitüberschreitung)')
-      : e instanceof TypeError ? Error('Drucker unter ' + host + ' nicht erreichbar oder Zugriff blockiert') : null;
+    const err = e.name === 'AbortError' ? Error(L_TF('Drucker unter {host} antwortet nicht (Zeitüberschreitung)', { host }))
+      : e instanceof TypeError ? Error(L_TF('Drucker unter {host} nicht erreichbar oder Zugriff blockiert', { host })) : null;
     if (err) { err.retryable = true; throw err; }
     throw e;
   } finally { clearTimeout(timer); }

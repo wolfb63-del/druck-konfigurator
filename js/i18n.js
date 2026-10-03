@@ -27,8 +27,8 @@ const i18nLookup = k => (i18nHas(k) ? I18N_EN[k] : i18nPattern(k));
 function tr(de) { if (uiLang !== 'en') return de; const en = i18nLookup(de); return en === undefined ? de : en; }
 // Satzvorlage mit Platzhaltern {name}: Schlüssel ist die deutsche Vorlage, vars die eingesetzten Werte
 function trf(de, vars) { return tr(de).replace(/\{(\w+)\}/g, (m, k) => (vars && k in vars ? vars[k] : m)); }
-// Zahl im Format der Sprache (Deutsch: 4,2 und 27.073 – Englisch: 4.2 und 27,073)
-function num(v, d) { return Number(v).toLocaleString(uiLang === 'en' ? 'en-US' : 'de-DE', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+// Zahl im Format der Sprache (Name fmtNum: util.js belegt num als Zahlen-Parser) (Deutsch: 4,2 und 27.073 – Englisch: 4.2 und 27,073)
+function fmtNum(v, d) { return Number(v).toLocaleString(uiLang === 'en' ? 'en-US' : 'de-DE', { minimumFractionDigits: d, maximumFractionDigits: d }); }
 
 const I18N = (() => {
   // Je Textknoten bzw. Element+Attribut: deutsches Original und der zuletzt von hier geschriebene Wert.

@@ -4,6 +4,9 @@
    bekommt jedes Teil sein eigenes Ergebnis (partJobs); export3mf.js schreibt Abweichungen als
    Objekt-Einstellung und die Filamentwerte je Slot. */
 
+// Sprachwahl (js/i18n.js); ohne sie deutsch
+const S_TF = (s, v) => typeof trf === 'function' ? trf(s, v) : s.replace(/\{(\w+)\}/g, (m, k) => (v && k in v ? v[k] : m));
+
 const PART_FIELDS = ['material', 'object', 'goal', 'load', 'support', 'supportLevel'];
 const formSnapshot = () => Object.fromEntries(PART_FIELDS.map(id => [id, $(id).value]));
 
@@ -40,7 +43,7 @@ function renderPartScope() {
   const p = project.parts[project.selected], sel = $('partSlot'), slots = slotChoices();
   $('partScopeName').textContent = p.name;
   sel.innerHTML = '<option value="">wie beim Export gewählt</option>' +
-    slots.map(s => '<option value="' + s.idx + '">Slot ' + (s.idx + 1) + (s.type ? ' · ' + esc(s.type) : '') + '</option>').join('');
+    slots.map(s => '<option value="' + s.idx + '">' + S_TF('Slot {n}', { n: s.idx + 1 }) + (s.type ? ' · ' + esc(s.type) : '') + '</option>').join('');
   sel.value = p.slot === null || p.slot === undefined || p.slot >= slots.length ? '' : String(p.slot);
 }
 $('partSlot').addEventListener('change', () => {

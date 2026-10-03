@@ -10,7 +10,7 @@ const selectedPart = () => project && project.parts[project.selected];
 const orientable = () => !!project && !project.threemf;
 // Sprachwahl (js/i18n.js); ohne sie deutsch
 const O_TF = (s, v) => typeof trf === 'function' ? trf(s, v) : s.replace(/\{(\w+)\}/g, (m, k) => v[k]);
-const O_NUM = (v, d) => typeof num === 'function' ? num(v, d) : de(v, d);
+const O_NUM = (v, d) => typeof fmtNum === 'function' ? fmtNum(v, d) : de(v, d);
 const mm2 = v => O_NUM(v, 0) + ' mm²';
 
 function setPartRotation(part, R) {
