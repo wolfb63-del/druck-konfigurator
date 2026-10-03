@@ -4,6 +4,8 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 
 ## [Unreleased]
 
+## [6.6.0] – 2026-10-03
+
 ### Neu
 - **Objekt-Erkennung mit Vorauswahl:** Beim Laden schlägt das Tool die Objektart vor und begründet sie („Erkannt: … – …“): Farbwechsel nach Höhe (flache Platte mit mindestens 5 Wechseln → HueForge, sonst Mehrfarbig/Gravur; nur bei Projekten mit einem Teil), mehrere Slots (Mehrfarbig), deutliche Überhänge ab 10 % der Oberfläche (Freiform), dünne, hohle Wand bis 2,2 mm mittlere Dicke (Dünnwandiges Gehäuse). Ändert der Nutzer das Feld, bleibt seine Wahl bis zum nächsten Modell. Halterung, Präzision, wasserdicht, Funktionsteil und TPU-Arten bleiben seine Wahl.
 - **Neue Objektart „HueForge / Bildplatte“:** 0,08 mm Schichten, 0,16 mm erste Schicht, 100 % Füllung mit Linien (rectilinear), obere/untere Schichten umgerechnet; Hinweis auf Farbwechsel und Reinigungsturm. Werte aus den HueForge-Anleitungen.
