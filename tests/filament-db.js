@@ -8,9 +8,9 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const ctx = vm.createContext({ console });
-for (const f of ['filament-db', 'filament-pick'])
+for (const f of ['data', 'filament-db', 'filament-pick'])
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
-const K = vm.runInContext('({FILAMENT_DB, filamentTypeFor, fdbManufacturers, fdbMaterials, fdbColours})', ctx);
+const K = vm.runInContext('({FILAMENT_DB, filamentTypeFor, fdbManufacturers, fdbMaterials, fdbColours, filamentTemplateFor, fdbProfileMaterials, fdbTemps, fdbProfileId, fdbProfile, BUILTIN})', ctx);
 const DB = K.FILAMENT_DB;
 
 let pass = 0, fail = 0;
@@ -65,6 +65,29 @@ check('Hex: Sunlu "Clear" ffffffaa (Alpha hinten) → #FFFFFF', anyOf('Sunlu', '
 const gb = anyOf('AURAPOL', 'Graphite black');
 check('Temperatur: Mitte des Bereichs (Düse 260, Bett 110), wenn kein Einzelwert', gb && gb.nozzle === 260 && gb.bed === 110, JSON.stringify(gb));
 check('Temperatur: Einzelwert gewinnt (3D-Fuel Almond 220/60 bleibt)', K.fdbColours(DB, '3D-Fuel', 'PLA+').find(c => c.name === 'Almond').nozzle === 220);
+
+// Profil aus Hersteller + Material (Hauptseite)
+const B = id => K.BUILTIN.find(b => b.id === id);
+check('Standardprofil je Material: PLA+ → pla, PETG-CF → petg_cf, TPU-95A → tpu, ABS+MATTE → abs', K.filamentTemplateFor('PLA+') === 'pla' && K.filamentTemplateFor('PETG-CF') === 'petg_cf' && K.filamentTemplateFor('TPU-95A') === 'tpu' && K.filamentTemplateFor('ABS+MATTE') === 'abs');
+check('Standardprofil: PA6, PC, PVB, WOOD → keines (null)', ['PA6', 'PC', 'PVB', 'WOOD'].every(m => K.filamentTemplateFor(m) === null));
+check('Alle Standardprofil-Ids der Zuordnung gibt es im Tool', ['PLA+', 'PLA-CF', 'PETG', 'PETG-CF10', 'ABS', 'ASA', 'TPU'].every(m => B(K.filamentTemplateFor(m))));
+check('fdbProfileMaterials: nur Materialien mit Standardprofil', K.fdbProfileMaterials(DB, 'Bambu Lab').every(m => K.filamentTemplateFor(m.material)) && K.fdbProfileMaterials(DB, 'Bambu Lab').length > 0);
+// Quelle: AURAPOL ASA: Düse Bereich [255,265] → 260, Bett [105,115] → 110 (alle Farben gleich)
+const at = K.fdbTemps(DB, 'AURAPOL', 'ASA');
+check('Temperaturen AURAPOL ASA: Düse 260, Bett 110', at.nozzle === 260 && at.bed === 110, JSON.stringify(at));
+const smallT = { H: { PLA: [['a', 'FFFFFF', 210, 60], ['b', 'FFFFFF', 215, 0], ['c', 'FFFFFF', 215, 60], ['d', 'FFFFFF', 0, 0]], X: [['z', '000000', 0, 0]] } };
+check('Temperaturen: häufigster Wert (215/60), Nullen zählen nicht; ohne Angabe 0/0', JSON.stringify(K.fdbTemps(smallT, 'H', 'PLA')) === '{"nozzle":215,"bed":60}' && JSON.stringify(K.fdbTemps(smallT, 'H', 'X')) === '{"nozzle":0,"bed":0}');
+check('Temperaturen: Gleichstand → kleinerer Wert', K.fdbTemps({ H: { M: [['a', 'FFFFFF', 220, 0], ['b', 'FFFFFF', 210, 0]] } }, 'H', 'M').nozzle === 210);
+check('Profil-Id: Kleinbuchstaben, Sonderzeichen → _', K.fdbProfileId('Bambu Lab', 'PLA+') === 'fdb_bambu_lab_pla' && K.fdbProfileId('add:north', 'PETG') === 'fdb_add_north_petg', K.fdbProfileId('add:north', 'PETG'));
+const asa = B('asa'), beforeAsa = JSON.stringify(asa), pr = K.fdbProfile(asa, 'AURAPOL', 'ASA', at);
+check('Profil: Name "AURAPOL ASA", Typ wie Vorlage', pr.name === 'AURAPOL ASA' && pr.kind === 'asa');
+check('Profil: Düse [Q, A, S] um den Abstand verschoben, Mitte = 260', JSON.stringify(pr.nozzle) === JSON.stringify(asa.nozzle.map(v => v + 260 - asa.nozzle[1])) && pr.nozzle[1] === 260, JSON.stringify(pr.nozzle));
+check('Profil: Bett 110, Bereich "260 °C (Herstellerangabe)"', pr.bed === 110 && pr.range === '260 °C (Herstellerangabe)');
+check('Profil: Rechenwerte unverändert vom Standardprofil (Volumenstrom, Fluss, Rückzug)', pr.maxVol === asa.maxVol && pr.flow === asa.flow && pr.retrLen === asa.retrLen && JSON.stringify(pr.outer) === JSON.stringify(asa.outer));
+check('Profil: id/builtin/status/src nicht mitkopiert, Vorlage unverändert', !('id' in pr) && !('builtin' in pr) && !('status' in pr) && !('src' in pr) && JSON.stringify(asa) === beforeAsa);
+const none = K.fdbProfile(asa, 'X', 'ASA', { nozzle: 0, bed: 0 });
+check('Profil ohne Datenbank-Temperatur: Düse, Bett, Bereich wie Vorlage + Hinweis im Notiztext', JSON.stringify(none.nozzle) === JSON.stringify(asa.nozzle) && none.bed === asa.bed && none.range === asa.range && /keine Temperatur/.test(none.notes), none.notes);
+check('Profil: Notiz nennt Herkunft und "nicht getestet"', /SpoolmanDB/.test(pr.notes) && /nicht getestet/.test(pr.notes));
 
 console.log(pass + '/' + (pass + fail) + ' bestanden');
 process.exit(fail ? 1 : 0);

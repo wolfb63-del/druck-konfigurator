@@ -107,7 +107,8 @@
         <label for="partSlot">Slot</label><select id="partSlot"></select>
       </div>
       <div class="field"><label for="material">Filament<span id="matBadge"></span></label><select id="material"></select>
-        <div class="field-links noprint"><button class="linkbtn" type="button" data-click="editMat">✎ Werte anpassen</button><button class="linkbtn" type="button" data-click="newMat">＋ Neues Filament</button></div></div>
+        <div class="field-links noprint"><button class="linkbtn" type="button" data-click="editMat">✎ Werte anpassen</button><button class="linkbtn" type="button" data-click="newMat">＋ Neues Filament</button><button class="linkbtn" type="button" id="fdbPickBtn">▾ Nach Hersteller wählen</button></div>
+        <div id="fdbRow" class="fdb-row hidden"><select id="fdbMf" aria-label="Hersteller des Filaments"></select><select id="fdbMat" aria-label="Material des Filaments" disabled></select><small id="fdbNote" role="status"></small></div></div>
       <div class="field"><label for="object">Objekt</label><select id="object">
         <option value="general">Funktionsteil</option>
         <option value="holder">Halterung / Befestigung</option>

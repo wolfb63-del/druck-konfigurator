@@ -39,3 +39,44 @@ function fdbMaterials(db, manufacturer) {
 function fdbColours(db, manufacturer, material) {
   return (((db || {})[manufacturer] || {})[material] || []).map(([name, hex, nozzle, bed]) => ({ name, hex: '#' + hex, nozzle, bed }));
 }
+
+/* ---------- Eigenes Profil aus Hersteller + Material (Hauptseite, Feld „Filament“) ----------
+   Das Tool kennt Rechenwerte (Volumenstrom, Geschwindigkeiten, Rückzug …) nur für seine Standardprofile; die
+   Datenbank liefert nur Temperaturen. Ein Hersteller-Profil ist deshalb das Standardprofil des Typs mit den
+   Temperaturen der Datenbank – kein getestetes Profil. PA, PC und Unbekanntes haben kein Standardprofil → null. */
+const FDB_TEMPLATE = { 'PLA': 'pla', 'PETG': 'petg', 'ABS': 'abs', 'ASA': 'asa', 'TPU': 'tpu', 'PLA-CF': 'pla_cf', 'PETG-CF': 'petg_cf' };
+
+/* Id des Standardprofils für ein Material der Datenbank, null wenn das Tool dafür keine Werte kennt */
+function filamentTemplateFor(material) { return FDB_TEMPLATE[filamentTypeFor(material)] || null; }
+
+/* Materialien eines Herstellers, für die ein Profil möglich ist */
+function fdbProfileMaterials(db, manufacturer) { return fdbMaterials(db, manufacturer).filter(m => FDB_TEMPLATE[m.type]); }
+
+/* Häufigste angegebene Temperatur (Düse/Bett) aller Farben des Materials, 0 = keine Angabe */
+function fdbTemps(db, manufacturer, material) {
+  const mode = key => {
+    const n = {};
+    fdbColours(db, manufacturer, material).forEach(c => { if (c[key] > 0) n[c[key]] = (n[c[key]] || 0) + 1; });
+    const best = Object.keys(n).sort((a, b) => n[b] - n[a] || a - b)[0];
+    return best ? Number(best) : 0;
+  };
+  return { nozzle: mode('nozzle'), bed: mode('bed') };
+}
+
+const fdbProfileId = (manufacturer, material) => 'fdb_' + (manufacturer + '_' + material).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+
+/* Neues Profil: Kopie des Standardprofils base mit Namen „Hersteller Material“ und den Temperaturen der Datenbank.
+   base wird nicht verändert; die Düsentemperaturen [Qualität, Ausgewogen, Schnell] behalten ihren Abstand. */
+function fdbProfile(base, manufacturer, material, temps) {
+  const p = { ...base };
+  for (const k of ['id', 'builtin', 'overridden', 'status', 'src']) delete p[k];
+  p.name = manufacturer + ' ' + material;
+  if (temps && temps.nozzle > 0) {
+    const shift = temps.nozzle - base.nozzle[1];
+    p.nozzle = base.nozzle.map(v => v + shift);
+    p.range = temps.nozzle + ' °C (Herstellerangabe)';
+  }
+  if (temps && temps.bed > 0) p.bed = temps.bed;
+  p.notes = 'Startwerte: Standardprofil „' + base.name + '“' + (temps && (temps.nozzle || temps.bed) ? ' mit den Temperaturen der SpoolmanDB (Herstellerangabe, ungeprüft)' : ' (die Datenbank nennt für dieses Material keine Temperatur)') + '. Übrige Werte nicht getestet – bitte prüfen und bei Bedarf anpassen.';
+  return p;
+}

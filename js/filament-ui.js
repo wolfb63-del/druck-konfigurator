@@ -64,3 +64,41 @@ function attachFilamentPicker(rowsEl) {
     });
   }).catch(() => picks.forEach(({ div }) => { div.querySelector('[data-fp-note]').textContent = E_TR('Hersteller-Liste nicht verfügbar – Typ und Farbe bitte von Hand wählen.'); }));
 }
+
+/* Hauptseite, Feld „Filament“: Hersteller → Material legt ein eigenes Profil an (Standardprofil des Typs mit den
+   Temperaturen der Datenbank, Logik in filament-pick.js) und wählt es aus. Gibt es das Profil schon (auch mit
+   eigenen Werten), wird es nur gewählt, nie überschrieben. */
+function setupFilamentMain() {
+  const btn = $('fdbPickBtn'), row = $('fdbRow');
+  if (!btn || !row) return;
+  const mf = $('fdbMf'), mat = $('fdbMat'), note = $('fdbNote');
+  let db = null;
+  const resetMat = () => { mat.innerHTML = fpOpts(E_TR('Material …'), []); mat.disabled = true; };
+  btn.addEventListener('click', () => {
+    row.classList.toggle('hidden');
+    if (row.classList.contains('hidden') || db) return;
+    note.textContent = '';
+    loadFilamentDb().then(d => {
+      db = d;
+      mf.innerHTML = fpOpts(E_TR('Hersteller …'), fdbManufacturers(db).filter(m => fdbProfileMaterials(db, m).length).map(m => [m, m]));
+      note.textContent = E_TR('Nur Materialien, für die das Tool Werte kennt (PLA, PETG, ABS, ASA, TPU).');
+    }).catch(() => { note.textContent = E_TR('Hersteller-Liste nicht verfügbar – bitte ein Standardprofil wählen.'); });
+  });
+  mf.addEventListener('change', () => {
+    if (!mf.value) { resetMat(); return; }
+    mat.innerHTML = fpOpts(E_TR('Material …'), fdbProfileMaterials(db, mf.value).map(m => [m.material, m.material]));
+    mat.disabled = false;
+  });
+  mat.addEventListener('change', () => {
+    if (!mat.value) return;
+    const id = fdbProfileId(mf.value, mat.value), base = builtinOf(filamentTemplateFor(mat.value)), fresh = !store.profiles[id];
+    if (fresh) store.profiles[id] = fdbProfile(base, mf.value, mat.value, fdbTemps(db, mf.value, mat.value));
+    persist(); fillMaterialSelect(id); store.last.material = id; persist(); update();
+    const name = store.profiles[id].name;
+    note.textContent = fresh ? E_TF('Eigenes Filament „{name}“ angelegt: Standardprofil {base} mit den Temperaturen der Datenbank (Herstellerangabe). Übrige Werte prüfen – „Werte anpassen“.', { name, base: E_TR(base.name) })
+      : E_TF('Eigenes Filament „{name}“ gewählt.', { name });
+    mf.value = ''; resetMat();
+  });
+  resetMat();
+}
+setupFilamentMain();

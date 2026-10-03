@@ -37,7 +37,7 @@ for (const [file, css, scope] of [['ui-neu.css', neu, 'html[data-ui="neu"]'], ['
 }
 // ui-gemeinsam.css gilt überall, darf aber nur die neuen Bausteine gestalten – nichts, was es im Original schon gab
 {
-  const NEW = /\.(steps|steps-pulse|lang-btn|zoff-row|purge-row|slot-pick|slot-pick-lbl|step-n|step-t|field-hint|theme-btn|theme-moon|theme-sun|ui-tip|busy|slot-mode)\b/;
+  const NEW = /\.(steps|steps-pulse|lang-btn|zoff-row|purge-row|slot-pick|slot-pick-lbl|fdb-row|step-n|step-t|field-hint|theme-btn|theme-moon|theme-sun|ui-tip|busy|slot-mode)\b/;
   const sel = selectorsOf(gem), loose = sel.filter(x => !NEW.test(x));
   check('ui-gemeinsam.css: nur neue Bausteine', sel.length > 0 && loose.length === 0, loose.join(' | '));
 }

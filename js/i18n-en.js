@@ -230,6 +230,7 @@ const I18N_EN = {
   'Fläche anklicken, die aufs Bett soll (Esc bricht ab)': 'Click the face that should go on the bed (Esc cancels)', 'Fläche liegt jetzt auf dem Bett': 'The face now rests on the bed',
   'Prüfe Teil {i} von {n} …': 'Checking part {i} of {n} …', '{c} von {n} Teilen neu ausgerichtet': '{c} of {n} parts reoriented', 'Alle Teile liegen bereits gut': 'All parts are already well oriented',
   'Z-Offset': 'Z offset',
+  '▾ Nach Hersteller wählen': '▾ Pick by manufacturer', 'Hersteller des Filaments': 'Filament manufacturer', 'Material des Filaments': 'Filament material',
   'Aus Liste wählen': 'Pick from list', 'Hersteller …': 'Manufacturer …', 'Material …': 'Material …', 'Farbe …': 'Colour …',
   'wie PLA gerechnet': 'calculated like PLA',
   'Material unbekannt – wird wie PLA gerechnet.': 'Material unknown – calculated like PLA.',

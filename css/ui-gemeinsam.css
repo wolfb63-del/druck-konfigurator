@@ -76,6 +76,11 @@ html[data-stil="schlicht"] .lang-btn { border-color: var(--field-border); }
 .slot-pick select { max-width: 11em; padding: 5px 6px; border: 1px solid var(--field-border, #8c8578); border-radius: var(--r-s); background: var(--sheet); color: var(--ink); font: inherit; }
 .slot-pick small { flex-basis: 100%; color: var(--ink-3); font-size: 12px; }
 
+/* Hersteller-Auswahl beim Filament (js/filament-ui.js) */
+.fdb-row { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 6px 0 2px; }
+.fdb-row select { flex: 1 1 8em; min-width: 0; padding: 6px 8px; border: 1px solid var(--field-border, #8c8578); border-radius: var(--r-s); background: var(--sheet); color: var(--ink); font: inherit; font-size: 13px; }
+.fdb-row small { flex-basis: 100%; color: var(--ink-3); font-size: 12px; }
+
 /* Reinigungslinie im Export-Dialog (js/export-ui.js) */
 .purge-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 8px 0 4px; font-size: 14px; }
 .purge-row label { font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }

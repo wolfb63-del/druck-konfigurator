@@ -168,6 +168,7 @@ Links wählst du **Filament, Objektart, Priorität, Belastung, Support** und **S
 
 - **Werte anpassen** (unter der Filament-Auswahl oder im Menü **Profile**): eigene Temperatur, Geschwindigkeit, Lüfter usw. speichern. Alle Empfehlungen rechnen danach mit deinen Werten.
 - **Neues Filament:** zusätzliches Profil, z. B. für eine bestimmte Marke.
+- **Nach Hersteller wählen:** unter dem Feld „Filament“. Hersteller und Material wählen (nur PLA, PETG, ABS, ASA, TPU, auch als PLA-CF/PETG-CF – dafür kennt das Tool Werte), das Tool legt daraus ein eigenes Filament „Hersteller Material“ an und wählt es aus. Es ist das Standardprofil des Typs mit den Temperaturen der Datenbank (Düse und Bett, Herstellerangabe aus der SpoolmanDB, ungeprüft); Volumenstrom, Geschwindigkeiten und Rückzug bleiben die des Standardprofils und sind **nicht** für diese Marke getestet. Ein schon vorhandenes Profil mit gleichem Namen wird nur gewählt, nie überschrieben. Die Temperatur ist der häufigste Wert der Datenbank für dieses Material, bei Herstellern mit stark streuenden Angaben also nur ein Anhalt – bei Bedarf unter „Werte anpassen“ korrigieren. PA, PC und Sonderfilamente fehlen hier, weil das Tool dafür keine Rechenwerte hat.
 - **Profile exportieren/importieren:** eigene Werte als Datei sichern oder auf einen anderen PC übertragen.
 
 ---
