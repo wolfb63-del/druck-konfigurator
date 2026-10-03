@@ -277,6 +277,7 @@
     <div id="slotWarn" class="note hidden"></div>
     <div class="zoff-row"><label for="zOffset">Z-Offset</label><input id="zOffset" type="text" inputmode="decimal" autocomplete="off" aria-describedby="zOffsetNote"><span>mm</span><small id="zOffsetNote"></small></div>
     <div id="zOffsetWarn" class="note hidden" role="note"></div>
+    <div class="purge-row"><label><input type="checkbox" id="purgeOn"> Reinigungslinie</label><select id="purgeSide" aria-label="Seite der Reinigungslinie"><option value="auto">Auto</option><option value="front">Vorne</option><option value="back">Hinten</option><option value="left">Links</option><option value="right">Rechts</option></select><small id="purgeNote"></small></div>
     <div id="partPlan" class="hidden"><h3 class="plan-title">Teile</h3><div id="partPlanTable"></div><ul id="partPlanNotes" class="plan-notes"></ul>
       <button class="linkbtn hidden" type="button" id="matchLive">Filament der Teile passend zur Belegung wählen</button></div>
     <details class="fold" id="changesFold"><summary id="changesTitle">Was geändert wird</summary><div id="changesList"></div></details>
@@ -385,6 +386,7 @@
 <script src="vendor/fflate.min.js"></script>
 <script src="js/orca-templates.js"></script>
 <script src="js/export3mf.js"></script>
+<script src="js/purge.js"></script>
 <script src="js/orca-printers/index.js"></script>
 <script src="js/orca-generic.js"></script>
 <script src="js/orca-custom.js"></script>

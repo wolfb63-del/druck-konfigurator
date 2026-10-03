@@ -230,6 +230,9 @@ const I18N_EN = {
   'Fläche anklicken, die aufs Bett soll (Esc bricht ab)': 'Click the face that should go on the bed (Esc cancels)', 'Fläche liegt jetzt auf dem Bett': 'The face now rests on the bed',
   'Prüfe Teil {i} von {n} …': 'Checking part {i} of {n} …', '{c} von {n} Teilen neu ausgerichtet': '{c} of {n} parts reoriented', 'Alle Teile liegen bereits gut': 'All parts are already well oriented',
   'Z-Offset': 'Z offset',
+  'Reinigungslinie': 'Purge line', 'Seite der Reinigungslinie': 'Side of the purge line',
+  'Auto': 'Auto', 'Vorne': 'Front', 'Links': 'Left', 'Rechts': 'Right',
+  'vorne': 'at the front', 'hinten': 'at the back', 'links': 'on the left', 'rechts': 'on the right',
   'Blitz (Lightning)': 'Lightning',
   // Kurzmeldungen
   'Schnell': 'Fast', 'Dekoration': 'Decoration', 'Reifen / Rad': 'Tire / wheel', 'Flexible Hülle': 'Flexible case', 'Quetschbares Spielzeug': 'Squishy toy', 'Profile als Datei gespeichert': 'Profiles saved as file', 'Filament-JSON gespeichert': 'Filament-JSON saved', 'Process-JSON gespeichert': 'Process-JSON saved'

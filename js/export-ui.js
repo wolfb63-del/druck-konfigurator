@@ -174,6 +174,37 @@ function showZOffset(tpl,id){
     store.settings.zOffset=z;persist();warn();
   };
 }
+/* Reinigungslinie je Drucker: im Browser gespeichert (store.settings.purge[id] = {on, side}), Standard aus */
+const purgeFor=id=>({on:false,side:'auto',...((store.settings.purge||{})[id]||{})});
+const PURGE_SIDE_TXT={front:'vorne',back:'hinten',left:'links',right:'rechts'};
+const PURGE_FIRMWARE=['kobra_s1','snapmaker_u1'];
+// Plan für die gewählte Seite; null = aus oder nicht berechenbar
+function purgePlanFor(tpl){
+  const p=purgeFor(lastResult.printer.id);if(!p.on)return null;
+  const dp=dialogPlan(),jobs=dp.jobs;
+  // Mehrfarbdruck (mehrere Slots oder mehrfarbige Teile) → Prime-Tower steht mit auf dem Bett
+  const multi=new Set(jobs.map(j=>j.slot===null||j.slot===undefined?dp.slot:j.slot)).size>1||jobs.some(j=>j.part&&j.part.partId);
+  return planPurge(tpl,purgeBoxes(tpl,jobs,!!project.threemf),p.side,purgeMargin(tpl,jobs.map(j=>j.r&&j.r.brim)),multi);
+}
+function showPurge(tpl){
+  const id=lastResult.printer.id,p=purgeFor(id),note=$('purgeNote');
+  $('purgeOn').checked=p.on;$('purgeSide').value=p.side;$('purgeSide').disabled=!p.on;
+  let txt=PURGE_FIRMWARE.includes(id)?E_TR('Dieser Drucker reinigt die Düse schon in der Firmware – die Linie kommt zusätzlich.'):'';
+  if(p.on){
+    const plan=purgePlanFor(tpl);
+    if(!plan)txt=E_TR('Reinigungslinie hier nicht möglich (Vorlage ohne passende Werte, Rund-/Delta-Bett oder Sperrbereiche).');
+    else if(!plan.ok)txt=E_TF('Zu wenig Platz {side}: {free} mm frei, nötig {need} mm – andere Seite wählen. Sonst wird die Linie weggelassen.',{side:E_TR(PURGE_SIDE_TXT[plan.side]),free:E_NUM(Math.max(0,plan.free[plan.side]),0),need:E_NUM(plan.need,0)});
+    else txt=E_TF('Linie {side}, {free} mm Platz neben dem Objekt (inkl. Brim/Skirt).',{side:E_TR(PURGE_SIDE_TXT[plan.side]),free:E_NUM(plan.free[plan.side],0)})+(txt?' '+txt:'');
+  }
+  note.textContent=txt;
+}
+function setupPurge(tpl){
+  const id=lastResult.printer.id,save=()=>{
+    store.settings.purge={...(store.settings.purge||{}),[id]:{on:$('purgeOn').checked,side:$('purgeSide').value}};
+    persist();showPurge(tpl);
+  };
+  $('purgeOn').onchange=save;$('purgeSide').onchange=save;showPurge(tpl);
+}
 function openExportDialog(){
   const r=lastResult,tpl=exportTemplate(r.printer.id,r.dSel);
   if(!tpl||!project)return;
@@ -192,6 +223,7 @@ function openExportDialog(){
   showZOffset(tpl,r.printer.id);
   renderSlotList(tpl,preferredSlot(tpl,r));
   slotPicked=false;
+  setupPurge(tpl);
   $('slotList').onchange=()=>{slotPicked=true;renderExportDialog()};
   // Eigene Slots vorhanden: Wahl anbieten. Ein einziger gemeinsamer Slot (einfarbig) → „alle in gewählten Slot“,
   // verschiedene Slots (mehrfarbig) → „je Teil beibehalten“
@@ -206,8 +238,10 @@ function openExportDialog(){
 }
 
 function save3mf(){
-  const tpl=withZOffset(exportTemplate(lastResult.printer.id,lastResult.dSel),zOffsetFor(lastResult.printer.id));
+  let tpl=withZOffset(exportTemplate(lastResult.printer.id,lastResult.dSel),zOffsetFor(lastResult.printer.id));
   const plan=dialogPlan(),r=plan.r,slot=plan.slot;
+  const purge=purgePlanFor(tpl),purgeSkipped=!!purge&&!purge.ok;   // ohne Platz keine Linie: sie würde ins Objekt laufen
+  if(purge&&purge.ok)tpl=withPurge(tpl,purge);
   try{
     const live=exportSlots(tpl);
     const {bytes}=project.threemf
@@ -221,7 +255,7 @@ function save3mf(){
     document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
     if(plan.usesDefault){store.last[slotKey(r.printer.id)]=slot;persist()}
     $('exportDlg').close();
-    toast(E_TF('3MF gespeichert: {file}',{file:a.download}));
+    toast(E_TF('3MF gespeichert: {file}',{file:a.download})+(purgeSkipped?' · '+E_TR('Reinigungslinie weggelassen (kein Platz)'):''));
     if(typeof markExported==='function')markExported();
   }catch(e){
     toast(E_TF('3MF konnte nicht erstellt werden: {msg}',{msg:E_TR(e.message)}));
