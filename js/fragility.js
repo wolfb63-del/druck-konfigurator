@@ -33,8 +33,8 @@ const FRAG_NECK_GROW = 2;         // … wobei der Trägheitsradius höchstens a
 /* Zeitlimit (opts.deadline, Zeitpunkt in ms): die automatische Analyse für die Teileliste läuft im
    Hauptthread – bei sehr detailreichen Netzen bricht sie ab, statt die Seite minutenlang zu blockieren
    (gemeldet 2026-10-03). Abbruch = Fehler mit .timeout = true; ohne deadline wird immer zu Ende gerechnet.
-   Bekannte Grenze: geprüft wird in Wandstärke und Z-Scheiben; Körpersuche und Rasteraufbau laufen ohne
-   Prüfung durch (bei der Trommel zusammen unter 1 s), die Frist kann also um diese Zeit überschritten werden. */
+   Geprüft wird auch in Körpersuche und Rasteraufbau: bei 1,25 Mio. Dreiecken dauerten die allein ~20 s, bevor
+   die Frist griff (gemeldet 2026-10-03). */
 function fragCheckDeadline(deadline) {
   if (deadline && Date.now() > deadline) { const e = Error('Zeitlimit überschritten'); e.timeout = true; throw e; }
 }
@@ -43,13 +43,14 @@ const FRAG_OK = 0, FRAG_WARN = 1, FRAG_CRIT = 2;
 
 /* Gleichmäßiges 3D-Raster; ein Dreieck kommt in jede Zelle, die seine Ebene berühren kann
    (Abstand Zellmitte–Ebene ≤ halbe Zelldiagonale). Zellgröße ≈ doppelte mittlere Kantenlänge. */
-function fragBuildGrid(pos, n, mn, mx, total) {
+function fragBuildGrid(pos, n, mn, mx, total, deadline) {
   const diag = Math.hypot(mx[0] - mn[0], mx[1] - mn[1], mx[2] - mn[2]) || 1;
   const cs = Math.max(diag / FRAG_GRID_MAX, 2 * Math.sqrt(2 * total / Math.max(1, n)), 1e-3);
   const dims = [0, 1, 2].map(k => Math.max(1, Math.ceil((mx[k] - mn[k]) / cs) + 1));
   const cells = new Map(), half = cs * Math.sqrt(3) / 2;
   const cell = (k, v) => Math.min(dims[k] - 1, Math.max(0, Math.floor((v - mn[k]) / cs)));
   for (let i = 0; i < n; i++) {
+    if ((i & 65535) === 0) fragCheckDeadline(deadline);
     const o = i * 9;
     const ux = pos[o + 3] - pos[o], uy = pos[o + 4] - pos[o + 1], uz = pos[o + 5] - pos[o + 2];
     const wx = pos[o + 6] - pos[o], wy = pos[o + 7] - pos[o + 1], wz = pos[o + 8] - pos[o + 2];
@@ -173,10 +174,11 @@ function fragCastRay(pos, grid, self, ox, oy, oz, dx, dy, dz, maxT, out) {
 
 /* Körper eines Netzes (Dreiecke mit gemeinsamen Ecken) und je Körper die Richtung der Normalen:
    triOut[i] = +1 (Normalen außen, positives Volumen) oder −1 (Körper ist „falsch herum“). */
-function fragBodies(pos, n) {
+function fragBodies(pos, n, deadline) {
   const parent = new Int32Array(n).map((_, i) => i), byVertex = new Map();
   const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
   for (let i = 0; i < n; i++) for (let v = 0; v < 3; v++) {
+    if (v === 0 && (i & 65535) === 0) fragCheckDeadline(deadline);
     const o = i * 9 + v * 3, key = pos[o] + ',' + pos[o + 1] + ',' + pos[o + 2], j = byVertex.get(key);
     if (j === undefined) byVertex.set(key, i); else { const a = find(i), b = find(j); if (a !== b) parent[a] = b; }
   }
@@ -237,7 +239,7 @@ function fragInsideOther(pos, grid, p, skip) {
    erkannt und umgekehrt gemessen. Innenflächen unverschmolzener Körper (geom.hidden) werden übersprungen. */
 function measureThickness(geom, lw, bodies, deadline) {
   const { pos, n } = geom, warnT = FRAG_THIN_WARN * lw, critT = FRAG_THIN_CRIT * lw, maxT = warnT * FRAG_RAY_CAP;
-  const grid = fragBuildGrid(pos, n, geom.mn, geom.mx, geom.total);
+  const grid = fragBuildGrid(pos, n, geom.mn, geom.mx, geom.total, deadline);
   Object.assign(grid, { triOut: bodies.triOut, body: bodies.body, multi: bodies.count > 1 });
   const thick = new Float32Array(n).fill(Infinity), cls = new Uint8Array(n);
   let critArea = 0, warnArea = 0, measured = 0;
@@ -440,7 +442,7 @@ function measureZSections(geom, lw, triOut, deadline) {
    cls je Dreieck = schlechtere Klasse aus Wandstärke und Z-Schwäche; level 'ok' | 'warn' | 'critical'. */
 function analyzeFragility(geom, opts) {
   const lw = (opts && opts.lineWidth) || FRAG_LINE_WIDTH, deadline = opts && opts.deadline;
-  const bodies = fragBodies(geom.pos, geom.n);
+  const bodies = fragBodies(geom.pos, geom.n, deadline);
   const th = measureThickness(geom, lw, bodies, deadline), zs = measureZSections(geom, lw, bodies.triOut, deadline);
   const cls = new Uint8Array(geom.n);
   let critArea = 0, warnArea = 0;

@@ -12,7 +12,7 @@ const ROOT = path.join(__dirname, '..');
 const ctx = vm.createContext({ console, TextDecoder });
 for (const f of ['util', 'stl', 'import', 'orient', 'fragility'])
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
-const K = vm.runInContext('({analyzeFragility, fragBuildGrid, fragCastRay, makeGeom, importModels, rotatePositions, rotateAxis})', ctx);
+const K = vm.runInContext('({analyzeFragility, fragBuildGrid, fragBodies, fragCastRay, makeGeom, importModels, rotatePositions, rotateAxis})', ctx);
 
 let pass = 0, fail = 0;
 function check(name, ok, detail) { if (ok) pass++; else { fail++; console.log('FEHLER ' + name + (detail !== undefined ? ': ' + detail : '')); } }
@@ -288,6 +288,30 @@ for (const R of [10, 20]) {
   const first = calls;
   for (let i = 0; i < 5; i++) uctx.Stability.orientNote(part, [1, 0, 0, 0, 1, 0, 0, 0, 1], box2);
   check('Ausrichtungshinweis: nach Zeitlimit kein erneuter Rechenversuch', first === 1 && calls === 1, first + ' / ' + calls);
+}
+
+// 5d) Große Netze (gemeldet 2026-10-03, 1,25 Mio. Dreiecke: ~20 s bis die Frist griff): Frist auch in
+//     Körpersuche und Rasteraufbau; die Teileliste rechnet ab 300.000 Dreiecken gar nicht automatisch.
+{
+  const pos = Float32Array.from(box(0, 0, 0, 10, 10, 10).flat(2)), g = K.makeGeom('k', pos), past = Date.now() - 1;
+  const throwsTimeout = fn => { try { fn(); return false; } catch (e) { return e.timeout === true; } };
+  check('Frist greift schon in der Körpersuche', throwsTimeout(() => K.fragBodies(pos, g.n, past)));
+  check('Frist greift schon im Rasteraufbau', throwsTimeout(() => K.fragBuildGrid(pos, g.n, g.mn, g.mx, g.total, past)));
+  check('Ohne Frist: Körpersuche und Raster wie bisher', K.fragBodies(pos, g.n).count === 1 && K.fragBuildGrid(pos, g.n, g.mn, g.mx, g.total).cells.size > 0);
+  const el = () => ({ textContent: '', innerHTML: '', classList: { add() {}, remove() {}, toggle() {} }, addEventListener() {}, querySelectorAll: () => [] });
+  let calls = 0;
+  const big = { n: 400000 }, small = { n: 1000 };
+  const uctx = vm.createContext({
+    $: el, document: { querySelectorAll: () => [] }, setTimeout: fn => fn(), WeakMap, Date, Error,
+    NOZ: { '0.4': { lwo: 0.42 } }, nkey: () => '0.4', geom: null, project: { parts: [{ geom: big }, { geom: small }] },
+    analyzeFragility: () => { calls++; return { level: 'ok', reasons: [], cls: new Uint8Array(0), thresholds: { warn: 1.7 }, minThick: null, zWorst: null }; },
+    makeGeom: () => ({}), rotatePositions: () => [], orientationZText: () => '', orientationZCheck: () => null, de: String, esc: String
+  });
+  vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', 'fragility-ui.js'), 'utf8') + '\n;globalThis.Stability = Stability;', uctx);
+  uctx.Stability.badge(big); uctx.Stability.badge(big);
+  check('Großes Teil: keine automatische Rechnung, „per Klick“', calls === 0 && /per Klick|wait/.test(uctx.Stability.badge(big)), calls + ' / ' + uctx.Stability.badge(big));
+  uctx.Stability.badge(small);
+  check('Kleines Teil: wird automatisch gerechnet', calls === 1, String(calls));
 }
 
 // 6) Echte Mehrteile-3MF: Analyse ändert weder Teile, Slots noch Geometrie

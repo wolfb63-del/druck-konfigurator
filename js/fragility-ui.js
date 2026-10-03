@@ -24,6 +24,9 @@ const Stability = (() => {
   }
   // deadline nur für die automatische Berechnung (Teileliste); von Hand angestoßen wird immer zu Ende gerechnet
   const AUTO_MS = 4000;
+  // Ab dieser Größe gar nicht erst automatisch rechnen – schon Vorbereitung dauert sonst viele Sekunden
+  // (1,25 Mio. Dreiecke: ~20 s, gemeldet 2026-10-03). Von Hand („Jetzt berechnen“) geht es weiter.
+  const AUTO_MAX_TRIS = 300000;
   function resultFor(g, deadline) {
     let r = cached(g);
     if (!r && g) { r = analyzeFragility(g, { lineWidth: lineWidth(), deadline }); cache.set(g, { lw: lineWidth(), result: r }); }
@@ -97,7 +100,8 @@ const Stability = (() => {
       setTimeout(() => {
         // Teil gehört nicht mehr zum geladenen Projekt (neue Datei, gedreht) → überspringen
         const stale = typeof project !== 'undefined' && (!project || !project.parts.some(p => p.geom === job.g));
-        if (!stale) try { resultFor(job.g, Date.now() + AUTO_MS); }
+        if (!stale && job.g.n > AUTO_MAX_TRIS) cache.set(job.g, { lw: lineWidth(), result: null, slow: true });
+        else if (!stale) try { resultFor(job.g, Date.now() + AUTO_MS); }
         catch (e) { cache.set(job.g, e.timeout ? { lw: lineWidth(), result: null, slow: true } : { lw: lineWidth(), result: null, error: e.message }); }
         if (!queue.length) refresh();
         next();
@@ -166,7 +170,7 @@ const Stability = (() => {
     el.textContent = ''; el.classList.add('hidden');
     // Zu detailreich für die automatische Rechnung: Hinweis entfällt, und es wird nicht bei jedem update()
     // neu versucht (Prüfung 2026-10-03: sonst bis zu 4 s Blockade bei jeder Änderung)
-    if (slow(part.geom)) { orientChecks.set(part, { key, lw, text: '' }); return; }
+    if (slow(part.geom) || part.geom.n > AUTO_MAX_TRIS) { orientChecks.set(part, { key, lw, text: '' }); return; }
     setTimeout(() => {
       if (part.geom !== geom) return;                      // inzwischen anderes Teil oder gedreht
       try {
