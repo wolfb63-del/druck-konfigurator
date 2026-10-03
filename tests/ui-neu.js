@@ -1,5 +1,5 @@
 'use strict';
-/* Prüft css/ui-neu.css und css/ui-schlicht.css ohne Browser: (1) jede Regel gilt nur in ihrer Stufe – ohne Attribut
+/* Prüft css/ui-neu.css, ui-schlicht.css, ui-dunkel.css und ui-gemeinsam.css ohne Browser: (1) jede Regel gilt nur in ihrer Stufe – ohne Attribut
    bleibt die Original-Oberfläche unverändert; (2) Kontraste nach WCAG 2.x mit den echten Farben aus app.css
    und ui-neu.css gegen die Mindestwerte (Text 4,5:1, Bedienelement-Umriss und Fokus 3:1); (3) keine Schrift
    unter 12 px; (4) der Umschalter js/ui-neu.js setzt je Stufe die richtigen Attribute („schlicht“ immer mit
@@ -10,6 +10,8 @@ const ROOT = path.join(__dirname, '..');
 const app = fs.readFileSync(path.join(ROOT, 'css', 'app.css'), 'utf8');
 const neu = fs.readFileSync(path.join(ROOT, 'css', 'ui-neu.css'), 'utf8');
 const sch = fs.readFileSync(path.join(ROOT, 'css', 'ui-schlicht.css'), 'utf8');
+const dun = fs.readFileSync(path.join(ROOT, 'css', 'ui-dunkel.css'), 'utf8');
+const gem = fs.readFileSync(path.join(ROOT, 'css', 'ui-gemeinsam.css'), 'utf8');
 const vm = require('vm');
 
 let pass = 0, fail = 0;
@@ -29,10 +31,18 @@ const strip = css => css.replace(/\/\*[\s\S]*?\*\//g, '');
 // @keyframes-Stufen (from/to/%) gestalten kein Element und zählen nicht als Regel
 const noKeyframes = css => css.replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '');
 const selectorsOf = css => [...noKeyframes(strip(css)).matchAll(/([^{}]+)\{[^{}]*\}/g)].flatMap(m => m[1].split(',').map(s => s.trim())).filter(Boolean);
-for (const [file, css, scope] of [['ui-neu.css', neu, 'html[data-ui="neu"]'], ['ui-schlicht.css', sch, 'html[data-stil="schlicht"]']]) {
+for (const [file, css, scope] of [['ui-neu.css', neu, 'html[data-ui="neu"]'], ['ui-schlicht.css', sch, 'html[data-stil="schlicht"]'], ['ui-dunkel.css', dun, 'html[data-theme="dark"]']]) {
   const sel = selectorsOf(css), loose = sel.filter(x => !x.startsWith(scope));
   check(file + ': alle Regeln nur bei ' + scope, sel.length > 0 && loose.length === 0, loose.join(' | '));
 }
+// ui-gemeinsam.css gilt überall, darf aber nur die neuen Bausteine gestalten – nichts, was es im Original schon gab
+{
+  const NEW = /\.(steps|step-n|step-t|field-hint|theme-btn|theme-moon|theme-sun|ui-tip|busy|slot-mode)\b/;
+  const sel = selectorsOf(gem), loose = sel.filter(x => !NEW.test(x));
+  check('ui-gemeinsam.css: nur neue Bausteine', sel.length > 0 && loose.length === 0, loose.join(' | '));
+}
+// Dunkel nur am Bildschirm – der Ausdruck bleibt hell
+check('ui-dunkel.css: alles in @media screen', /^\s*@media screen \{[\s\S]*\}\s*$/.test(strip(dun)));
 
 // (2) Kontraste
 const ink = token(app, 'ink'), sheet = token(app, 'sheet'), okSoft = token(app, 'ok-soft');
@@ -88,18 +98,48 @@ check('Vorher: --rule-strong als Feldrand < 3:1', ratio(token(app, 'rule-strong'
   }
 }
 
+// Dunkel: Farben je Block (Grundfarben für Original/Lesbarkeit, eigener Block für Schlicht)
+{
+  const block = sel => { const i = dun.indexOf(sel + ' {'); return i < 0 ? '' : dun.slice(i, dun.indexOf('}', i)); };
+  const base = block('html[data-theme="dark"]'), sd = block('html[data-theme="dark"][data-stil="schlicht"]');
+  const t = (b, n) => token(b, n) || token(base, n);
+  const acc = { kobra: token(block('html[data-theme="dark"] body'), 'accent'), orca: token(block('html[data-theme="dark"] body[data-printer="orca"]'), 'accent'), u1: token(block('html[data-theme="dark"] body[data-printer="snapmaker_u1"]'), 'accent') };
+  const dc = [];
+  for (const [label, b] of [['Dunkel', base], ['Schlicht dunkel', sd]]) {
+    const paper = t(b, 'paper'), sh = t(b, 'sheet'), p2 = t(b, 'paper-2');
+    dc.push([label + ': Text --ink auf --sheet', t(b, 'ink'), sh, 4.5], [label + ': Text --ink auf --paper', t(b, 'ink'), paper, 4.5],
+      [label + ': --ink-2 auf --paper-2', t(b, 'ink-2'), p2, 4.5], [label + ': --ink-3 auf --sheet', t(b, 'ink-3'), sh, 4.5],
+      [label + ': --ink-3 auf --paper', t(b, 'ink-3'), paper, 4.5], [label + ': --ink-3 auf --paper-2', t(b, 'ink-3'), p2, 4.5],
+      [label + ': Feldrand auf --sheet', t(b, 'field-border'), sh, 3], [label + ': Feldrand auf --paper', t(b, 'field-border'), paper, 3]);
+    for (const [k, a] of Object.entries(acc)) dc.push([label + ': Akzent ' + k + ' als Text auf --sheet', a, sh, 4.5], [label + ': Akzent ' + k + ' als Fokus auf --paper', a, paper, 3]);
+  }
+  for (const [k, a] of Object.entries(acc)) dc.push(['Dunkel: Schrift (--accent-ink) auf Akzent ' + k, token(base, 'accent-ink'), a, 4.5], ['Dunkel: Akzent ' + k + ' auf Kopfzeile #0e1013', a, '#0e1013', 3]);
+  for (const k of ['ok', 'warn', 'bad', 'info']) dc.push(['Dunkel: --' + k + ' auf --' + k + '-soft', token(base, k), token(base, k + '-soft'), 4.5]);
+  dc.push(['Dunkel: Fehlerhinweis #ffd2cd auf --bad-soft', '#ffd2cd', token(base, 'bad-soft'), 4.5],
+    ['Schlicht dunkel: --ink auf gewählter Taste #3a3a3c', t(sd, 'ink'), '#3a3a3c', 4.5],
+    ...Object.entries(acc).map(([k, a]) => ['Schlicht dunkel: Akzent ' + k + ' auf gewählter Taste #3a3a3c', a, '#3a3a3c', 4.5]));
+  check('Schlicht dunkel: gewählte Taste nutzt #3a3a3c', dun.includes('[aria-checked="true"] { background: #3a3a3c'));
+  for (const [name, fg, bg, min] of dc) {
+    const r = fg && bg ? ratio(fg, bg) : NaN;
+    console.log('  ' + name.padEnd(58) + (r ? r.toFixed(2) : '-') + ':1 (mind. ' + min + ')');
+    check(name, r >= min, fg + ' / ' + bg + ' = ' + r);
+  }
+}
+
 // (3) Schriftgrößen
-for (const [file, css] of [['ui-neu.css', neu], ['ui-schlicht.css', sch]]) {
+for (const [file, css] of [['ui-neu.css', neu], ['ui-schlicht.css', sch], ['ui-gemeinsam.css', gem]]) {
   const sizes = [...strip(css).matchAll(/font-size:\s*([\d.]+)px/g)].map(m => +m[1]);
   check(file + ': keine Schrift unter 12 px', sizes.length > 0 && sizes.every(x => x >= 12), sizes.join());
 }
 
 // (4) Umschalter: Attribute je Stufe, Standard „neu“, unbekannter gespeicherter Wert → „neu“
-function runToggle(stored) {
+function runToggle(stored, opts = {}) {
   const ds = {}, mem = { 'druckKonfigurator.ui': stored };
+  if (opts.theme) mem['druckKonfigurator.theme'] = opts.theme;
   const ctx = vm.createContext({
     document: { documentElement: { dataset: ds }, querySelectorAll: () => [], getElementById: () => null, addEventListener: () => {} },
-    localStorage: { getItem: k => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = v; } }
+    window: { matchMedia: q => ({ matches: !!opts.sysDark && /dark/.test(q) }) },
+    localStorage: { getItem: k => (k in mem && mem[k] !== undefined ? mem[k] : null), setItem: (k, v) => { mem[k] = v; } }
   });
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', 'ui-neu.js'), 'utf8'), ctx);
   return { ds, set: m => { vm.runInContext('setUiMode(' + JSON.stringify(m) + ')', ctx); return { ui: ds.ui, stil: ds.stil, saved: mem['druckKonfigurator.ui'] }; } };
@@ -114,14 +154,25 @@ function runToggle(stored) {
   check('Umschalter: gespeichert „original“ → Original beim Laden', b.ds.ui === undefined && b.ds.stil === undefined, JSON.stringify(b.ds));
   const c = runToggle('kaputt');
   check('Umschalter: unbekannter Wert → Lesbarkeit', c.ds.ui === 'neu' && c.ds.stil === undefined, JSON.stringify(c.ds));
+  // Hell/Dunkel: ohne Wahl wie das System, gespeicherte Wahl gewinnt, unabhängig von der Ansicht
+  check('Hell/Dunkel: System hell → hell', runToggle(undefined).ds.theme === undefined);
+  check('Hell/Dunkel: System dunkel → dunkel', runToggle(undefined, { sysDark: true }).ds.theme === 'dark');
+  check('Hell/Dunkel: gespeichert hell schlägt System dunkel', runToggle(undefined, { sysDark: true, theme: 'light' }).ds.theme === undefined);
+  const d = runToggle('schlicht', { theme: 'dark' });
+  check('Hell/Dunkel: Schlicht dunkel → ui=neu, stil=schlicht, theme=dark', d.ds.ui === 'neu' && d.ds.stil === 'schlicht' && d.ds.theme === 'dark', JSON.stringify(d.ds));
+  const o = runToggle('original', { theme: 'dark' });
+  check('Hell/Dunkel: Original dunkel → nur theme=dark', o.ds.ui === undefined && o.ds.theme === 'dark', JSON.stringify(o.ds));
 }
 
 // (5) Einsteiger-Hilfen: im Original verborgen; Schritt-Leiste zeigt den richtigen Stand
 {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
   const hints = html.match(/<small class="field-hint"[^>]*>/g) || [];
-  check('Klartext-Hilfen: 4 Stück, alle im Original verborgen', hints.length === 4 && hints.every(h => / hidden>$/.test(h)), hints.join(' '));
-  check('Schritt-Leiste im Original verborgen', /<nav class="steps noprint" id="steps" aria-label="Schritte" hidden>/.test(html));
+  // Seit 2026-10-03 in allen Ansichten (Wunsch des Nutzers): nicht mehr verborgen
+  check('Klartext-Hilfen: 4 Stück, in allen Ansichten sichtbar', hints.length === 4 && hints.every(h => !/hidden/.test(h)), hints.join(' '));
+  check('Schritt-Leiste in allen Ansichten sichtbar', /<nav class="steps noprint" id="steps" aria-label="Schritte">/.test(html));
+  check('Ansicht-Umschalter im eigenen Menü, nicht mehr unter Profile', /id="menuAnsicht"[\s\S]*data-ui-mode="schlicht"/.test(html) && !/id="menuProfile"(?:(?!<\/div>)[\s\S])*data-ui-mode/.test(html));
+  check('Hell/Dunkel-Knopf vorhanden', /<button[^>]*id="themeBtn"[^>]*aria-pressed=/.test(html));
   // Minimal-DOM: drei Schritt-Knöpfe mit .step-n/.step-t
   const mk = i => { const cls = new Set(), n = { textContent: '' }, t = { textContent: '' }, at = {};
     return { dataset: { step: String(i) }, title: '', classList: { toggle: (c, on) => on ? cls.add(c) : cls.delete(c), has: c => cls.has(c) },

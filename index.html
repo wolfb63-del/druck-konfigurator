@@ -4,8 +4,10 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Druck-Konfigurator</title>
 <link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/ui-gemeinsam.css">
 <link rel="stylesheet" href="css/ui-neu.css">
 <link rel="stylesheet" href="css/ui-schlicht.css">
+<link rel="stylesheet" href="css/ui-dunkel.css">
 <script src="js/ui-neu.js"></script>
 </head>
 <body data-printer="kobra_s1" data-tab="settings">
@@ -49,10 +51,6 @@
         <hr>
         <button type="button" role="menuitem" id="settingsBtn">Düsen-Umrechnung …</button>
         <button type="button" role="menuitem" data-action="link">Drucker-Verbindung …</button>
-        <hr>
-        <button type="button" role="menuitemradio" aria-checked="false" data-ui-mode="original">Oberfläche: Original <small>wie bisher</small></button>
-        <button type="button" role="menuitemradio" aria-checked="true" data-ui-mode="neu">Oberfläche: Verbesserte Lesbarkeit <small>Original mit besseren Kontrasten</small></button>
-        <button type="button" role="menuitemradio" aria-checked="false" data-ui-mode="schlicht">Oberfläche: Schlicht <small>reduziert, nach Apple-Prinzipien</small></button>
       </div>
     </div>
     <div class="menu">
@@ -67,7 +65,17 @@
         <button type="button" role="menuitem" id="copyBtn">Als Text kopieren</button>
       </div>
     </div>
+    <div class="menu">
+      <button type="button" class="menu-btn" aria-haspopup="true" aria-expanded="false" aria-controls="menuAnsicht">Ansicht</button>
+      <div class="menu-list" role="menu" id="menuAnsicht">
+        <button type="button" role="menuitemradio" aria-checked="false" data-ui-mode="original">Original <small>wie bisher</small></button>
+        <button type="button" role="menuitemradio" aria-checked="true" data-ui-mode="neu">Verbesserte Lesbarkeit <small>Original mit besseren Kontrasten (Standard)</small></button>
+        <button type="button" role="menuitemradio" aria-checked="false" data-ui-mode="schlicht">Schlicht <small>reduziert, nach Apple-Prinzipien</small></button>
+      </div>
+    </div>
+    <button type="button" class="menu-btn theme-btn" id="themeBtn" aria-pressed="false" aria-label="Dunkle Darstellung" title="Dunkel darstellen"><svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></button>
     <button type="button" class="menu-btn help-btn" data-action="help" aria-label="Hilfe">?</button>
+    <div class="ui-tip" id="uiTip" role="status" hidden>Tipp: Unter <b>Ansicht</b> wählst du die Darstellung, mit dem Mond-Knopf schaltest du auf dunkel. <button type="button" class="linkbtn">OK</button></div>
   </nav>
 </header>
 
@@ -76,7 +84,7 @@
   <button type="button" role="tab" id="tab3d" aria-controls="view3d" aria-selected="false">3D-Ansicht <span id="modelBadge" class="tab-badge hidden">Modell</span></button>
 </div>
 
-<nav class="steps noprint" id="steps" aria-label="Schritte" hidden><ol>
+<nav class="steps noprint" id="steps" aria-label="Schritte"><ol>
   <li><button type="button" data-step="1"><span class="step-n">1</span><span class="step-t">Drucker wählen</span></button></li>
   <li><button type="button" data-step="2" data-action="open"><span class="step-n">2</span><span class="step-t">Modell laden</span></button></li>
   <li><button type="button" data-step="3"><span class="step-n">3</span><span class="step-t">Für OrcaSlicer speichern</span></button></li>
@@ -108,11 +116,11 @@
         <option value="dumpling">Quetschbares Spielzeug (TPU)</option>
         <option value="case">Handyhülle / flexible Hülle (TPU)</option></select></div>
       <div class="field-pair">
-        <div class="field"><label for="goal">Priorität</label><select id="goal"><option value="balanced">Ausgewogen</option><option value="quality">Hohe Qualität</option><option value="fast">Schneller Druck</option><option value="strong">Maximale Stabilität</option></select><small class="field-hint" hidden>Unsicher? „Ausgewogen“ passt fast immer.</small></div>
-        <div class="field"><label for="load">Belastung</label><select id="load"><option value="medium">Mittel</option><option value="low">Gering</option><option value="high">Hoch</option></select><small class="field-hint" hidden>Deko: Gering · Halter, Clip: Mittel · tragend: Hoch</small></div>
+        <div class="field"><label for="goal">Priorität</label><select id="goal"><option value="balanced">Ausgewogen</option><option value="quality">Hohe Qualität</option><option value="fast">Schneller Druck</option><option value="strong">Maximale Stabilität</option></select><small class="field-hint">Unsicher? „Ausgewogen“ passt fast immer.</small></div>
+        <div class="field"><label for="load">Belastung</label><select id="load"><option value="medium">Mittel</option><option value="low">Gering</option><option value="high">Hoch</option></select><small class="field-hint">Deko: Gering · Halter, Clip: Mittel · tragend: Hoch</small></div>
       </div>
-      <div class="field"><label for="support">Support</label><select id="support"><option value="auto">Automatisch entscheiden</option><option value="avoid">Möglichst vermeiden</option><option value="allow">Support erlaubt</option></select><small class="field-hint" hidden>„Automatisch“ prüft die Überhänge deines Modells.</small></div>
-      <div class="field"><label for="supportLevel">Stützreduzierung <span class="help" title="Wirkt nur, wenn Stützen nötig sind. Weniger Stützen sparen Material, erhöhen aber das Risiko für Durchhängen.">?</span></label><select id="supportLevel"><option value="safe">Stark und sicher</option><option value="balanced" selected>Ausgewogen</option><option value="reduced">Stark reduziert</option><option value="minimal">Minimal – gerade noch haltend</option></select><small class="field-hint" hidden>Nur wichtig, wenn Stützen nötig sind. Unsicher? „Ausgewogen“.</small></div>
+      <div class="field"><label for="support">Support</label><select id="support"><option value="auto">Automatisch entscheiden</option><option value="avoid">Möglichst vermeiden</option><option value="allow">Support erlaubt</option></select><small class="field-hint">„Automatisch“ prüft die Überhänge deines Modells.</small></div>
+      <div class="field"><label for="supportLevel">Stützreduzierung <span class="help" title="Wirkt nur, wenn Stützen nötig sind. Weniger Stützen sparen Material, erhöhen aber das Risiko für Durchhängen.">?</span></label><select id="supportLevel"><option value="safe">Stark und sicher</option><option value="balanced" selected>Ausgewogen</option><option value="reduced">Stark reduziert</option><option value="minimal">Minimal – gerade noch haltend</option></select><small class="field-hint">Nur wichtig, wenn Stützen nötig sind. Unsicher? „Ausgewogen“.</small></div>
 
       <div id="storeWarn" class="note bad hidden"></div>
     </aside>
@@ -256,6 +264,9 @@
       <div class="slot-source"><span id="slotSource" class="muted">Belegung unbekannt</span><span class="slot-actions"><button class="linkbtn" type="button" id="slotEditBtn">Belegung eintragen</button><button class="linkbtn" type="button" id="slotReload">Vom Drucker laden</button></span></div>
       <div id="slotEdit" class="slot-edit hidden"><p class="muted small">Was steckt gerade in welchem Slot? Bleibt gespeichert, bis du es änderst.</p><div id="slotEditRows"></div>
         <div class="slot-edit-foot"><button class="btn sec" type="button" id="slotEditReset">Eingabe löschen</button><button class="btn sec" type="button" id="slotEditCancel">Abbrechen</button><button class="btn" type="button" id="slotEditSave">Belegung speichern</button></div></div>
+      <div id="slotMode" class="slot-mode hidden" role="radiogroup" aria-label="Slot-Zuordnung">
+        <label><input type="radio" name="slotMode" value="all"> <b>Alle Teile in den gewählten Slot</b></label>
+        <label><input type="radio" name="slotMode" value="keep"> <b>Slots je Teil beibehalten</b> <small id="slotModeKeep"></small></label></div>
       <p id="slotHint" class="slot-hint"></p>
       <div id="slotList" class="slot-list"></div></fieldset>
     <div id="slotWarn" class="note hidden"></div>

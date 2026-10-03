@@ -1,0 +1,62 @@
+/* Dunkle Darstellung – Schalter in der Kopfzeile (js/ui-neu.js setzt html[data-theme="dark"]).
+   Wirkt auf jede Ansicht: Original und „Verbesserte Lesbarkeit“ teilen die Grundfarben unten, „Schlicht“ hat
+   eigene. Nur am Bildschirm – Ausdruck/PDF bleibt hell. Die Akzentfarbe des Druckers ist im Dunkeln heller
+   und trägt dunkle Schrift (weiße Schrift auf hellem Akzent wäre zu kontrastarm).
+   Kontraste nachgerechnet in tests/ui-neu.js. */
+@media screen {
+  html[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #15171a;
+    --paper-2: #1d2024;
+    --sheet: #1f2226;
+    --ink: #ece9e3;
+    --ink-2: #c4c0b7;
+    --ink-3: #a19d94;
+    --rule: #32363c;
+    --rule-strong: #464b53;
+    --field-border: #7f858e;
+    --accent-ink: #111317;
+    --ok: #6fd39c;    --ok-soft: #15291e;   --ok-rule: #2c5a40;
+    --warn: #f2c46b;  --warn-soft: #2e2410; --warn-rule: #6b5524;
+    --bad: #ff9389;   --bad-soft: #3a1816;  --bad-rule: #7a3530;
+    --info: #93b8f5;  --info-soft: #172238; --info-rule: #33507e;
+  }
+  /* Akzent hängt in app.css am body (je Drucker) – deshalb auch hier am body */
+  html[data-theme="dark"] body { --accent: #f08a4b; --accent-soft: #3a2417; }
+  html[data-theme="dark"] body[data-printer="orca"] { --accent: #8fa2ec; --accent-soft: #232a45; }
+  html[data-theme="dark"] body[data-printer="snapmaker_u1"] { --accent: #3fc1bd; --accent-soft: #13302f; }
+
+  /* Stellen, die in app.css --ink als Hintergrund nutzen oder Farben fest eintragen */
+  html[data-theme="dark"] .topbar { background: #0e1013; }
+  html[data-theme="dark"] .tip,
+  html[data-theme="dark"] .toast { background: #2a2e34; color: #f1eee8; }
+  html[data-theme="dark"] .note.bad { color: #ffd2cd; }
+  html[data-theme="dark"] .model-card { background: rgba(31, 34, 38, .85); }
+  html[data-theme="dark"] .model-card.loaded { background: var(--sheet); }
+  html[data-theme="dark"] .ed-in input,
+  html[data-theme="dark"] .ed-in select,
+  html[data-theme="dark"] .ed-in textarea,
+  html[data-theme="dark"] .slot { background: #16191c; }
+  html[data-theme="dark"] dialog::backdrop { background: rgba(0, 0, 0, .6); }
+  html[data-theme="dark"] .theme-btn { border-color: #5a6069; }
+
+  /* Schlicht dunkel: neutrales Grau wie bei Apple, eigene Flächen statt der warmen Töne */
+  html[data-theme="dark"][data-stil="schlicht"] {
+    --paper: #161618;
+    --paper-2: #2e2e31;
+    --sheet: #232326;
+    --ink: #f5f5f7;
+    --ink-2: #d1d1d6;
+    --ink-3: #a1a1a6;
+    --rule: #38383a;
+    --rule-strong: #48484a;
+    --field-border: #8e8e93;
+  }
+  html[data-theme="dark"][data-stil="schlicht"] .topbar { background: rgba(22, 22, 24, .86); }
+  html[data-theme="dark"][data-stil="schlicht"] .printer-switch button[aria-checked="true"] { background: #3a3a3c; color: var(--ink); box-shadow: 0 0 0 1px #6e6e73; }
+  html[data-theme="dark"][data-stil="schlicht"] .nozzle select,
+  html[data-theme="dark"][data-stil="schlicht"] .nozzle .help,
+  html[data-theme="dark"][data-stil="schlicht"] .field select,
+  html[data-theme="dark"][data-stil="schlicht"] .field input { background: var(--sheet); color: var(--ink); }
+  html[data-theme="dark"][data-stil="schlicht"] .theme-btn { border-color: var(--field-border); }
+}
