@@ -5,10 +5,11 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 ## [Unreleased]
 
 ### Neu
-- **Einsteiger-Hilfen** (in „Verbesserte Lesbarkeit“ und „Schlicht“): Schritt-Leiste „① Drucker → ② Modell laden → ③ Für OrcaSlicer speichern“ unter den Tabs, zeigt den aktuellen Schritt und springt per Klick dorthin; kurze Klartext-Hilfe unter Priorität, Belastung, Support und Stützreduzierung.
+- **Hell/Dunkel-Schalter** (Mond-/Sonnen-Knopf in der Kopfzeile): jede Ansicht gibt es hell und dunkel. Ohne eigene Wahl richtet sich die Seite nach der Einstellung von System bzw. Browser; Ausdruck/PDF bleibt hell.
+- **Einsteiger-Hilfen** (in allen Ansichten): Schritt-Leiste „① Drucker → ② Modell laden → ③ Für OrcaSlicer speichern“ unter den Tabs, zeigt den aktuellen Schritt und springt per Klick dorthin; kurze Klartext-Hilfe unter Priorität, Belastung, Support und Stützreduzierung.
 - **Datenschutz, Kontakt und Facebook-Link** in der Fußzeile und in der Hilfe. Die Datenschutzerklärung nennt Hosting bei GitHub Pages, lokale Verarbeitung der Modelle und Speicherung im Browser; keine Cookies, kein Tracking.
-- **Fortschrittsbalken** während der Lage- und Stabilitätsrechnung (bei großen Modellen 2–3 s), in den Oberflächen „Verbesserte Lesbarkeit“ und „Schlicht“; bei reduzierter Bewegung ruhend.
-- **Oberfläche wählbar** (Profile → Oberfläche): **Original**, **Verbesserte Lesbarkeit** (Standard: sichtbarer Fokus in der Kopfzeile, kräftigere Feldränder, keine Schrift unter 12 px, größere Klickfläche der „?“-Punkte, dunkleres Grün, Lade- und Fehlermeldungen werden vorgelesen) oder **Schlicht** (reduziert nach Apple-Prinzipien: helle Kopfzeile, Systemschrift, Flächen statt Linien, Pillen-Knöpfe; mit allen Lesbarkeits-Verbesserungen). In beiden neuen Stufen trägt die Kopfzeile das Logo „BW 3D-Druck“, der Browser-Tab ein 3D-Drucker-Symbol (`img/`). „Original“ stellt die bisherige Oberfläche unverändert wieder her; die Stile liegen getrennt in `css/ui-neu.css` und `css/ui-schlicht.css`.
+- **Fortschrittsbalken** während der Lage- und Stabilitätsrechnung (bei großen Modellen 2–3 s), in allen Ansichten; bei reduzierter Bewegung ruhend.
+- **Oberfläche wählbar** (Menü **Ansicht** in der Kopfzeile; ein einmaliger Tipp beim ersten Start zeigt, wo): **Original**, **Verbesserte Lesbarkeit** (Standard: sichtbarer Fokus in der Kopfzeile, kräftigere Feldränder, keine Schrift unter 12 px, größere Klickfläche der „?“-Punkte, dunkleres Grün, Lade- und Fehlermeldungen werden vorgelesen) oder **Schlicht** (reduziert nach Apple-Prinzipien: helle Kopfzeile, Systemschrift, Flächen statt Linien, Pillen-Knöpfe; mit allen Lesbarkeits-Verbesserungen). In beiden neuen Stufen trägt die Kopfzeile das Logo „BW 3D-Druck“, der Browser-Tab ein 3D-Drucker-Symbol (`img/`). „Original“ stellt die bisherige Oberfläche unverändert wieder her; die Stile liegen getrennt in `css/ui-neu.css` und `css/ui-schlicht.css`.
 - **Bohrlöcher verstärken auch bei 3MF-Projekten** (Orca, Bambu Studio, Makerworld): Der Kasten erscheint jetzt auch dort; angehakte Löcher bekommen in der übernommenen Datei einen Orca-Modifikator mit 100 % Füllung. Lage, Platten und Farben des Designers bleiben.
 
 ### Geändert
@@ -16,6 +17,7 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 - **Einfache 3MF** ohne Orca-/Bambu-Projektdaten (z. B. aus Cura, PrusaSlicer, CAD) werden wie eine STL behandelt: nur die Form, mit Lage-Tasten und Lochverstärkung. Eine Bemalung aus PrusaSlicer geht dabei verloren.
 
 ### Behoben
+- **Slot-Wahl beim Speichern fehlte bei 3MF-Projekten:** Teile aus einer Makerworld-3MF bringen den Slot des Designers mit; der Dialog blendete die Wahl dann aus und die Datei landete ungefragt z. B. in Slot 4. Jetzt ist die Slot-Wahl immer da – mit „Alle Teile in den gewählten Slot“ (Standard bei einfarbigen Projekten) oder „Slots je Teil beibehalten“ (Standard, wenn die Teile verschiedene Slots haben).
 - **Hinweis „Die 3MF wurde von BambuStudio erstellt“** beim Öffnen umgestellter Makerworld-Projekte in Orca: Die Datei trägt jetzt die Orca-Kennung mit der Version der Vorlage – die Druckeinstellungen stammen ja aus der Orca-Vorlage. Die Herkunftsangabe des Designers bleibt erhalten.
 - **Gespiegelte Objekte in 3MF** wurden mit nach innen zeigenden Flächen eingelesen: Löcher wurden dort nicht erkannt, Überhänge falsch bewertet.
 

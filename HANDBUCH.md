@@ -45,10 +45,10 @@ Alles läuft lokal in deinem Browser. Es werden keine Modelle oder Daten ins Int
 
 ![Übersicht](docs/img/uebersicht.png)
 
-- **Schritt-Leiste** (Oberflächen „Verbesserte Lesbarkeit“ und „Schlicht“): ① Drucker → ② Modell laden → ③ Für OrcaSlicer speichern. Der aktuelle Schritt ist hervorgehoben, erledigte haben einen Haken; ein Klick führt zum Schritt. Unter den Auswahlfeldern stehen kurze Hilfen für Einsteiger.
+- **Schritt-Leiste:** ① Drucker → ② Modell laden → ③ Für OrcaSlicer speichern. Der aktuelle Schritt ist hervorgehoben, erledigte haben einen Haken; ein Klick führt zum Schritt. Unter den Auswahlfeldern stehen kurze Hilfen für Einsteiger.
 - **Fußzeile:** Haftungsausschluss, **Datenschutz**, **Kontakt** (E-Mail-Adresse bw.3d.druck@gmail.com mit **Kopieren**-Knopf) und der Link zu **Facebook**.
 - **Kopfzeile:** Drucker umschalten (**Kobra S1** / **U1** / **Anderer Drucker …**), Düsengröße und Düsenmaterial.
-- **Oberfläche:** unter **Profile → Oberfläche** wählbar. **Verbesserte Lesbarkeit** (Standard): kräftigere Kontraste und Feldränder, gut sichtbarer Tastatur-Fokus, keine Schrift unter 12 px, größere „?“-Punkte. **Schlicht:** reduzierte, helle Gestaltung nach Apple-Prinzipien mit denselben Verbesserungen. In beiden Stufen zeigt die Kopfzeile das Logo „BW 3D-Druck“. Während Lage und Stabilität berechnet werden, läuft unter dem Hinweistext ein Fortschrittsbalken. **Original:** die bisherige Oberfläche. Die Wahl merkt sich der Browser.
+- **Ansicht:** im Menü **Ansicht** in der Kopfzeile wählbar. Der Knopf mit Mond bzw. Sonne daneben schaltet jede Ansicht **hell oder dunkel**; ohne eigene Wahl folgt die Seite der Einstellung von Windows bzw. Browser. **Verbesserte Lesbarkeit** (Standard): kräftigere Kontraste und Feldränder, gut sichtbarer Tastatur-Fokus, keine Schrift unter 12 px, größere „?“-Punkte. **Schlicht:** reduzierte, helle Gestaltung nach Apple-Prinzipien mit denselben Verbesserungen. In beiden Stufen zeigt die Kopfzeile das Logo „BW 3D-Druck“. Während Lage und Stabilität berechnet werden, läuft unter dem Hinweistext ein Fortschrittsbalken. **Original:** die bisherige Oberfläche. Die Wahl merkt sich der Browser.
 
 ### Anderer Drucker
 
@@ -195,7 +195,7 @@ Weiteres:
 Der Knopf **„3MF für OrcaSlicer speichern“** direkt oben im Datenblatt (oder **Export → 3MF für OrcaSlicer …** im Menü) öffnet den Dialog:
 
 1. **Belegung prüfen** – was steckt in welchem Slot? **Belegung eintragen** öffnet je Slot eine Auswahl für Filamenttyp und Farbe; das bleibt gespeichert, bis du es änderst (z. B. nach einem Spulenwechsel). **Eingabe löschen** entfernt sie wieder. Ohne Eingabe oder Live-Abfrage zeigt das Tool nur die Slot-Nummern – welches Filament wo steckt, weißt du selbst am besten. Mit Rinkhals/Moonraker holt **Vom Drucker laden** die Belegung automatisch.
-2. **Slot wählen** – bei einem Teil der Slot, bei mehreren der Standard-Slot für Teile ohne eigenen Slot.
+2. **Slot wählen** – bei einem Teil der Slot, bei mehreren der Standard-Slot für Teile ohne eigenen Slot. Bringen die Teile schon Slots mit (z. B. aus einer Makerworld-3MF), wählst du zusätzlich: **Alle Teile in den gewählten Slot** oder **Slots je Teil beibehalten** – bei einfarbigen Projekten ist Ersteres voreingestellt.
 3. Bei mehreren Teilen zeigt die Tabelle **Teil · Slot · Filament · eigene Werte**. Passt das Filament eines Teils nicht zum Slot, hilft **„Filament … passend zur Belegung wählen“**.
 4. **Was geändert wird** – alle Werte, die gegenüber deiner Orca-Vorlage geändert werden.
 5. **3MF speichern** – die Datei landet in deinem Download-Ordner, z. B. `modell_KobraS1_Slot2.3mf`.
