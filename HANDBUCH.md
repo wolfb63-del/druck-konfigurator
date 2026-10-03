@@ -158,6 +158,19 @@ Links wählst du **Filament, Objektart, Priorität, Belastung, Support** und **S
 
 **Wasserdicht / Behälter:** Diese Objektart setzt mindestens 4 Wandlinien, 5 Deck- und 6 Bodenschichten, 5 °C mehr Düsentemperatur, eine langsamere Außenwand und in Orca „Lückenfüllung überall“. Die Hinweise nennen weitere Tipps (Vasenmodus für einfache Gefäße, Epoxid-Beschichtung). Nicht für Trinkwasser oder Lebensmittel – nach dem Druck mit Wasser testen.
 
+**Objekt-Erkennung:** Beim Laden eines Modells schlägt das Tool die Objektart vor und sagt, warum („Erkannt: … – …“). Sie ist nur eine Vorauswahl: Sobald du das Feld selbst änderst, bleibt deine Wahl, bis du ein neues Modell lädst. Erkannt wird nur, was die Form oder Datei zuverlässig verrät:
+
+- **Farbwechsel nach Höhe in der Datei:** flache Platte (höchstens 6 mm dick, mindestens 8-mal so breit wie dick) mit mindestens 5 Wechseln → **HueForge / Bildplatte**, sonst **Mehrfarbig / Gravur**,
+- **Teile in mehreren Slots** → Mehrfarbig / Gravur (beide Datei-Signale nur bei Projekten mit **einem** Teil; bei mehreren Teilen entscheidet nur die Form des gewählten Teils),
+- **deutliche Überhänge** (mindestens 10 % der Oberfläche über dem Schwellenwinkel) → Viele Überhänge / Freiform,
+- **dünne Wand** (mittlere Wanddicke höchstens 2,2 mm, Körper über 6 mm Höhe und hohl – Vollstäbe und Klingen zählen nicht) → Dünnwandiges Gehäuse.
+
+Halterung, Präzisionsteil, wasserdicht, Funktionsteil und die TPU-Arten sagt die Form nicht; die wählst du selbst. Grenzen: Bei offenen Netzen (z. B. ein Rohr ohne Deckel) fehlt der Vorschlag, hohle Handyhüllen in Druckausrichtung werden als dünnwandig erkannt (die TPU-Arten wählst du selbst, dann schlägt das Tool nichts vor), und „HueForge“ und „Gravur“ unterscheidet das Tool nur nach der Form – beide drucken mit feinen Schichten und Farbwechseln.
+
+**HueForge / Bildplatte:** eigene Objektart für Farbschichten-Platten (HueForge). Schichthöhe 0,08 mm, erste Schicht 0,16 mm, Füllung 100 % mit Linien, obere/untere Schichten für die feine Schichthöhe umgerechnet (Werte laut HueForge-Anleitungen, nicht an deinem Drucker geprüft). Die Farbwechsel setzt du in OrcaSlicer oder bringst sie in einer 3MF aus HueForge mit; dann übernimmt das Tool deren Schichthöhen und Wechsel (Abschnitt „Makerworld-Projekte umstellen“). Beim Einzeldüsen-Druck den Reinigungsturm in Orca ausschalten.
+
+**Schichthöhen aus der Datei:** Hat eine 3MF Farbwechsel nach Höhe, zeigt das Datenblatt dieselben Schichthöhen, die der Export schreibt (die der Datei), und sagt es.
+
 **Stützen:** Das Tool empfiehlt Baumstützen, wenn das Teil relevante Überhänge hat. Der Abstand zwischen Stütze und Teil entspricht einer Schichthöhe (PETG 0,05 mm mehr, weil es stärker haftet) – so halten die Stützen sicher und lassen sich trotzdem lösen.
 
 **Düsen-Umrechnung:** Für 0,2/0,25/0,6/0,8 mm und andere Düsenmaterialien rechnet das Tool die Werte um. Der 3MF-Export ist derzeit nur mit der **0,4-mm-Düse** möglich.

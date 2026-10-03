@@ -41,6 +41,9 @@ function persist(){
 function currentInput(){
   const I={};
   ['printer','material','nozD','nozM','object','goal','load','support','supportLevel','thresh'].forEach(id=>{I[id]=$(id).value});
+  // Datei mit Farbwechseln nach Höhe: deren Schichthöhen gelten (Datenblatt und Export stimmen so überein)
+  const fl=typeof fileLayerFor==='function'&&typeof project!=='undefined'&&project&&project.threemf?fileLayerFor(project.threemf.settings,project.threemf.colourChanges):null;
+  if(fl)I.fileLayer=fl;
   return I;
 }
 

@@ -20,7 +20,7 @@ function exportTemplate(printerId, nozD) {
 }
 
 // Gleiche Zuordnung wie buildOrcaProcessJSON: Gyroid ist in beiden Mustervorschlägen die Primärempfehlung.
-function orcaInfillPattern(pattern) { return pattern.indexOf('Blitz') === 0 ? 'lightning' : pattern.indexOf('Gyroid') === 0 ? 'gyroid' : 'crosshatch'; }
+function orcaInfillPattern(pattern) { return pattern.indexOf('Blitz') === 0 ? 'lightning' : pattern.indexOf('Gyroid') === 0 ? 'gyroid' : pattern.indexOf('Linien') === 0 ? 'rectilinear' : 'crosshatch'; }
 const numStr = v => String(Math.round(Number(v) * 1000) / 1000);
 
 // Brim-Empfehlung ("5–8 mm", "Nicht nötig", "0–5 mm") → [brim_type, brim_width]; untere Grenze als Startwert.

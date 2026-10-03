@@ -72,3 +72,10 @@ function shellLayersFor(r, layerHeight) {
   if (!r || !(lh > 0) || !(r.layer > 0)) return { t: r && r.t, b: r && r.b };
   return { t: Math.ceil(r.t * r.layer / lh - 1e-9), b: Math.ceil(r.b * r.layer / lh - 1e-9) };
 }
+
+/* Schichthöhen der Datei für die Berechnung: {layer, first} (Zahlen) oder null, wenn die Datei keine Farbwechsel hat
+   oder ihre Höhen nicht nennt */
+function fileLayerFor(origSettings, changes) {
+  const layer = Number(origSettings && origSettings.layer_height), first = Number(origSettings && origSettings.initial_layer_print_height);
+  return changes && changes.length && layer > 0 && first > 0 ? { layer, first } : null;
+}

@@ -29,7 +29,7 @@ const I18N_EN = {
   '✎ Werte anpassen': '✎ Adjust values', '＋ Neues Filament': '＋ New filament', 'Objekt': 'Object type',
   'Funktionsteil': 'Functional part', 'Halterung / Befestigung': 'Bracket / mount', 'Wasserdicht / Behälter': 'Watertight / container',
   'Präzisionsteil (Passungen, Maße)': 'Precision part (fits, dimensions)', 'Dünnwandiges Gehäuse': 'Thin-walled enclosure',
-  'Dekoration / Figur': 'Decoration / figure', 'Viele Überhänge / Freiform': 'Many overhangs / freeform', 'Mehrfarbig / Gravur': 'Multicolor / engraving',
+  'Dekoration / Figur': 'Decoration / figure', 'Viele Überhänge / Freiform': 'Many overhangs / freeform', 'Mehrfarbig / Gravur': 'Multicolor / engraving', 'HueForge / Bildplatte': 'HueForge / image plate', 'HueForge:': 'HueForge:', 'HueForge / Bildplatte (Farbschichten)': 'HueForge / image plate (colour layers)', 'Linien': 'Rectilinear',
   'Reifen / Rad (TPU)': 'Tire / wheel (TPU)', 'Quetschbares Spielzeug (TPU)': 'Squishy toy (TPU)', 'Handyhülle / flexible Hülle (TPU)': 'Phone case / flexible case (TPU)',
   'Priorität': 'Priority', 'Ausgewogen': 'Balanced', 'Hohe Qualität': 'High quality', 'Schneller Druck': 'Fast print', 'Maximale Stabilität': 'Maximum strength',
   'Unsicher? „Ausgewogen“ passt fast immer.': 'Not sure? “Balanced” almost always fits.',

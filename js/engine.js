@@ -62,7 +62,7 @@ function buildOrcaProcessJSON(r){
   const inherits=orcaProcessInherits(r.printer.id,r.dSel);
   const name='Druck-Konfigurator '+r.m.name+' - '+r.ob.label;
   // Gyroid ist in beiden Pattern-Vorschlägen ("Gyroid" / "Gyroid oder Kubisch") die Primärempfehlung.
-  const orcaPattern = r.pattern.indexOf('Blitz')===0 ? 'lightning' : r.pattern.indexOf('Gyroid')===0 ? 'gyroid' : 'crosshatch';   // wie orcaInfillPattern (export3mf.js); engine.js muss allein laufen
+  const orcaPattern = r.pattern.indexOf('Blitz')===0 ? 'lightning' : r.pattern.indexOf('Gyroid')===0 ? 'gyroid' : r.pattern.indexOf('Linien')===0 ? 'rectilinear' : 'crosshatch';   // wie orcaInfillPattern (export3mf.js); engine.js muss allein laufen
   return JSON.stringify({
     type:'process',
     name:name,
@@ -131,6 +131,11 @@ function compute(I,geom,ctx){
   let layer=tpu?N.lh[1]:N.lh[pi];
   if(!tpu&&o==='precision'&&g!=='fast')layer=Math.min(layer,N.lh[0]);
   if(geom&&geom.z<4)layer=N.lh[0];
+  if(o==='hueforge')layer=Math.min(N.lh[0],0.08);
+  // Datei mit Farbwechseln nach Höhe: Schichthöhen der Datei (die Wechsel liegen auf deren Schichtgrenzen, js/colour-changes.js)
+  const fileLayer=I.fileLayer&&I.fileLayer.layer>0&&I.fileLayer.first>0?I.fileLayer:null;
+  if(fileLayer)layer=fileLayer.layer;
+  const firstLayer=fileLayer?fileLayer.first:o==='hueforge'?Math.round(layer*2*1000)/1000:N.fl;   // HueForge: 0,08 mm (feiner nur auf Wunsch in Orca)
 
   // Struktur
   let w=base.w,t=base.t,b=base.b,inf=base.i,pattern='Gyroid';
@@ -145,10 +150,11 @@ function compute(I,geom,ctx){
      2026-10-03; Orca-Gegenrechnung an einer 1,25-Mio.-Dreiecke-Figur: 2 h 33 → 1 h 57, 46 → 29 g).
      Nicht bei hoher Belastung oder „Maximale Stabilität“ (dort bleibt Gyroid/Kubisch). */
   if(o==='decor'&&pattern==='Gyroid')pattern='Blitz (Lightning)';
+  if(o==='hueforge'){inf=100;pattern='Linien'}   // massiv, damit das Licht gleichmäßig durchscheint (HueForge-Anleitung)
   if(ob.tpuOnly&&!tpu)warn.push('<b>Hinweis:</b> „'+ob.label+'“ ist ein TPU-Objekt. Mit '+esc(short)+' wird es steif; die Werte sind allgemeine Startwerte.');
 
   // Geschwindigkeiten (Slicer-Wert + effektive Grenze durch Volumenstrom)
-  let top=m.top;if(o==='multicolor'||o==='precision'||g==='quality')top=Math.min(top,tpu?20:40);
+  let top=m.top;if(o==='multicolor'||o==='hueforge'||o==='precision'||g==='quality')top=Math.min(top,tpu?20:40);
   const capNote=(v,lw)=>{const c=Math.floor(maxVol/(layer*lw));return v>c?'effektiv ca. '+c+' mm/s (Grenze '+de(maxVol,1)+' mm³/s)':''};
   const sp_outer=o==='watertight'?Math.round(m.outer[pi]*WATERTIGHT_OUTER_FACTOR):m.outer[pi],sp_inner=m.inner[pi],sp_fill=m.fill[pi];
   const nOuter=capNote(sp_outer,N.lwo),nInner=capNote(sp_inner,N.lw),nFill=capNote(sp_fill,N.lw);
@@ -197,7 +203,7 @@ function compute(I,geom,ctx){
   // Übersicht
   const rows=[
     ['Düse',nozzle+' °C',[tOff?(tOff>0?'+':'−')+Math.abs(tOff)+' °C für '+NOZZLE_MATERIALS[mSel].label:'',wtBoost?'+'+wtBoost+' °C für dichte Schichten':''].filter(Boolean).join(' · ')],['Heizbett',m.bed+' °C',esc(m.bedNote)],
-    ['Schichthöhe / erste Schicht',de(layer,2)+' / '+de(N.fl,2)+' mm'],
+    ['Schichthöhe / erste Schicht',de(layer,2)+' / '+de(firstLayer,2)+' mm'],
     ['Außenwand / Innenwand',sp_outer+' / '+sp_inner+' mm/s',nOuter||nInner],['Füllung / Travel',sp_fill+' / '+m.travel+' mm/s',nFill],
     ['Wandlinien',base.wr&&soft?base.wr:w],['Obere / untere Schichten',t+' / '+b],
     ['Fülldichte / Muster',(base.ir&&soft?base.ir:inf+' %')+' / '+pattern],
@@ -208,7 +214,7 @@ function compute(I,geom,ctx){
   const supZ=supportZGap(layer,m.kind,tpu);
   const ordered=[
     ['Qualität',[
-      ['Schichthöhe',de(layer,2)+' mm'],['Höhe der ersten Schicht',de(N.fl,2)+' mm'],['Linienbreite Standard',de(N.lw,2)+' mm'],['Linienbreite erste Schicht',de(N.lwf,2)+' mm'],
+      ['Schichthöhe',de(layer,2)+' mm'],['Höhe der ersten Schicht',de(firstLayer,2)+' mm'],['Linienbreite Standard',de(N.lw,2)+' mm'],['Linienbreite erste Schicht',de(N.lwf,2)+' mm'],
       ['Linienbreite Außenwand',de(N.lwo,2)+' mm'],['Linienbreite Innenwand',de(N.lw,2)+' mm'],['Elefantenfußkompensation',enclosed?'0,15 mm':'0,1 mm'],
       ['Nahtposition',seam],['Glätten','Keine',o==='decor'?'nur bei großen flachen Oberseiten „Obere Oberfläche“':'']]],
     ['Struktur',[
@@ -268,6 +274,8 @@ function compute(I,geom,ctx){
   if(m.kind==='pla'&&printer.enclosureBuiltin)warn.push('<b>PLA im geschlossenen Drucker:</b> Bei langen Drucken den Deckel etwas öffnen – zu warme Luft im Bauraum kann Hitzestau im Hotend verursachen.');
   if(effectiveStatus==='generic')warn.push('<b>'+esc(short)+':</b> Allgemeine Startwerte. Nach dem ersten Druck anpassen und über „Werte anpassen“ als eigene Werte speichern. Bei matter oder lückiger Oberfläche die maximale Volumengeschwindigkeit um 2–3 mm³/s senken.');
   if(o==='precision')danger.push('Präzisionsteil: Vorher einen kleinen Testkörper mit dem kritischen Maß drucken und nachmessen. Weichen die Maße systematisch ab, in OrcaSlicer unter Prozesseinstellungen → Erweitert die X-Y-Konturkompensation (xy_contour_compensation für Außenkonturen, xy_hole_compensation für Löcher) oder das Durchflussverhältnis anpassen.');
+  if(fileLayer)warn.push('<b>Schichthöhen aus der Datei:</b> Die Datei wechselt nach Höhe die Farbe. Die Wechsel liegen auf den Schichtgrenzen der Datei, deshalb bleiben Schichthöhe und erste Schicht wie dort; obere und untere Schichten sind darauf umgerechnet.');
+  if(o==='hueforge')warn.push('<b>HueForge:</b> Feine Schichten (erste Schicht doppelt so dick wie die Schichthöhe) und Füllung 100 % mit Linien. Die Farbwechsel bei den Höhen, die HueForge nennt, setzt du in OrcaSlicer (Schichtfarbwechsel) oder lädst die 3MF aus HueForge – dann übernimmt das Tool ihre Schichthöhen und Wechsel. An Druckern mit nur einer Düse den Reinigungsturm ausschalten.');
   if(o==='multicolor')warn.push('<b>Mehrfarbig:</b> Jeder Farbwechsel kostet Zeit und Spülmaterial. Kleine Details in einer eigenen Farbe verursachen viele zusätzliche Wechsel. Eine größere Schichthöhe reduziert die Zahl der Wechsel.');
   if(o==='overhang'&&!a)warn.push('<b>Freiform:</b> Zuerst die Ausrichtung prüfen. Das Modell um 10–20° zu kippen reduziert Stützen oft deutlicher als jede Parameteränderung.');
   if(o==='watertight')warn.push('<b>Wasserdicht:</b> Dicht wird ein Teil über die Wand: '+w+' Wandlinien, '+t+' / '+b+' Deck-/Bodenschichten, +'+WATERTIGHT_TEMP_BOOST+' °C und eine langsamere Außenwand sind gesetzt; im Slicer „Lückenfüllung überall“. Lüfter eher niedrig halten. PETG und ASA werden dichter als PLA. Einfache Gefäße ohne Deckel: Vasenmodus mit breiter Linie (0,6–0,8 mm) ist oft dichter. Für dauerhaften Wasserkontakt oder Druck innen mit Epoxidharz beschichten. Nicht für Trinkwasser oder Lebensmittel geeignet – nach dem Druck mit Wasser testen.');
@@ -276,5 +284,5 @@ function compute(I,geom,ctx){
   return {m,ob,o,g,tpu,layer,sp,rows,ordered,sup,supOn,supNeed,warn,danger,a,nozLabel,dryNeed,printer,effectiveStatus,
     nozzle,w,t,b,inf,sp_outer,sp_inner,sp_fill,dSel,top,pattern,
     // Neu seit v5 (für den 3MF-Export); tests/compare-v4.js blendet diese Felder aus.
-    maxVol,firstLayer:N.fl,brim,seam,supZ};
+    maxVol,firstLayer,brim,seam,supZ};
 }

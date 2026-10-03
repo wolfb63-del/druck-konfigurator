@@ -123,6 +123,8 @@ const OBJ={
   decor:{label:'Dekoration',pla:{w:2,t:4,b:4,i:10},tpu:{w:2,t:3,b:3,i:10}},
   overhang:{label:'Freiform / Überhänge',pla:{w:2,t:4,b:4,i:15},tpu:{w:2,t:3,b:3,i:10}},
   multicolor:{label:'Mehrfarbig / Gravur',pla:{w:2,t:5,b:4,i:15},tpu:{w:2,t:4,b:3,i:10}},
+  // HueForge (Farbschichten-Platte): feine Schichten, massiv, Linien – laut HueForge-Anleitung 0,16 mm erste Schicht, 0,08 mm Schichten, 100 % Füllung
+  hueforge:{label:'HueForge / Bildplatte',pla:{w:2,t:5,b:4,i:100},tpu:{w:2,t:4,b:3,i:100}},
   tire:{label:'Reifen / Rad',soft:true,tpuOnly:true,pla:{w:3,t:4,b:4,i:20},tpu:{w:5,wr:'4–6',t:3,b:3,i:20,ir:'15–25 %'}},
   dumpling:{label:'Quetschbares Spielzeug',soft:true,tpuOnly:true,pla:{w:2,t:4,b:4,i:10},tpu:{w:2,t:3,b:3,i:5}},
   case:{label:'Flexible Hülle',soft:true,tpuOnly:true,pla:{w:2,t:4,b:4,i:15},tpu:{w:2,t:3,b:3,i:5}}

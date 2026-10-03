@@ -19,7 +19,7 @@ document.addEventListener('drop',e=>{
   const files=e.dataTransfer&&e.dataTransfer.files;if(files&&files.length)loadFiles([...files]);
 });
 input.addEventListener('change',()=>{if(input.files.length)loadFiles([...input.files])});
-$('clear').addEventListener('click',()=>{input.value='';project=null;geom=null;$('fileinfo').textContent='Noch keine Datei geladen.';clearModel();update()});
+$('clear').addEventListener('click',()=>{input.value='';project=null;geom=null;objectTouched=false;$('object').value=objectBase;$('objectHint').classList.add('hidden');$('fileinfo').textContent='Noch keine Datei geladen.';clearModel();update()});
 
 const readBytes=file=>new Promise((ok,fail)=>{const r=new FileReader();r.onload=()=>ok(new Uint8Array(r.result));r.onerror=()=>fail(r.error||Error(A_TF('Lesefehler')));r.readAsArrayBuffer(file)});
 
@@ -37,8 +37,32 @@ async function loadFiles(files){
   }
 }
 
+/* Objekt-Erkennung (js/object-detect.js): Vorauswahl mit Begründung, solange der Nutzer das Feld nicht selbst geändert hat */
+let objectTouched=false,objectBase=$('object').value;   // objectBase = Wert, den der Nutzer gewählt hat (nicht der Vorschlag)
+$('object').addEventListener('change',()=>{objectTouched=true;objectBase=$('object').value;$('objectHint').classList.add('hidden')});
+function suggestObject(g){
+  const hint=$('objectHint');
+  if(objectTouched||typeof detectObject!=='function')return;
+  // TPU-Arten (Reifen, Hülle, Spielzeug) wählt der Nutzer selbst; die Form verrät sie nicht
+  if(OBJ[objectBase]&&OBJ[objectBase].tpuOnly){hint.classList.add('hidden');return}
+  // Datei-Signale (Farbwechsel, Slots) gelten für das ganze Projekt: nur bei einem Teil dem Teil zuschreiben, sonst nur die Form
+  const single=!project||project.parts.length===1;
+  const cc=single&&project&&project.threemf&&project.threemf.colourChanges||[];
+  const slotCount=single&&project?new Set(project.parts.filter(p=>p.slot!=null).map(p=>p.slot)).size:0;
+  const d=detectObject(g,{colourChanges:cc,slotCount,analysis:analyze(g,+$('thresh').value)});
+  if(!d){$('object').value=objectBase;hint.classList.add('hidden');return}   // kein Treffer: zurück auf die Wahl des Nutzers, nicht auf den alten Vorschlag
+  $('object').value=d.key;   // von Hand gesetzt gilt „geändert“, ein Programmwert löst kein change aus
+  const obj=typeof tr==='function'?tr(OBJ[d.key].label):OBJ[d.key].label,T=A_TF;
+  const w={obj};
+  const msg={plate:()=>T('Erkannt: {obj} – flache Platte mit {n} Farbwechseln nach Höhe (wie HueForge).',{...w,n:d.n}),changes:()=>T('Erkannt: {obj} – die Datei wechselt {n}-mal nach Höhe den Extruder.',{...w,n:d.n}),
+    slots:()=>T('Erkannt: {obj} – die Teile nutzen {n} verschiedene Slots.',{...w,n:d.n}),overhang:()=>T('Erkannt: {obj} – {p} % der Oberfläche hängen über {th}°.',{...w,p:A_NUM(d.ratio*100,0),th:d.th}),thin:()=>T('Erkannt: {obj} – mittlere Wanddicke etwa {mm} mm.',{...w,mm:A_NUM(d.mm,1)})}[d.why]();
+  hint.textContent=msg+' '+(typeof tr==='function'?tr('Vorschlag – du kannst das ändern.'):'Vorschlag – du kannst das ändern.');
+  hint.classList.remove('hidden');
+}
+
 function showProject(p){
   project=p;
+  objectTouched=false;
   initPartInputs(p.parts);
   renderFileInfo();
   $('importNotes').classList.toggle('hidden',!p.notes.length);
@@ -105,6 +129,7 @@ function renderModelStats(g){
 }
 function showModel(g){
   geom=g;
+  suggestObject(g);
   renderModelStats(g);
   $('ohBar').classList.remove('hidden');
   // Ohne Renderer bleibt der Hinweis „3D-Ansicht nicht verfügbar“ sichtbar (wie in v4).
