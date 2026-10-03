@@ -24,7 +24,7 @@ vm.runInContext(SRC + '\n;globalThis.I18N = I18N; globalThis.tr = tr; globalThis
 const EN = ctx.EN, UI = ctx;
 
 // ---- Quelltext-Suche: Argumente von tr()/trf()/X_TF() ----
-const FILES = ['app', 'panel', 'fragility-ui', 'export-ui', 'part-settings', 'printer-picker', 'custom-printer-ui', 'printer-link', 'viewer', 'orient-ui', 'holes-ui'];
+const FILES = ['app', 'panel', 'fragility-ui', 'export-ui', 'filament-ui', 'part-settings', 'printer-picker', 'custom-printer-ui', 'printer-link', 'viewer', 'orient-ui', 'holes-ui'];
 function literalsOfCalls(code) {
   const out = new Set(), re = /(?:\b[A-Z]_TF|\btrf|\btr)\(/g;
   let m;

@@ -277,6 +277,7 @@ function openSlotEditor(){
       types.map(x=>'<option'+(x===t?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select>'+
       '<input type="color" data-slot-colour="'+s.idx+'" value="'+col+'" aria-label="'+esc(E_TF('Farbe Slot {n}',{n:s.idx+1}))+'"></div>';
   }).join('');
+  attachFilamentPicker($('slotEditRows'));
   $('slotEdit').classList.remove('hidden');$('slotEditBtn').classList.add('hidden');
 }
 function closeSlotEditor(){$('slotEdit').classList.add('hidden');$('slotEditBtn').classList.remove('hidden')}
