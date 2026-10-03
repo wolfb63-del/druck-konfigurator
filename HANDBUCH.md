@@ -45,7 +45,7 @@ Alles läuft lokal in deinem Browser. Es werden keine Modelle oder Daten ins Int
 
 ![Übersicht](docs/img/uebersicht.png)
 
-- **Schritt-Leiste:** ① Drucker → ② Modell laden → ③ Für OrcaSlicer speichern. Der aktuelle Schritt ist hervorgehoben, erledigte haben einen Haken; ein Klick führt zum Schritt. Unter den Auswahlfeldern stehen kurze Hilfen für Einsteiger.
+- **Schritt-Leiste:** ① Drucker → ② Modell laden → ③ Für OrcaSlicer speichern. Der aktuelle Schritt ist hervorgehoben, erledigte haben einen Haken; ein Klick führt zum Schritt. Schritt 1 gilt erst als erledigt, wenn du einmal einen Drucker angeklickt hast – auch den schon markierten. Unter den Auswahlfeldern stehen kurze Hilfen für Einsteiger.
 - **Fußzeile:** Haftungsausschluss, **Datenschutz**, **Kontakt** (E-Mail-Adresse bw.3d.druck@gmail.com mit **Kopieren**-Knopf) und der Link zu **Facebook**.
 - **Kopfzeile:** Drucker umschalten (**Kobra S1** / **U1** / **Anderer Drucker …**), Düsengröße und Düsenmaterial.
 - **Ansicht:** im Menü **Ansicht** in der Kopfzeile wählbar. Der Knopf mit Mond bzw. Sonne daneben schaltet jede Ansicht **hell oder dunkel**; ohne eigene Wahl folgt die Seite der Einstellung von Windows bzw. Browser. **Verbesserte Lesbarkeit** (Standard): kräftigere Kontraste und Feldränder, gut sichtbarer Tastatur-Fokus, keine Schrift unter 12 px, größere „?“-Punkte. **Schlicht:** reduzierte, helle Gestaltung nach Apple-Prinzipien mit denselben Verbesserungen. In beiden Stufen zeigt die Kopfzeile das Logo „BW 3D-Druck“. Während Lage und Stabilität berechnet werden, läuft unter dem Hinweistext ein Fortschrittsbalken. **Original:** die bisherige Oberfläche. Die Wahl merkt sich der Browser.
