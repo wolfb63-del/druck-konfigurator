@@ -53,3 +53,8 @@ html[data-stil="schlicht"] .theme-btn { border-color: var(--field-border); }
 .slot-mode { display: grid; gap: 6px; margin: 8px 0 10px; font-size: 14px; }
 .slot-mode label { display: flex; align-items: baseline; gap: 8px; cursor: pointer; }
 .slot-mode small { color: var(--ink-3); font-size: 12px; }
+
+/* Schritt 1 angeklickt: Druckerwahl kurz hervorheben (js/steps.js) */
+.printer-switch.steps-pulse { animation: steps-pulse 1.5s ease-out; }
+@keyframes steps-pulse { 0%, 60% { box-shadow: 0 0 0 3px var(--accent); } 100% { box-shadow: 0 0 0 3px transparent; } }
+@media (prefers-reduced-motion: reduce) { .printer-switch.steps-pulse { animation: none; box-shadow: 0 0 0 3px var(--accent); } }

@@ -1,20 +1,28 @@
 'use strict';
 /* Schritt-Leiste für Einsteiger: ① Drucker → ② Modell laden → ③ Für Orca speichern.
    Sichtbar nur in den neuen Oberflächen (css/ui-neu.css), im Original verborgen (hidden).
-   Zustand: Schritt 1 gilt als erledigt (ein Drucker ist immer gewählt), Schritt 2 sobald ein Modell geladen
-   ist, Schritt 3 nach dem Speichern der 3MF für genau dieses Modell. Aufgerufen aus update() (panel.js)
-   und nach dem Export (export-ui.js). */
+   Zustand: Schritt 1 erst, wenn der Drucker einmal aktiv gewählt wurde (Klick in der Druckerwahl, auch auf
+   den schon markierten; vom Browser gemerkt) – vorher war er wegen des voreingestellten Kobra S1 immer
+   abgehakt, auch wenn niemand gewählt hatte (gemeldet 2026-10-03). Schritt 2 sobald ein Modell geladen ist,
+   Schritt 3 nach dem Speichern der 3MF für genau dieses Modell. Aufgerufen aus update() (panel.js) und nach
+   dem Export (export-ui.js). Erzwungen wird nichts: Modell laden geht auch ohne Schritt 1. */
+const STEPS_PRINTER_KEY = 'druckKonfigurator.printerChosen';
 let stepsExportedFor = null;   // Projekt, für das zuletzt eine 3MF gespeichert wurde
+let stepsPrinterChosen = (() => { try { return localStorage.getItem(STEPS_PRINTER_KEY) === '1'; } catch (e) { return false; } })();
 
 function markExported() { stepsExportedFor = project; renderSteps(); }
+function markPrinterChosen() {
+  if (!stepsPrinterChosen) { stepsPrinterChosen = true; try { localStorage.setItem(STEPS_PRINTER_KEY, '1'); } catch (e) { /* nur bis zum Neuladen */ } }
+  renderSteps();
+}
 
 function renderSteps() {
   const bar = document.getElementById('steps');
   if (!bar) return;
   const printer = typeof lastResult !== 'undefined' && lastResult ? lastResult.printer.label : '';
-  const done = [true, !!project, !!project && stepsExportedFor === project];
+  const done = [stepsPrinterChosen, !!project, !!project && stepsExportedFor === project];
   const text = [
-    printer ? 'Drucker: ' + printer : 'Drucker wählen',
+    stepsPrinterChosen && printer ? 'Drucker: ' + printer : 'Drucker wählen',
     project ? 'Modell: ' + project.name : 'Modell laden',
     done[2] ? '3MF gespeichert' : 'Für OrcaSlicer speichern'
   ];
@@ -36,7 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const b = e.target.closest('[data-step]');
     if (!b) return;
     if (b.dataset.step === '1') {
-      const p = document.querySelector('.printer-switch [aria-checked="true"]');
+      // Druckerwahl kurz hervorheben (css/ui-gemeinsam.css), Fokus auf den markierten Drucker
+      const sw = document.querySelector('.printer-switch'), p = document.querySelector('.printer-switch [aria-checked="true"]');
+      if (sw) { sw.classList.remove('steps-pulse'); void sw.offsetWidth; sw.classList.add('steps-pulse'); setTimeout(() => sw.classList.remove('steps-pulse'), 1600); }
       if (p) p.focus();
     } else if (b.dataset.step === '3') {
       const cta = document.getElementById('export3mfCta');
@@ -44,5 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Schritt 2 öffnet die Dateiauswahl über data-action="open" (app.js)
   });
+  const sw = document.querySelector('.printer-switch');
+  if (sw) sw.addEventListener('click', e => { if (e.target.closest('[data-printer]')) markPrinterChosen(); });
   renderSteps();
 });

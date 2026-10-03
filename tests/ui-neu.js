@@ -37,7 +37,7 @@ for (const [file, css, scope] of [['ui-neu.css', neu, 'html[data-ui="neu"]'], ['
 }
 // ui-gemeinsam.css gilt überall, darf aber nur die neuen Bausteine gestalten – nichts, was es im Original schon gab
 {
-  const NEW = /\.(steps|step-n|step-t|field-hint|theme-btn|theme-moon|theme-sun|ui-tip|busy|slot-mode)\b/;
+  const NEW = /\.(steps|steps-pulse|step-n|step-t|field-hint|theme-btn|theme-moon|theme-sun|ui-tip|busy|slot-mode)\b/;
   const sel = selectorsOf(gem), loose = sel.filter(x => !NEW.test(x));
   check('ui-gemeinsam.css: nur neue Bausteine', sel.length > 0 && loose.length === 0, loose.join(' | '));
 }
@@ -179,12 +179,23 @@ function runToggle(stored, opts = {}) {
       setAttribute: (k, v) => { at[k] = v; }, removeAttribute: k => { delete at[k]; }, at, querySelector: q => q === '.step-n' ? n : t, n, t }; };
   const btns = [mk(1), mk(2), mk(3)];
   const bar = { querySelectorAll: () => btns, addEventListener: () => {} };
+  const mem = {};
   const ctx = vm.createContext({ document: { getElementById: id => id === 'steps' ? bar : null, addEventListener: () => {}, querySelector: () => null },
+    localStorage: { getItem: k => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = v; } },
     project: null, lastResult: { printer: { label: 'Snapmaker U1' } }, toast: () => {} });
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', 'steps.js'), 'utf8'), ctx);
   const state = () => btns.map(b => (b.classList.has('done') ? 'd' : '-') + (b.classList.has('current') ? 'c' : '') + b.n.textContent).join(' ');
   vm.runInContext('renderSteps()', ctx);
-  check('Schritte ohne Modell: 1 erledigt, 2 aktuell', state() === 'd✓ -c2 -3' && btns[0].t.textContent === 'Drucker: Snapmaker U1' && btns[1].at['aria-current'] === 'step', state());
+  // Gemeldet 2026-10-03: Schritt 1 war immer abgehakt, obwohl nur der voreingestellte Drucker aktiv war
+  check('Erster Besuch: Schritt 1 offen und aktuell, „Drucker wählen“', state() === '-c1 -2 -3' && btns[0].t.textContent === 'Drucker wählen' && btns[0].at['aria-current'] === 'step', state());
+  vm.runInContext('project = { name: "x.stl" }; renderSteps()', ctx);
+  check('Modell ohne Druckerwahl: Schritt 1 bleibt aktuell, 2 erledigt', state() === '-c1 d✓ -3', state());
+  vm.runInContext('project = null; markPrinterChosen()', ctx);
+  check('Drucker gewählt: 1 erledigt mit Namen, gemerkt', state() === 'd✓ -c2 -3' && btns[0].t.textContent === 'Drucker: Snapmaker U1' && mem['druckKonfigurator.printerChosen'] === '1', state());
+  const ctx2 = vm.createContext({ document: ctx.document, localStorage: ctx.localStorage, project: null, lastResult: ctx.lastResult, toast: () => {} });
+  vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', 'steps.js'), 'utf8') + ';renderSteps()', ctx2);
+  check('Wiederkehrender Besuch: Schritt 1 gleich erledigt', state() === 'd✓ -c2 -3', state());
+  check('Schritte ohne Modell: 1 erledigt, 2 aktuell', state() === 'd✓ -c2 -3' && btns[1].at['aria-current'] === 'step', state());
   vm.runInContext('project = { name: "a.stl" }; renderSteps()', ctx);
   check('Schritte mit Modell: 3 aktuell, Name angezeigt', state() === 'd✓ d✓ -c3' && btns[1].t.textContent === 'Modell: a.stl', state());
   vm.runInContext('markExported()', ctx);
