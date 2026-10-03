@@ -38,7 +38,8 @@
   html[data-theme="dark"] .ed-in textarea,
   html[data-theme="dark"] .slot { background: #16191c; }
   html[data-theme="dark"] dialog::backdrop { background: rgba(0, 0, 0, .6); }
-  html[data-theme="dark"] .theme-btn { border-color: #5a6069; }
+  html[data-theme="dark"] .theme-btn,
+  html[data-theme="dark"] .lang-btn { border-color: #5a6069; }
 
   /* Schlicht dunkel: neutrales Grau wie bei Apple, eigene Flächen statt der warmen Töne */
   html[data-theme="dark"][data-stil="schlicht"] {
@@ -58,5 +59,6 @@
   html[data-theme="dark"][data-stil="schlicht"] .nozzle .help,
   html[data-theme="dark"][data-stil="schlicht"] .field select,
   html[data-theme="dark"][data-stil="schlicht"] .field input { background: var(--sheet); color: var(--ink); }
-  html[data-theme="dark"][data-stil="schlicht"] .theme-btn { border-color: var(--field-border); }
+  html[data-theme="dark"][data-stil="schlicht"] .theme-btn,
+  html[data-theme="dark"][data-stil="schlicht"] .lang-btn { border-color: var(--field-border); }
 }

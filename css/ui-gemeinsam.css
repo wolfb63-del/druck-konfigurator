@@ -58,3 +58,8 @@ html[data-stil="schlicht"] .theme-btn { border-color: var(--field-border); }
 .printer-switch.steps-pulse { animation: steps-pulse 1.5s ease-out; }
 @keyframes steps-pulse { 0%, 60% { box-shadow: 0 0 0 3px var(--accent); } 100% { box-shadow: 0 0 0 3px transparent; } }
 @media (prefers-reduced-motion: reduce) { .printer-switch.steps-pulse { animation: none; box-shadow: 0 0 0 3px var(--accent); } }
+
+/* Sprachknopf DE/EN in der Kopfzeile (js/i18n.js), gleiche Form wie der Hell/Dunkel-Knopf */
+.lang-btn { width: 34px; height: 34px; padding: 0; margin-left: 8px; border: 1px solid #4b515a; border-radius: 50%; font-size: 12px; font-weight: 700; letter-spacing: .02em; }
+.lang-btn::after { content: none; }
+html[data-stil="schlicht"] .lang-btn { border-color: var(--field-border); }

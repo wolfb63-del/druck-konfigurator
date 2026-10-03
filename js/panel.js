@@ -65,10 +65,11 @@ function update(){
   $('matBadge').innerHTML='<span class="badge '+st[0]+'">'+st[1]+'</span>';
   document.body.dataset.printer=r.printer.id;
   document.querySelectorAll('.printer-switch [data-printer]').forEach(b=>{const on=b.dataset.printer===r.printer.id;b.setAttribute('aria-checked',String(on));b.tabIndex=on?0:-1});
-  $('resultPrinter').textContent='Startprofil · '+r.printer.label;
+  const T=s=>typeof tr==='function'?tr(s):s;   // Sprachwahl (js/i18n.js): zusammengesetzte Texte teilweise übersetzen
+  $('resultPrinter').textContent=T('Startprofil')+' · '+r.printer.label;
   $('settings').innerHTML=r.rows.map(specCell).join('');
   $('orderedSettings').innerHTML=r.ordered.map(g=>'<div class="order-group"><div class="order-title">'+g[0]+'</div><div class="order-body">'+g[1].map(row).join('')+'</div></div>').join('');
-  $('title').textContent=r.m.name+' – '+r.ob.label+' · '+GOAL_LABEL[r.g];
+  $('title').textContent=T(r.m.name)+' – '+T(r.ob.label)+' · '+T(GOAL_LABEL[r.g]);
   $('summary').innerHTML=(geom?de(geom.x,1)+' × '+de(geom.y,1)+' × '+de(geom.z,1)+' mm · ':'')+'<span class="badge '+st[0]+'" style="margin-left:0">'+st[1]+'</span> '+
     esc(r.m.overridden?'Standardprofil mit deinen eigenen Werten.':r.m.src)+' Düse: '+esc(r.nozLabel)+'.';
   orcaFilamentJson=buildOrcaFilamentJSON(r);

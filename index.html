@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="css/ui-schlicht.css">
 <link rel="stylesheet" href="css/ui-dunkel.css">
 <script src="js/ui-neu.js"></script>
+<script src="js/i18n-en.js"></script>
+<script src="js/i18n.js"></script>
 </head>
 <body data-printer="kobra_s1" data-tab="settings">
 
@@ -73,6 +75,7 @@
         <button type="button" role="menuitemradio" aria-checked="false" data-ui-mode="schlicht">Schlicht <small>reduziert, nach Apple-Prinzipien</small></button>
       </div>
     </div>
+    <button type="button" class="menu-btn lang-btn" id="langBtn" lang="en">EN</button>
     <button type="button" class="menu-btn theme-btn" id="themeBtn" aria-pressed="false" aria-label="Dunkle Darstellung" title="Dunkel darstellen"><svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></button>
     <button type="button" class="menu-btn help-btn" data-action="help" aria-label="Hilfe">?</button>
     <div class="ui-tip" id="uiTip" role="status" hidden>Tipp: Unter <b>Ansicht</b> wählst du die Darstellung, mit dem Mond-Knopf schaltest du auf dunkel. <button type="button" class="linkbtn">OK</button></div>
@@ -315,7 +318,7 @@
   <div class="ed-body">
     <ol class="export-steps">
       <li>In OrcaSlicer deinen Drucker anlegen bzw. auswählen (Hersteller-Profil oder eigene Werte für Bett, Düse, Firmware).</li>
-      <li>Ein <b>neues, leeres Projekt</b> mit diesem Drucker aktiv – es muss kein Modell geladen sein.</li>
+      <li><b>Ein neues, leeres Projekt</b> mit diesem Drucker aktiv – es muss kein Modell geladen sein.</li>
       <li><b>Datei → Projekt speichern unter …</b> als .3mf.</li>
       <li>Diese Datei hier auswählen:</li>
     </ol>

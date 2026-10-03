@@ -8,7 +8,10 @@ let orientJob = 0;                   // verhindert, dass eine alte Berechnung ei
 const selectedPart = () => project && project.parts[project.selected];
 // Makerworld-3MF: Lage des Designers bleibt (Entscheidung 2026-09-26); nur STL-Teile werden gedreht.
 const orientable = () => !!project && !project.threemf;
-const mm2 = v => de(v, 0) + ' mm²';
+// Sprachwahl (js/i18n.js); ohne sie deutsch
+const O_TF = (s, v) => typeof trf === 'function' ? trf(s, v) : s.replace(/\{(\w+)\}/g, (m, k) => v[k]);
+const O_NUM = (v, d) => typeof num === 'function' ? num(v, d) : de(v, d);
+const mm2 = v => O_NUM(v, 0) + ' mm²';
 
 function setPartRotation(part, R) {
   part.R = R;
@@ -27,8 +30,8 @@ function orientResult(part, th) {
 
 function supportText(s) {
   const total = s.onBed + s.onPart;
-  if (total < 1) return 'keine Stützen';
-  return mm2(total) + ' Stützen' + (s.onPart >= 1 ? ' (davon ' + mm2(s.onPart) + ' auf dem Teil)' : ' (alle vom Bett)');
+  if (total < 1) return O_TF('keine Stützen');
+  return O_TF(s.onPart >= 1 ? '{a} Stützen (davon {b} auf dem Teil)' : '{a} Stützen (alle vom Bett)', { a: mm2(total), b: mm2(s.onPart) });
 }
 
 // Aufgerufen aus update(): Anzeige sofort, Berechnung kurz danach (kann bei großen Netzen dauern)
@@ -42,13 +45,13 @@ function renderOrient() {
   $('orientAll').classList.toggle('hidden', !orientable() || project.parts.length < 2);
   if (!orientable()) {
     $('orientInfo').classList.remove('busy');
-    $('orientInfo').textContent = 'Lage aus der 3MF bleibt erhalten – die Designer legen ihre Teile in der Regel schon richtig hin.';
+    $('orientInfo').textContent = O_TF('Lage aus der 3MF bleibt erhalten – die Designer legen ihre Teile in der Regel schon richtig hin.');
     $('orientSuggest').classList.add('hidden');
     return;
   }
   const th = +$('thresh').value, cached = orientCache.get(part), job = ++orientJob;
   if (!cached || cached.th !== th) {
-    $('orientInfo').textContent = 'Prüfe mögliche Auflageflächen …';
+    $('orientInfo').textContent = O_TF('Prüfe mögliche Auflageflächen …');
     $('orientInfo').classList.add('busy');   // Fortschrittsbalken (css/ui-neu.css)
     $('orientSuggest').classList.add('hidden');
   }
@@ -62,10 +65,10 @@ function renderOrient() {
 
 function showOrientResult(part, res) {
   const c = res.current;
-  $('orientInfo').textContent = 'Aktuelle Lage: ' + supportText(c) + ' · Auflage ' + mm2(c.contact) + (c.contact < MIN_CONTACT_MM2 ? ' – sehr wenig, Kippgefahr' : '') + '.';
+  $('orientInfo').textContent = O_TF(c.contact < MIN_CONTACT_MM2 ? 'Aktuelle Lage: {s} · Auflage {c} – sehr wenig, Kippgefahr.' : 'Aktuelle Lage: {s} · Auflage {c}.', { s: supportText(c), c: mm2(c.contact) });
   const s = res.suggestion;
   $('orientSuggest').classList.toggle('hidden', !s);
-  if (s) $('orientSuggestText').textContent = 'Besser: andere Seite aufs Bett – ' + supportText(s) + ', Auflage ' + mm2(s.contact) + ', Höhe ' + de(s.height, 1) + ' mm.';
+  if (s) $('orientSuggestText').textContent = O_TF('Besser: andere Seite aufs Bett – {s}, Auflage {c}, Höhe {h} mm.', { s: supportText(s), c: mm2(s.contact), h: O_NUM(s.height, 1) });
   // Hinweis, falls die neue Lage ein kritisches Teil in Z schwächt (nur Text, js/fragility-ui.js)
   if (s && typeof Stability !== 'undefined') Stability.orientNote(part, s.R, $('orientStab')); else $('orientStab').classList.add('hidden');
 }
@@ -73,7 +76,7 @@ function showOrientResult(part, res) {
 function pickFace(part) {
   setTab('3d');
   $('btnPick').classList.add('active');
-  toast('Fläche anklicken, die aufs Bett soll (Esc bricht ab)');
+  toast(O_TF('Fläche anklicken, die aufs Bett soll (Esc bricht ab)'));
   Viewer.setPick(true, fi => {
     $('btnPick').classList.remove('active');
     const p = part.geom.pos, o = fi * 9;
@@ -81,7 +84,7 @@ function pickFace(part) {
     const n = [uy * wz - uz * wy, uz * wx - ux * wz, ux * wy - uy * wx];
     if (!Math.hypot(...n)) return;
     setPartRotation(part, mulMat3(rotationToDown(n), part.R));
-    toast('Fläche liegt jetzt auf dem Bett');
+    toast(O_TF('Fläche liegt jetzt auf dem Bett'));
   });
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('btnPick').classList.contains('active')) { Viewer.setPick(false); $('btnPick').classList.remove('active'); } });
@@ -90,13 +93,13 @@ async function orientAll() {
   const th = +$('thresh').value;
   let changed = 0;
   for (const [i, part] of project.parts.entries()) {
-    $('orientInfo').textContent = 'Prüfe Teil ' + (i + 1) + ' von ' + project.parts.length + ' …';
+    $('orientInfo').textContent = O_TF('Prüfe Teil {i} von {n} …', { i: i + 1, n: project.parts.length });
     await new Promise(r => setTimeout(r, 0));   // Anzeige zwischendurch aktualisieren
     const res = orientResult(part, th);
     if (res.suggestion) { part.R = res.suggestion.R; part.geom = makeGeom(part.name, rotatePositions(part.origPos, part.R)); orientCache.delete(part); changed++; }
   }
   showModel(selectedPart().geom);
-  toast(changed ? changed + ' von ' + project.parts.length + ' Teilen neu ausgerichtet' : 'Alle Teile liegen bereits gut');
+  toast(changed ? O_TF('{c} von {n} Teilen neu ausgerichtet', { c: changed, n: project.parts.length }) : O_TF('Alle Teile liegen bereits gut'));
 }
 
 document.addEventListener('click', e => {

@@ -21,10 +21,11 @@ function renderSteps() {
   if (!bar) return;
   const printer = typeof lastResult !== 'undefined' && lastResult ? lastResult.printer.label : '';
   const done = [stepsPrinterChosen, !!project, !!project && stepsExportedFor === project];
+  const T = s => typeof tr === 'function' ? tr(s) : s;   // Sprachwahl (js/i18n.js)
   const text = [
-    stepsPrinterChosen && printer ? 'Drucker: ' + printer : 'Drucker wählen',
-    project ? 'Modell: ' + project.name : 'Modell laden',
-    done[2] ? '3MF gespeichert' : 'Für OrcaSlicer speichern'
+    stepsPrinterChosen && printer ? T('Drucker') + ': ' + printer : T('Drucker wählen'),
+    project ? T('Modell') + ': ' + project.name : T('Modell laden'),
+    T(done[2] ? '3MF gespeichert' : 'Für OrcaSlicer speichern')
   ];
   const current = done.indexOf(false);
   bar.querySelectorAll('[data-step]').forEach((b, i) => {

@@ -5,6 +5,7 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 ## [Unreleased]
 
 ### Neu
+- **Sprachwahl Deutsch/Englisch** (Knopf EN/DE in der Kopfzeile; ohne eigene Wahl nach der Browsersprache), Phase 1: Menüs, Felder, Datenblatt-Bezeichnungen, feste Werte, Dialoge, Hilfe, Datenschutz und Haftungsausschluss. Orca-Begriffe wörtlich wie im englischen OrcaSlicer (aus Orcas Quellcode, per Test geprüft). Zusammengesetzte Texte mit Zahlen (Titel, Zusammenfassung, Hinweise) folgen in Phase 2. Rechtlich maßgeblich bleibt die deutsche Fassung.
 - **Hell/Dunkel-Schalter** (Mond-/Sonnen-Knopf in der Kopfzeile): jede Ansicht gibt es hell und dunkel. Ohne eigene Wahl richtet sich die Seite nach der Einstellung von System bzw. Browser; Ausdruck/PDF bleibt hell.
 - **Einsteiger-Hilfen** (in allen Ansichten): Schritt-Leiste „① Drucker → ② Modell laden → ③ Für OrcaSlicer speichern“ unter den Tabs, zeigt den aktuellen Schritt und springt per Klick dorthin; kurze Klartext-Hilfe unter Priorität, Belastung, Support und Stützreduzierung.
 - **Datenschutz, Kontakt und Facebook-Link** in der Fußzeile und in der Hilfe. Die Datenschutzerklärung nennt Hosting bei GitHub Pages, lokale Verarbeitung der Modelle und Speicherung im Browser; keine Cookies, kein Tracking.
