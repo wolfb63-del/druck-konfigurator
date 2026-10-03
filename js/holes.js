@@ -39,17 +39,25 @@ function fitCircle(pts) {
    Achse und Lage. u/v/w sind die Koordinaten laut HOLE_AXES (bei z: x, y, z). */
 function findHoles(geom) {
   const pos = geom.pos, n = geom.n, holes = [], arcs = [];
+  /* Normalen und Eckpunkt-Schlüssel einmal für alle drei Achsen (gemeldet 2026-10-03: 1,25 Mio. Dreiecke,
+     ~5 s – je Achse neu gerechnet, mit Millionen kleiner Hilfsfelder). Gleiche Rechnung, gleiche Werte. */
+  const nrm = new Float64Array(n * 3), nlen = new Float64Array(n);
+  for (let t = 0; t < n; t++) {
+    const o = t * 9;
+    const ax = pos[o + 3] - pos[o], ay = pos[o + 4] - pos[o + 1], az = pos[o + 5] - pos[o + 2];
+    const bx = pos[o + 6] - pos[o], by = pos[o + 7] - pos[o + 1], bz = pos[o + 8] - pos[o + 2];
+    const nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx;
+    nrm[t * 3] = nx; nrm[t * 3 + 1] = ny; nrm[t * 3 + 2] = nz; nlen[t] = Math.hypot(nx, ny, nz);
+  }
+  const keys = new Array(n * 3);
+  const vkey = o => keys[o / 3] || (keys[o / 3] = Math.round(pos[o] * 1e4) + ',' + Math.round(pos[o + 1] * 1e4) + ',' + Math.round(pos[o + 2] * 1e4));
   for (const [axis, [iu, iv, iw]] of Object.entries(HOLE_AXES)) {
     // 1) Wände parallel zur Achse
     const cand = [];
     for (let t = 0; t < n; t++) {
-      const o = t * 9;
-      const e1 = [pos[o + 3] - pos[o], pos[o + 4] - pos[o + 1], pos[o + 5] - pos[o + 2]];
-      const e2 = [pos[o + 6] - pos[o], pos[o + 7] - pos[o + 1], pos[o + 8] - pos[o + 2]];
-      const nn = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]];
-      const len = Math.hypot(nn[0], nn[1], nn[2]);
-      if (!len || Math.abs(nn[iw] / len) > HOLE_AXIS_TOL) continue;
-      cand.push({ t, nu: nn[iu] / len, nv: nn[iv] / len });
+      const len = nlen[t];
+      if (!len || Math.abs(nrm[t * 3 + iw] / len) > HOLE_AXIS_TOL) continue;
+      cand.push({ t, nu: nrm[t * 3 + iu] / len, nv: nrm[t * 3 + iv] / len });
     }
     if (cand.length < HOLE_MIN_TRIS) continue;
     // 2) Zusammenhängende Flächen (gemeinsame Eckpunkte)
@@ -57,7 +65,7 @@ function findHoles(geom) {
     const seen = new Map();
     cand.forEach((c, i) => {
       for (let v = 0; v < 3; v++) {
-        const o = c.t * 9 + v * 3, key = Math.round(pos[o] * 1e4) + ',' + Math.round(pos[o + 1] * 1e4) + ',' + Math.round(pos[o + 2] * 1e4);
+        const o = c.t * 9 + v * 3, key = vkey(o);
         const j = seen.get(key);
         if (j === undefined) seen.set(key, i); else { const a = find(i), b = find(j); if (a !== b) parent[a] = b; }
       }

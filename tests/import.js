@@ -146,6 +146,18 @@ for (const [name, objs, item] of [
   check('Spiegelung, ' + name + ': Volumen +24', Math.abs(v - 24) < 1e-3, r.parts.length + ' Teile, Volumen ' + v);
 }
 
+// 6f) Schneller Einlese-Weg (2026-10-03) und Rückfall: Eckpunkte in üblicher Reihenfolge, in anderer
+//     Reihenfolge, mit Zusatz-Attribut und mit Zeilenumbruch; Dreieck mit p1. Sollwerte aus der Konstruktion.
+{
+  const xml = '<?xml version="1.0"?><model unit="millimeter"><resources><object id="1" type="model"><mesh><vertices>' +
+    '<vertex x="0" y="0" z="0"/><vertex z="0" y="0" x="10"/><vertex x="0" y="10" z="0" pid="2"/><vertex\n x="0"\n y="0"\n z="10"/>' +
+    '</vertices><triangles><triangle v1="0" v2="2" v3="1"/><triangle v1="0" v2="1" v3="3" p1="0"/><triangle v3="3" v2="2" v1="0"/></triangles></mesh></object></resources><build><item objectid="1"/></build></model>';
+  r = imp([{ name: 'reihenfolge.3mf', bytes: fflate.zipSync({ '3D/3dmodel.model': u8(xml) }) }]);
+  const p = r.parts[0] && Array.from(r.parts[0].pos);
+  const want = [0,0,0, 0,10,0, 10,0,0,  0,0,0, 10,0,0, 0,0,10,  0,0,0, 0,10,0, 0,0,10];
+  check('Einlesen: Attribut-Reihenfolge, Zusatz-Attribute, Zeilenumbruch – gleiche Koordinaten', p && p.length === want.length && p.every((v, i) => v === want[i]), JSON.stringify(p));
+}
+
 // 7) Fehlerfälle
 let err = '';
 try { imp([{ name: 'foto.png', bytes: new Uint8Array(4) }]); } catch (e) { err = e.message; }

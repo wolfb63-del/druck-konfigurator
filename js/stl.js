@@ -92,6 +92,37 @@ function makeDownProbe(pos){
     }
     return res;
   }
+  /* Nur „Innenfläche?“ – mehr will makeGeom nicht wissen (gemeldet 2026-10-03: 1,25 Mio. Dreiecke, ~9 s in
+     below()). Gleiche Bedingung wie dort (Punkt in der XY-Projektion, |z−pz| ≤ PROBE_COPLANAR, Dreieck zeigt
+     nach oben), aber vor der Rechnung verworfen, wenn pz nicht im z-Bereich des Dreiecks liegt: der
+     interpolierte z-Wert liegt immer darin, der Zuschlag deckt Rundung ab. Alles aus pos (ein Speicherbereich –
+     getrennte Hilfsfelder machten es durch Cache-Fehlzugriffe 3× langsamer). */
+  function inner(px,py,pz,self){
+    const lo=pz-PROBE_COPLANAR-1e-6*(1+Math.abs(pz)),hi=pz+PROBE_COPLANAR+1e-6*(1+Math.abs(pz));
+    for(const list of columns(px,py))for(const j of list){
+      if(j===self)continue;
+      const o=j*9,z0=pos[o+2],z1=pos[o+5],z2=pos[o+8];
+      if((z0<lo&&z1<lo&&z2<lo)||(z0>hi&&z1>hi&&z2>hi))continue;
+      const x0=pos[o],y0=pos[o+1],x1=pos[o+3],y1=pos[o+4],x2=pos[o+6],y2=pos[o+7];
+      if((x1-x0)*(y2-y0)-(y1-y0)*(x2-x0)<=0)continue;   // zeigt nicht nach oben (wie upFacing)
+      const d=(y1-y2)*(x0-x2)+(x2-x1)*(y0-y2);
+      if(!d)continue;
+      const a=((y1-y2)*(px-x2)+(x2-x1)*(py-y2))/d,b=((y2-y0)*(px-x2)+(x0-x2)*(py-y2))/d,c=1-a-b;
+      if(a<0||b<0||c<0)continue;
+      if(Math.abs(a*z0+b*z1+c*z2-pz)<=PROBE_COPLANAR)return true;
+    }
+    return false;
+  }
+  // Verdeckter Flächenanteil von Dreieck i (gleiche Teilpunkte wie sample(), nur mit inner())
+  function innerArea(i,area){
+    const o=i*9,m=Math.max(1,Math.min(PROBE_MAX_SUB,Math.ceil(Math.sqrt(area/4)))),w=area/(m*m);
+    let h=0;
+    for(let a=0;a<m;a++)for(let b=0;a+b<m;b++)for(let flip=0;flip<(a+b<m-1?2:1);flip++){
+      const fa=(a+(flip?2:1)/3)/m,fb=(b+(flip?2:1)/3)/m,fc=1-fa-fb;
+      if(inner(fa*pos[o]+fb*pos[o+3]+fc*pos[o+6],fa*pos[o+1]+fb*pos[o+4]+fc*pos[o+7],fa*pos[o+2]+fb*pos[o+5]+fc*pos[o+8],i))h+=w;
+    }
+    return h;
+  }
   // Dreieck i in m² Teildreiecke zerlegen und deren Mittelpunkte prüfen; cb(ergebnis, teilfläche)
   function sample(i,area,cb){
     const o=i*9,m=Math.max(1,Math.min(PROBE_MAX_SUB,Math.ceil(Math.sqrt(area/4)))),w=area/(m*m);
@@ -100,7 +131,7 @@ function makeDownProbe(pos){
       cb(below(fa*pos[o]+fb*pos[o+3]+fc*pos[o+6],fa*pos[o+1]+fb*pos[o+4]+fc*pos[o+7],fa*pos[o+2]+fb*pos[o+5]+fc*pos[o+8],i),w);
     }
   }
-  return {mnz,mxz,below,sample};
+  return {mnz,mxz,below,sample,innerArea};
 }
 
 // Dreiecke → Analyse-Grundlage (Maße, Winkel je Fläche, Bettkontakt); Bett = tiefster Punkt.
@@ -128,7 +159,7 @@ function makeGeom(name,pos){
   let bedArea=0;for(let i=0;i<n;i++)if(bed[i]&&ang[i]>80)bedArea+=area[i];
   // Anteil nach unten zeigender Flächen, der nur Innenfläche ist (zählt nicht als Überhang)
   const hidden=new Float32Array(n);
-  if(n>1){const probe=makeDownProbe(pos);for(let i=0;i<n;i++){if(bed[i]||ang[i]<=0||!area[i])continue;let h=0;probe.sample(i,area[i],(r,w)=>{if(r==='inner')h+=w});hidden[i]=h/area[i]}}
+  if(n>1){const probe=makeDownProbe(pos);for(let i=0;i<n;i++){if(bed[i]||ang[i]<=0||!area[i])continue;hidden[i]=probe.innerArea(i,area[i])/area[i]}}
   return {name,pos,n,ang,area,bed,hidden,total,bedArea,vol:Math.abs(vol),x:mx[0]-mn[0],y:mx[1]-mn[1],z:mx[2]-mn[2],mn,mx};
 }
 

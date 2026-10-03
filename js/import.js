@@ -76,6 +76,9 @@ function splitBodies(pos) {
 /* ---------- 3MF lesen ---------- */
 const attrsOf = tag => { const o = {}; tag.replace(/([\w:]+)="([^"]*)"/g, (_, k, v) => { o[k] = v; }); return o; };
 const IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+// Attribute genau in dieser Reihenfolge und sonst keine mit gleichem Namen – nur dann gilt der schnelle Weg
+const VERTEX_XYZ = /^\s*x="([^"]*)"\s+y="([^"]*)"\s+z="([^"]*)"\s*$/;
+const TRIANGLE_V123 = /^\s*v1="([^"]*)"\s+v2="([^"]*)"\s+v3="([^"]*)"\s*$/;
 // unit = Einheit der Datei in mm; gilt auch für den Verschiebungsanteil
 const parseTransform = (s, unit = 1) => {
   const t = s ? s.trim().split(/\s+/).map(Number) : IDENTITY;
@@ -101,9 +104,19 @@ function parseModelXML(text) {
     const meshXml = blockRe('mesh').exec(body);
     if (meshXml) {
       const vs = [];
-      for (const v of meshXml[2].matchAll(tagRe('vertex'))) { const va = attrsOf(v[1]); vs.push(+va.x * unit, +va.y * unit, +va.z * unit); }
+      // Schneller Weg für die übliche Reihenfolge x, y, z bzw. v1, v2, v3 (große Netze: allgemeine
+      // Attributsuche kostete Sekunden); sonst wie bisher über attrsOf – gleiche Zahlen.
+      for (const v of meshXml[2].matchAll(tagRe('vertex'))) {
+        const f = VERTEX_XYZ.exec(v[1]);
+        if (f) vs.push(+f[1] * unit, +f[2] * unit, +f[3] * unit);
+        else { const va = attrsOf(v[1]); vs.push(+va.x * unit, +va.y * unit, +va.z * unit); }
+      }
       const ts = [];
-      for (const t of meshXml[2].matchAll(tagRe('triangle'))) { const ta = attrsOf(t[1]); ts.push(+ta.v1, +ta.v2, +ta.v3); }
+      for (const t of meshXml[2].matchAll(tagRe('triangle'))) {
+        const f = TRIANGLE_V123.exec(t[1]);
+        if (f) ts.push(+f[1], +f[2], +f[3]);
+        else { const ta = attrsOf(t[1]); ts.push(+ta.v1, +ta.v2, +ta.v3); }
+      }
       obj.mesh = { v: Float64Array.from(vs), t: Uint32Array.from(ts) };
     }
     for (const c of body.matchAll(tagRe('component'))) {
