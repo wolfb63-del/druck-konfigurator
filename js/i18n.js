@@ -16,7 +16,15 @@ document.documentElement.lang = uiLang;
 
 // Text in der aktuellen Sprache; unbekannte Texte bleiben deutsch
 const i18nHas = k => typeof I18N_EN !== 'undefined' && Object.prototype.hasOwnProperty.call(I18N_EN, k);
-function tr(de) { return uiLang === 'en' && i18nHas(de) ? I18N_EN[de] : de; }
+/* Muster für Texte, die engine.js/data.js aus Teilen und Zahlen zusammensetzen (js/i18n-en-muster.js):
+   [RegExp mit ^…$, Ersetzung als Text mit $1 … oder Funktion]. Greift nur, wenn kein ganzer Eintrag passt. */
+function i18nPattern(k) {
+  if (typeof I18N_EN_PATTERNS === 'undefined') return undefined;
+  for (const [re, to] of I18N_EN_PATTERNS) { re.lastIndex = 0; if (re.test(k)) { re.lastIndex = 0; return k.replace(re, to); } }
+  return undefined;
+}
+const i18nLookup = k => (i18nHas(k) ? I18N_EN[k] : i18nPattern(k));
+function tr(de) { if (uiLang !== 'en') return de; const en = i18nLookup(de); return en === undefined ? de : en; }
 // Satzvorlage mit Platzhaltern {name}: Schlüssel ist die deutsche Vorlage, vars die eingesetzten Werte
 function trf(de, vars) { return tr(de).replace(/\{(\w+)\}/g, (m, k) => (vars && k in vars ? vars[k] : m)); }
 // Zahl im Format der Sprache (Deutsch: 4,2 und 27.073 – Englisch: 4.2 und 27,073)
@@ -35,8 +43,8 @@ const I18N = (() => {
     const key = de.replace(/\s+/g, ' ').trim();
     if (!key) return;
     let want = de;
-    if (uiLang === 'en' && i18nHas(key)) {
-      const en = I18N_EN[key];   // beginnt die Übersetzung mit einem Satzzeichen, entfällt der Leerraum davor (Fuge nach <b>)
+    const en = uiLang === 'en' ? i18nLookup(key) : undefined;
+    if (en !== undefined) {   // beginnt die Übersetzung mit einem Satzzeichen, entfällt der Leerraum davor (Fuge nach <b>)
       want = (/^[.,;:!?]/.test(en) ? '' : de.match(/^\s*/)[0]) + en + de.match(/\s*$/)[0];
     }
     if (want === de) { textState.delete(n); if (v !== de) n.nodeValue = de; return; }
@@ -47,7 +55,7 @@ const I18N = (() => {
     for (const a of I18N_ATTRS) {
       if (!el.hasAttribute(a)) continue;
       const all = attrState.get(el) || {}, st = all[a], v = el.getAttribute(a);
-      const de = st && v === st.written ? st.de : v, en = uiLang === 'en' && i18nHas(de.trim()) ? I18N_EN[de.trim()] : undefined;
+      const de = st && v === st.written ? st.de : v, en = uiLang === 'en' ? i18nLookup(de.trim()) : undefined;
       const want = en !== undefined ? en : de;
       if (want === de) delete all[a]; else { all[a] = { de, written: want }; attrState.set(el, all); }
       if (v !== want) el.setAttribute(a, want);
