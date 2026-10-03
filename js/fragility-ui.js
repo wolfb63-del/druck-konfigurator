@@ -14,11 +14,14 @@ const Stability = (() => {
     const e = g && cache.get(g), lw = lineWidth();
     return e && e.lw === lw ? e.result : null;
   }
-  function resultFor(g) {
+  // deadline nur für die automatische Berechnung (Teileliste); von Hand angestoßen wird immer zu Ende gerechnet
+  const AUTO_MS = 4000;
+  function resultFor(g, deadline) {
     let r = cached(g);
-    if (!r && g) { r = analyzeFragility(g, { lineWidth: lineWidth() }); cache.set(g, { lw: lineWidth(), result: r }); }
+    if (!r && g) { r = analyzeFragility(g, { lineWidth: lineWidth(), deadline }); cache.set(g, { lw: lineWidth(), result: r }); }
     return r;
   }
+  const slow = g => { const e = g && cache.get(g); return !!(e && e.lw === lineWidth() && e.slow); };
 
   function summary(r) {
     if (!r) return '';
@@ -46,7 +49,7 @@ const Stability = (() => {
     if (mode !== 'stability' || !g) { Viewer.colorize(+$('thresh').value); return; }
     const r = cached(g);
     if (r) { Viewer.colorizeClasses(r.cls); $('stabInfo').textContent = summary(r); $('stabInfo').classList.remove('busy'); return; }
-    $('stabInfo').textContent = 'Stabilität wird berechnet …';
+    $('stabInfo').textContent = slow(g) ? 'Stabilität wird berechnet – sehr detailreiches Modell, das kann länger dauern …' : 'Stabilität wird berechnet …';
     $('stabInfo').classList.add('busy');   // Fortschrittsbalken (css/ui-neu.css)
     const ticket = ++pending;
     setTimeout(() => {
@@ -81,7 +84,8 @@ const Stability = (() => {
       setTimeout(() => {
         // Teil gehört nicht mehr zum geladenen Projekt (neue Datei, gedreht) → überspringen
         const stale = typeof project !== 'undefined' && (!project || !project.parts.some(p => p.geom === job.g));
-        if (!stale) try { resultFor(job.g); } catch (e) { cache.set(job.g, { lw: lineWidth(), result: null, error: e.message }); }
+        if (!stale) try { resultFor(job.g, Date.now() + AUTO_MS); }
+        catch (e) { cache.set(job.g, e.timeout ? { lw: lineWidth(), result: null, slow: true } : { lw: lineWidth(), result: null, error: e.message }); }
         if (!queue.length) refresh();
         next();
       }, 0);
@@ -92,6 +96,7 @@ const Stability = (() => {
   function badge(g) {
     const e = g && cache.get(g), r = cached(g);
     if (e && e.lw === lineWidth() && e.error) return '<span class="pstab err" title="' + esc(e.error) + '">Stabilität ?</span>';
+    if (slow(g)) return '<span class="pstab wait" title="Sehr detailreiches Modell – Stabilität in der Modell-Karte per Klick berechnen">Stabilität: per Klick</span>';
     if (!r) { schedule(g); return '<span class="pstab wait">Stabilität …</span>'; }
     const thin = r.reasons.includes('thin') && r.minThick !== null, z = r.reasons.includes('z');
     const detail = (thin ? ' · ' + de(r.minThick, 1) + ' mm' : '') + (z ? (thin ? ' · Z' : ' · in Z') : '');
@@ -105,6 +110,19 @@ const Stability = (() => {
     if (!g) return;
     $('stabPart').textContent = project && project.parts.length > 1 ? project.parts[project.selected].name : '';
     const r = cached(g), e = cache.get(g);
+    if (!r && slow(g)) {
+      $('stabText').innerHTML = 'Sehr detailreiches Modell – die Stabilität wird nicht automatisch berechnet, damit die Seite nicht hängt. <button class="linkbtn" type="button" id="stabRun">Jetzt berechnen</button> (kann einige Sekunden dauern)';
+      $('stabAdvice').innerHTML = ''; $('stabNote').classList.add('hidden');
+      $('stabRun').onclick = () => {
+        $('stabText').textContent = 'Stabilität wird berechnet …'; $('stabText').classList.add('busy');
+        setTimeout(() => {
+          cache.delete(g);
+          try { resultFor(g); } catch (err) { cache.set(g, { lw: lineWidth(), result: null, error: err.message }); }
+          $('stabText').classList.remove('busy'); refresh();
+        }, 30);
+      };
+      return;
+    }
     if (!r) {
       $('stabText').textContent = e && e.lw === lineWidth() && e.error ? 'Stabilität konnte nicht berechnet werden: ' + e.error : 'Stabilität wird berechnet …';
       $('stabAdvice').innerHTML = ''; $('stabNote').classList.add('hidden');
@@ -132,14 +150,21 @@ const Stability = (() => {
     const key = R.join(','), lw = lineWidth(), c = orientChecks.get(part);
     if (c && c.key === key && c.lw === lw) { el.textContent = c.text; el.classList.toggle('hidden', !c.text); return; }
     el.textContent = ''; el.classList.add('hidden');
+    // Zu detailreich für die automatische Rechnung: Hinweis entfällt, und es wird nicht bei jedem update()
+    // neu versucht (Prüfung 2026-10-03: sonst bis zu 4 s Blockade bei jeder Änderung)
+    if (slow(part.geom)) { orientChecks.set(part, { key, lw, text: '' }); return; }
     setTimeout(() => {
       if (part.geom !== geom) return;                      // inzwischen anderes Teil oder gedreht
       try {
-        const after = analyzeFragility(makeGeom(part.name, rotatePositions(part.origPos, R)), { lineWidth: lw });
-        const text = orientationZText(orientationZCheck(resultFor(part.geom), after));
+        const before = resultFor(part.geom, Date.now() + AUTO_MS);   // jede Rechnung mit eigener Frist
+        const after = analyzeFragility(makeGeom(part.name, rotatePositions(part.origPos, R)), { lineWidth: lw, deadline: Date.now() + AUTO_MS });
+        const text = orientationZText(orientationZCheck(before, after));
         orientChecks.set(part, { key, lw, text });
         if (part.geom === geom) { el.textContent = text; el.classList.toggle('hidden', !text); }
-      } catch (err) { /* nur Hinweis – ohne Ergebnis bleibt er weg */ }
+      } catch (err) {
+        // nur Hinweis – ohne Ergebnis bleibt er weg; bei Zeitlimit merken, damit nicht ständig neu gerechnet wird
+        if (err && err.timeout) orientChecks.set(part, { key, lw, text: '' });
+      }
     }, 40);
   }
 
