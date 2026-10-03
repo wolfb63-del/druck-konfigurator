@@ -18,6 +18,7 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 
 ### Behoben
 - **Slot-Wahl beim Speichern fehlte bei 3MF-Projekten:** Teile aus einer Makerworld-3MF bringen den Slot des Designers mit; der Dialog blendete die Wahl dann aus und die Datei landete ungefragt z. B. in Slot 4. Jetzt ist die Slot-Wahl immer da – mit „Alle Teile in den gewählten Slot“ (Standard bei einfarbigen Projekten) oder „Slots je Teil beibehalten“ (Standard, wenn die Teile verschiedene Slots haben).
+- **Seite hing bei sehr detailreichen Modellen minutenlang** (z. B. feine Prägung neben großen Flächen): Stabilitäts- und Überhang-Analyse suchten in überfüllten Rasterzellen alle Dreiecke ab. Überfüllte Zellen bekommen jetzt ein feineres Unterraster – Ergebnisse unverändert (13 Teile aus 5 Dateien verglichen), Trommel-Segment mit 112.000 Dreiecken: Stabilität 161 s → 8 s, Geometrie 6,4 s → 1,6 s. Dauert die automatische Stabilitäts-Bewertung trotzdem länger als 4 s, bricht sie ab und lässt sich per Klick starten.
 - **Hinweis „Die 3MF wurde von BambuStudio erstellt“** beim Öffnen umgestellter Makerworld-Projekte in Orca: Die Datei trägt jetzt die Orca-Kennung mit der Version der Vorlage – die Druckeinstellungen stammen ja aus der Orca-Vorlage. Die Herkunftsangabe des Designers bleibt erhalten.
 - **Gespiegelte Objekte in 3MF** wurden mit nach innen zeigenden Flächen eingelesen: Löcher wurden dort nicht erkannt, Überhänge falsch bewertet.
 

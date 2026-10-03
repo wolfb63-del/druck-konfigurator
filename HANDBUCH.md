@@ -142,6 +142,8 @@ Unter **Stabilität** bewertet das Tool das gewählte Teil, auch wenn das Projek
 
 Das ist eine **Näherung aus der Geometrie, keine Festigkeitsberechnung**. Das Tool ändert keine Druckwerte und auch nicht den 3MF-Export. Was du übernehmen willst, stellst du selbst in OrcaSlicer ein. Farbkarte und Grenzen: siehe 3D-Ansicht (Abschnitt 11) und Abschnitt 12.
 
+
+**Sehr detailreiche Modelle:** Rechnet die automatische Bewertung länger als etwa 4 Sekunden, bricht das Tool sie ab, damit die Seite nicht hängt. In der Teileliste steht dann **„Stabilität: per Klick“**, in der Modell-Karte startet **Jetzt berechnen** die vollständige Bewertung (kann einige Sekunden dauern).
 ---
 
 ## 6. Einstellungen und Datenblatt

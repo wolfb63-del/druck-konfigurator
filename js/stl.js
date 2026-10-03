@@ -26,6 +26,15 @@ function parseSTL(name,buf){return makeGeom(name,readSTL(buf))}
    unverschmolzener Körper, z. B. Tinkercad-Export) → kein Überhang; 'part' = Material des Teils
    weiter unten; 'bed' = frei bis zum Bett. sample(): große Dreiecke an mehreren Punkten (≈ 2 mm). */
 const PROBE_BED_TOL=0.2, PROBE_COPLANAR=0.05, PROBE_MAX_CELLS=96, PROBE_MAX_SUB=6;
+/* Überfüllte Spalten (mehr als PROBE_SPLIT Dreiecke, z. B. feine Prägung neben großen Flächen; gemeldet
+   2026-10-03, Trommel-Segment bis 19.000 je Spalte, 7 s) werden beim ersten Zugriff in k×k Unterspalten
+   geteilt. Ein Dreieck, dessen XY-Hülle den Punkt enthält, steht auch in dessen Unterspalte (gleiche, monotone
+   Zuordnung) – below() sieht also dieselben Kandidaten, das Ergebnis bleibt gleich. Dreiecke, die mehr als
+   2×2 Unterspalten überdecken, stehen einmal in einer gemeinsamen Liste, die immer mitgeprüft wird: sonst
+   würden große Flächen in jede Unterspalte kopiert (Testkästen auf der Seite: 7 Mio. Einträge, 7,6 s).
+   Geteilt werden nur Ausreißer (über PROBE_SPLIT und über PROBE_SPLIT_X_MEDIAN × Median): sind alle Spalten
+   gleich voll, bringt Teilen nichts und kostet nur Zeit (Testkästen: Median 150, Trommel: Median 15, max 19.107). */
+const PROBE_SPLIT=256, PROBE_SPLIT_X_MEDIAN=16, PROBE_SUB_MAXK=32;
 function makeDownProbe(pos){
   const n=pos.length/9;
   let mnx=Infinity,mny=Infinity,mnz=Infinity,mxx=-Infinity,mxy=-Infinity,mxz=-Infinity;
@@ -43,10 +52,34 @@ function makeDownProbe(pos){
     const y0=cellY(Math.min(pos[o+1],pos[o+4],pos[o+7])),y1=cellY(Math.max(pos[o+1],pos[o+4],pos[o+7]));
     for(let gx=x0;gx<=x1;gx++)for(let gy=y0;gy<=y1;gy++)grid[gy*cells+gx].push(i);
   }
+  const sub=new Map(),lens=grid.map(l=>l.length).sort((a,b)=>a-b);
+  const splitAt=Math.max(PROBE_SPLIT,PROBE_SPLIT_X_MEDIAN*lens[lens.length>>1]);
+  function split(idx){
+    const list=grid[idx],gx=idx%cells,gy=(idx-gx)/cells,k=Math.min(PROBE_SUB_MAXK,Math.max(2,Math.ceil(Math.sqrt(list.length/16))));
+    const x0=mnx+gx*cw,y0=mny+gy*ch,sw=cw/k,sh=ch/k;
+    const sx=x=>Math.min(k-1,Math.max(0,Math.floor((x-x0)/sw))),sy=y=>Math.min(k-1,Math.max(0,Math.floor((y-y0)/sh)));
+    const lists=new Array(k*k),wide=[];
+    for(const i of list){
+      const o=i*9;
+      const a0=sx(Math.min(pos[o],pos[o+3],pos[o+6])),a1=sx(Math.max(pos[o],pos[o+3],pos[o+6]));
+      const b0=sy(Math.min(pos[o+1],pos[o+4],pos[o+7])),b1=sy(Math.max(pos[o+1],pos[o+4],pos[o+7]));
+      if((a1-a0+1)*(b1-b0+1)>4){wide.push(i);continue}
+      for(let a=a0;a<=a1;a++)for(let b=b0;b<=b1;b++)(lists[b*k+a]||(lists[b*k+a]=[])).push(i);
+    }
+    const s={sx,sy,k,lists,wide};sub.set(idx,s);return s;
+  }
+  const NONE=[];
+  // Kandidaten für Punkt (px,py): gemeinsame Liste großer Dreiecke + Unterspalte, sonst die ganze Spalte
+  const columns=(px,py)=>{
+    const idx=cellY(py)*cells+cellX(px);
+    if(grid[idx].length<=splitAt)return [grid[idx]];
+    const s=sub.get(idx)||split(idx);
+    return [s.wide,s.lists[s.sy(py)*s.k+s.sx(px)]||NONE];
+  };
   const upFacing=o=>(pos[o+3]-pos[o])*(pos[o+7]-pos[o+1])-(pos[o+4]-pos[o+1])*(pos[o+6]-pos[o])>0;
   function below(px,py,pz,self){
     let res='bed';
-    for(const j of grid[cellY(py)*cells+cellX(px)]){
+    for(const list of columns(px,py))for(const j of list){
       if(j===self)continue;
       const o=j*9,x0=pos[o],y0=pos[o+1],x1=pos[o+3],y1=pos[o+4],x2=pos[o+6],y2=pos[o+7];
       const d=(y1-y2)*(x0-x2)+(x2-x1)*(y0-y2);
