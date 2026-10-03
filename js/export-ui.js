@@ -177,7 +177,6 @@ function showZOffset(tpl,id){
 /* Reinigungslinie je Drucker: im Browser gespeichert (store.settings.purge[id] = {on, side}), Standard aus */
 const purgeFor=id=>({on:false,side:'auto',...((store.settings.purge||{})[id]||{})});
 const PURGE_SIDE_TXT={front:'vorne',back:'hinten',left:'links',right:'rechts'};
-const PURGE_FIRMWARE=['kobra_s1','snapmaker_u1'];
 // Plan für die gewählte Seite; null = aus oder nicht berechenbar
 function purgePlanFor(tpl){
   const p=purgeFor(lastResult.printer.id);if(!p.on)return null;
@@ -189,7 +188,7 @@ function purgePlanFor(tpl){
 function showPurge(tpl){
   const id=lastResult.printer.id,p=purgeFor(id),note=$('purgeNote');
   $('purgeOn').checked=p.on;$('purgeSide').value=p.side;$('purgeSide').disabled=!p.on;
-  let txt=PURGE_FIRMWARE.includes(id)?E_TR('Dieser Drucker reinigt die Düse schon in der Firmware – die Linie kommt zusätzlich.'):'';
+  let txt=E_TR('Zieht dein Start-G-Code schon eine Linie, entsteht sie doppelt – dann den Schalter aus lassen.');
   if(p.on){
     const plan=purgePlanFor(tpl);
     if(!plan)txt=E_TR('Reinigungslinie hier nicht möglich (Vorlage ohne passende Werte, Rund-/Delta-Bett oder Sperrbereiche).');

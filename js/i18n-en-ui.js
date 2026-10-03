@@ -7,7 +7,7 @@ Object.assign(I18N_EN, {
   '<b>Achtung Z-Offset:</b> Die Datei startet mit {v} mm. Braucht dein Drucker einen anderen Wert (z. B. 0,25 mm beim Kobra S1), trage ihn oben ein – sonst liegt die erste Schicht zu nah an der Platte oder haftet nicht.': '<b>Check the Z offset:</b> the file starts with {v} mm. If your printer needs a different value (e.g. 0.25 mm on the Kobra S1), enter it above – otherwise the first layer may be too close to the plate or not stick.',
   'leer = Wert der Vorlage ({v} mm) · gilt für jeden Export mit diesem Drucker': 'empty = template value ({v} mm) · applies to every export with this printer',
   'Z-Offset bitte zwischen −2 und 2 mm': 'Please enter a Z offset between −2 and 2 mm',
-  'Dieser Drucker reinigt die Düse schon in der Firmware – die Linie kommt zusätzlich.': 'This printer already cleans the nozzle in its firmware – the line is added on top.',
+  'Zieht dein Start-G-Code schon eine Linie, entsteht sie doppelt – dann den Schalter aus lassen.': 'If your start G-code already draws a line, you get it twice – then leave the switch off.',
   'Reinigungslinie hier nicht möglich (Vorlage ohne passende Werte, Rund-/Delta-Bett oder Sperrbereiche).': 'Purge line not possible here (template lacks the needed values, round/delta bed, or keep-out areas).',
   'Reinigungslinie weggelassen (kein Platz)': 'Purge line left out (no room)',
   'Zu wenig Platz {side}: {free} mm frei, nötig {need} mm – andere Seite wählen. Sonst wird die Linie weggelassen.': 'Not enough room {side}: {free} mm free, {need} mm needed – pick another side, otherwise the line is left out.',

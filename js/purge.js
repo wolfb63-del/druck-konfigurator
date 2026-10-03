@@ -4,8 +4,9 @@
    Seite: 'front' (y klein), 'back' (y groß), 'left' (x klein), 'right' (x groß) oder 'auto'
    (Seite mit dem meisten freien Platz neben allen Objekten).
    Bekannte Grenzen:
-   - Kobra S1 und Snapmaker U1 reinigen in der Firmware (G9111 bzw. PRINT_START-Makros); die Linie kommt
-     dort zusätzlich nach dem Firmware-Start. Welche Linie die Firmware selbst zieht, ist nicht sichtbar.
+   - Der Start-G-Code ist je Nutzer anpassbar und je Drucker verschieden (z. B. zieht der U1 im Start-Code schon eine
+     eigene Linie, der Kobra S1 nicht). Ob schon eine Linie darin steht, erkennt das Tool nicht; der Dialog warnt
+     deshalb allgemein vor einer doppelten Linie.
    - Die Lage der Objekte kennt nur dieser Export; verschiebt man sie später in Orca, gilt die Prüfung nicht mehr.
    - Der Platzbedarf rechnet Brim und Skirt der Vorlage/Empfehlung ein, nicht Stützen außerhalb des Teils.
    - Prime-Tower (Mehrfarbdruck): Position aus der Vorlage, Tiefe unbekannt → mit 60 mm Tiefe geschätzt (konservativ).
