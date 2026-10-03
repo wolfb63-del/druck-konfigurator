@@ -9,7 +9,7 @@ const fflate = require('../vendor/fflate.min.js');
 
 const ROOT = path.join(__dirname, '..');
 const ctx = vm.createContext({ console, TextDecoder });
-for (const f of ['util', 'data', 'stl', 'orient', 'holes', 'store', 'engine', 'orca-templates', 'export3mf', 'import'])
+for (const f of ['util', 'data', 'stl', 'orient', 'holes', 'store', 'engine', 'orca-templates', 'colour-changes', 'export3mf', 'import'])
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
 const K = vm.runInContext('({importModels, makeGeom, compute, getMat, store, exportTemplate, build3mfFromProject, findHoles, HOLE_RING_MM, withZOffset, build3mf})', ctx);
 

@@ -10,7 +10,7 @@ const fflate = require('../vendor/fflate.min.js');
 
 const ROOT = path.join(__dirname, '..');
 const ctx = vm.createContext({ console, TextDecoder });
-for (const f of ['util', 'stl', 'import', 'orient', 'fragility'])
+for (const f of ['util', 'stl', 'colour-changes', 'import', 'orient', 'fragility'])
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
 const K = vm.runInContext('({analyzeFragility, fragBuildGrid, fragBodies, fragCastRay, makeGeom, importModels, rotatePositions, rotateAxis})', ctx);
 

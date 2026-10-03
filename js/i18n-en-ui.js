@@ -13,6 +13,8 @@ Object.assign(I18N_EN, {
   'Hersteller-Liste nicht verfügbar – bitte ein Standardprofil wählen.': 'Manufacturer list not available – please pick a standard profile.',
   'Eigenes Filament „{name}“ angelegt: Standardprofil {base} mit den Temperaturen der Datenbank (Herstellerangabe). Übrige Werte prüfen – „Werte anpassen“.': 'Own filament “{name}” created: standard profile {base} with the temperatures from the database (manufacturer figure). Check the other values – “Adjust values”.',
   'Eigenes Filament „{name}“ gewählt.': 'Own filament “{name}” selected.',
+  'Diese Datei wechselt nach Höhe zwischen Extrudern (Gravur). „Alle Teile in den gewählten Slot“ bringt die Farben durcheinander – besser „Slots je Teil beibehalten“.': 'This file switches extruders by height (engraving). “All parts into the chosen slot” mixes up the colours – better use “Keep slots per part”.',
+  'Farbwechsel nach Höhe ({n} Wechsel, Extruder {list}): Schichthöhen und Slots der Datei bleiben, Slot 1–4 sind wie im Original belegt.': 'Colour changes by height ({n} changes, extruders {list}): the file’s layer heights and slots are kept; slots 1–4 are assigned as in the original.',
   'Hersteller Slot {n}': 'Manufacturer slot {n}',
   'Material Slot {n}': 'Material slot {n}',
   'Farbe aus Liste Slot {n}': 'Colour from list slot {n}',

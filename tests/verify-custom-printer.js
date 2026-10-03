@@ -17,7 +17,7 @@ const ORCA = process.env.ORCA || 'C:\\Program Files\\OrcaSlicer\\orca-slicer.exe
 const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'verify-custom-printer-'));
 
 const ctx = vm.createContext({ console, TextDecoder });
-for (const f of ['util', 'data', 'stl', 'store', 'engine', 'orca-templates', 'orient', 'holes', 'orca-generic', 'orca-custom', 'export3mf'])
+for (const f of ['util', 'data', 'stl', 'store', 'engine', 'orca-templates', 'orient', 'holes', 'orca-generic', 'orca-custom', 'colour-changes', 'export3mf'])
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
 const K = vm.runInContext('({compute, getMat, store, parseSTL, makeGeom, exportTemplate, build3mf, customPrinterTemplate, customPrinterEntry, ORCA_TEMPLATES})', ctx);
 

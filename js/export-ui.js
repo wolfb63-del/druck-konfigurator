@@ -204,6 +204,15 @@ function setupPurge(tpl){
   };
   $('purgeOn').onchange=save;$('purgeSide').onchange=save;showPurge(tpl);
 }
+/* Farbwechsel nach Höhe (z. B. mehrfarbige Gravur): Schichthöhen und Slots der Datei bleiben (js/colour-changes.js) */
+function showColourNote(){
+  const cc=(project&&project.threemf&&project.threemf.colourChanges)||[],el=$('colourNote');
+  el.classList.toggle('hidden',!cc.length);
+  if(!cc.length)return;
+  el.textContent=slotMode()==='all'
+    ?E_TR('Diese Datei wechselt nach Höhe zwischen Extrudern (Gravur). „Alle Teile in den gewählten Slot“ bringt die Farben durcheinander – besser „Slots je Teil beibehalten“.')
+    :E_TF('Farbwechsel nach Höhe ({n} Wechsel, Extruder {list}): Schichthöhen und Slots der Datei bleiben, Slot 1–4 sind wie im Original belegt.',{n:cc.length,list:[...new Set(cc.map(c=>c.extruder))].sort((a,b)=>a-b).join(', ')});
+}
 function openExportDialog(){
   const r=lastResult,tpl=exportTemplate(r.printer.id,r.dSel);
   if(!tpl||!project)return;
@@ -229,8 +238,11 @@ function openExportDialog(){
   const own=ownSlots();
   $('slotMode').classList.toggle('hidden',!own.length);
   $('slotModeKeep').textContent=own.length===1?'('+E_TF(project.threemf?'Slot {n} aus der Datei':'Slot {n}',{n:own[0]+1})+')':own.length?'('+E_TF('Slots {list}',{list:own.map(s=>s+1).join(', ')})+')':'';
-  document.querySelector('input[name="slotMode"][value="'+(own.length>1?'keep':'all')+'"]').checked=true;
-  $('slotMode').onchange=renderExportDialog;
+  const hasColourChanges=!!(project.threemf&&project.threemf.colourChanges&&project.threemf.colourChanges.length);
+  document.querySelector('input[name="slotMode"][value="'+(own.length>1||hasColourChanges?'keep':'all')+'"]').checked=true;
+  document.querySelector('input[name="slotMode"][value="all"]').disabled=hasColourChanges;   // „alle in einen Slot“ würde die Gravurfarben mischen
+  $('slotMode').onchange=()=>{showColourNote();renderExportDialog()};
+  showColourNote();
   renderExportDialog();
   $('exportDlg').showModal();
   loadLiveSlots();

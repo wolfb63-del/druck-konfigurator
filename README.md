@@ -51,6 +51,7 @@ node tests/import.js          # Import (STL/ZIP/3MF)
 node tests/orient.js          # Lage-Bewertung
 node tests/export-project.js  # Makerworld-Umstellung, Lochverstärkung in 3MF-Projekten
 node tests/holes.js           # Bohrloch-Erkennung
+node tests/colour-changes.js   # Farbwechsel nach Höhe (Gravur): Schichthöhen, Slots, Schalen; BUHO3MF=<3mf> optional
 node tests/filament-db.js    # Filament-Liste: Zuordnung Material → Typ, Datenbank gegen Quelle (Stichproben)
 node tests/purge.js           # Reinigungslinie: Seite, Platzbedarf, G-Code (Sollwerte aus der Konstruktion)
 node tests/fragility.js       # Fragilität (Wandstärke, Z-Schwäche); FRAG3MF=<3mf> optional

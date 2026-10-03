@@ -244,7 +244,7 @@ function parse3MF(fileName, zip, zipLib) {
     notes.push('Einfache 3MF ohne Orca-/Bambu-Projektdaten: nur die Form wird übernommen, wie bei einer STL.');
     return { parts, notes, threemf: null };
   }
-  return { parts, notes, threemf: { name: fileName, zip, plates: settings.plates, settings: projectSettings } };
+  return { parts, notes, threemf: { name: fileName, zip, plates: settings.plates, settings: projectSettings, colourChanges: parseColourChanges(text('Metadata/custom_gcode_per_layer.xml')) } };
 }
 
 /* ---------- Einstieg ---------- */

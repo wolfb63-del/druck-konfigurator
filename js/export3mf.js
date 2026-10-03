@@ -530,6 +530,25 @@ function build3mfFromProject(tpl, r, jobs, slot, zipLib, liveSlots, threemf) {
   const nFil = tpl.settings.filament_settings_id.length;
   items.forEach(j => { if (partSlot(j) >= nFil) notes.push(j.geom.name + ': Slot ' + (partSlot(j) + 1) + ' gibt es an deinem Drucker nicht – bitte in Orca zuweisen.'); });
   const { settings, changes } = buildProjectSettings(tpl, r, slot, liveSlots, extra.filter(e => e.slot < nFil));
+  // Farbwechsel nach Höhe (Auftrag 2026-10-03, BUHO-Gravur): Schichthöhen und Slots der Datei bleiben, siehe colour-changes.js
+  const colourChanges = threemf.colourChanges || [];
+  if (colourChanges.length) {
+    const cc = applyColourChanges(settings, threemf.settings, colourChanges, !!liveSlots);
+    notes.push(...cc.notes);
+    if (cc.layer) {
+      // Schalenschichten für die Schichthöhe der Datei neu (gleiche Dicke wie vom Tool gedacht); auch je Teil, sonst
+      // würde jedes Teil mit dem alten Wert überschrieben
+      const sh = shellLayersFor(r, cc.layer.layerHeight);
+      settings.top_shell_layers = String(sh.t); settings.bottom_shell_layers = String(sh.b);
+      for (const j of items) if (j.r) j.r = { ...j.r, ...shellLayersFor(j.r, cc.layer.layerHeight) };
+    }
+    if (items.some(j => j.slot === null || j.slot === undefined)) notes.push('Teile ohne Extruder in der Datei drucken im gewählten Slot, die Farbwechsel zielen auf die Extruder der Datei – Zuordnung in Orca prüfen.');
+    if (cc.layer) for (const [key, label, v] of [['layer_height', 'Schichthöhe (aus der Datei, wegen Farbwechseln)', cc.layer.layerHeight], ['initial_layer_print_height', 'Erste Schicht (aus der Datei)', cc.layer.firstLayer]]) {
+      const at = changes.findIndex(c => c.key === key);
+      if (at >= 0) changes.splice(at, 1);
+      if (String(tpl.settings[key]) !== String(v)) changes.push({ label, key, before: tpl.settings[key], after: v });
+    }
+  }
   const { shifts, oversize } = plateShifts(items, tpl);
   oversize.forEach(id => notes.push('Platte ' + id + ' ist größer als dein Druckbett – in Orca prüfen.'));
 

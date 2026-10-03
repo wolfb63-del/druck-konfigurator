@@ -223,6 +223,8 @@ Viele Makerworld-3MFs sind für Bambu-Drucker eingestellt. Lädst du so eine Dat
 
 Ist eine Platte größer als dein Bett, erscheint ein Hinweis.
 
+**Farbwechsel nach Höhe (z. B. mehrfarbige Gravur):** Wechselt die Datei ab bestimmten Höhen den Extruder (Orca/Bambu „Farbwechsel pro Schicht“, Typ Werkzeugwechsel), behält das Tool die **Schichthöhen der Datei** (erste Schicht und Schichthöhe, z. B. 0,16 / 0,08 mm) und die **Slots der Datei**: Extruder 1–4 bleiben Slot 1–4, mit den Farben des Designers, solange keine Belegung vom Drucker oder von Hand vorliegt. Die Option „Alle Teile in den gewählten Slot“ ist dann gesperrt, weil sie die Gravurfarben mischen würde. Obere und untere Schichten werden auf die feinere Schichthöhe umgerechnet (gleiche Dicke), der Druck dauert dadurch länger als mit der Tool-Schichthöhe. Grenzen: Erkannt werden nur Werkzeugwechsel (Typ 2); Wechsel per M600/AMS im Einzel-Extruder-Modus (Typ 0) nicht – solche Dateien bekommen wie bisher die Schichthöhe des Tools. Liegt ein Wechsel nicht auf einer Schichtgrenze, warnt das Tool; wie Orca ihn dann behandelt, ist nicht geprüft. Bei mehreren Platten mit widersprüchlichen Farben für denselben Extruder bleibt die Slotfarbe der Vorlage.
+
 ---
 
 ## 11. 3D-Ansicht

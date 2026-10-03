@@ -8,7 +8,7 @@ const fflate = require('../vendor/fflate.min.js');
 
 const ROOT = path.join(__dirname, '..');
 const ctx = vm.createContext({ console, TextDecoder });
-for (const f of ['util', 'stl', 'import'])
+for (const f of ['util', 'stl', 'colour-changes', 'import'])
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
 const K = vm.runInContext('({importModels, splitBodies, makeGeom, readSTL})', ctx);
 

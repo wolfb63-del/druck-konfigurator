@@ -17,7 +17,7 @@ const RES = process.env.ORCA_PROFILES || 'C:/Program Files/OrcaSlicer/resources/
 const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'verifyorca-'));
 
 const ctx = vm.createContext({ console, TextDecoder });
-for (const f of ['util', 'data', 'stl', 'store', 'engine', 'orca-templates', 'orient', 'holes', 'export3mf', 'orca-printers/index', 'orca-generic'])
+for (const f of ['util', 'data', 'stl', 'store', 'engine', 'orca-templates', 'orient', 'holes', 'colour-changes', 'export3mf', 'orca-printers/index', 'orca-generic'])
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
 const K = vm.runInContext('({compute,getMat,store,makeGeom,build3mf,orcaGenericTemplate,orcaPrinterEntry,exportTemplate,ORCA_PRINTER_INDEX,PRINTERS})', ctx);
 
