@@ -20,6 +20,17 @@ $('export3mfCta').addEventListener('click',openExportDialog);
 const printerHost=id=>((store.settings.printerHosts||{})[id]||'').trim();
 function slotKey(printerId){return 'exportSlot_'+printerId}
 function chosenSlot(){const c=document.querySelector('input[name="slot"]:checked');return c?+c.value:0}
+/* Slot-Wahl immer zeigen (gemeldet 2026-10-03): Teile aus einer 3MF bringen den Slot des Designers mit, die
+   Wahl war dann ausgeblendet und die Datei landete z. B. ungefragt in Slot 4. Jetzt wählt der Dialog:
+   „all“ = alle Teile in den gewählten Slot, „keep“ = je Teil eigener Slot (aus der Datei oder links gesetzt). */
+const ownSlots=()=>project?[...new Set(project.parts.filter(p=>p.slot!=null).map(p=>p.slot))]:[];
+function slotMode(){const c=document.querySelector('input[name="slotMode"]:checked');return c?c.value:'all'}
+function dialogPlan(){
+  const plan=exportPlan(chosenSlot());
+  if(slotMode()!=='all')return plan;
+  const jobs=plan.jobs.map(j=>({...j,slot:null}));
+  return {jobs,slot:chosenSlot(),r:jobs[0].r,usesDefault:true};
+}
 
 /* Aktuelle Belegung für den Dialog, in dieser Reihenfolge: live vom Drucker (Moonraker), von Hand
    eingetragen (für Originalfirmware – bleibt gespeichert, bis man sie ändert), Orca-Vorlage. */
@@ -60,7 +71,7 @@ function preferredSlot(tpl,r){
 
 function renderExportDialog(){
   const tpl=exportTemplate(lastResult.printer.id,lastResult.dSel);
-  const plan=exportPlan(chosenSlot()),r=plan.r,slot=plan.slot;
+  const plan=dialogPlan(),r=plan.r,slot=plan.slot;
   const live=exportSlots(tpl);
   const {extra,notes,partSlot}=slotPlan(plan.jobs,r,slot);
   const {settings,changes}=buildProjectSettings(tpl,r,slot,live,extra);
@@ -90,8 +101,10 @@ function renderExportDialog(){
 function renderPartPlan(tpl,plan,partSlot,notes,settings){
   const multi=plan.jobs.length>1;
   $('partPlan').classList.toggle('hidden',!multi);
-  document.querySelector('#exportDlg fieldset.slots').classList.toggle('hidden',!plan.usesDefault); // alle Teile haben eigene Slots
-  $('slotLegend').textContent=multi?'Standard-Slot (für Teile ohne eigenen Slot)':'Filament-Slot';
+  // Slot-Liste nur ausblenden, wenn ausdrücklich „je Teil beibehalten“ gewählt ist und kein Teil den Standard-Slot nutzt
+  const keepAll=slotMode()==='keep'&&!plan.usesDefault;
+  $('slotList').classList.toggle('hidden',keepAll);$('slotHint').classList.toggle('hidden',keepAll);
+  $('slotLegend').textContent=slotMode()==='all'?'Filament-Slot':multi?'Standard-Slot (für Teile ohne eigenen Slot)':'Filament-Slot';
   if(!multi)return;
   const slots=dialogSlots(tpl);let mismatch=0;
   $('partPlanTable').innerHTML='<table class="changes"><thead><tr><th>Teil</th><th>Slot</th><th>Filament</th><th>Eigene Werte</th></tr></thead><tbody>'+
@@ -111,7 +124,7 @@ $('matchLive').addEventListener('click',()=>{
   const tpl=exportTemplate(lastResult.printer.id,lastResult.dSel),slots=dialogSlots(tpl),def=chosenSlot();
   let n=0;
   for(const p of project.parts){
-    const s=slots[p.slot==null?def:p.slot];if(!s||!s.type)continue;
+    const s=slots[slotMode()==='all'||p.slot==null?def:p.slot];if(!s||!s.type)continue;
     const m=materialForSlotType(s.type,p.input.material);if(m!==p.input.material){p.input.material=m;n++}
   }
   loadPartIntoForm(project.parts[project.selected]);update();renderExportDialog();
@@ -153,6 +166,13 @@ function openExportDialog(){
   renderSlotList(tpl,preferredSlot(tpl,r));
   slotPicked=false;
   $('slotList').onchange=()=>{slotPicked=true;renderExportDialog()};
+  // Eigene Slots vorhanden: Wahl anbieten. Ein einziger gemeinsamer Slot (einfarbig) → „alle in gewählten Slot“,
+  // verschiedene Slots (mehrfarbig) → „je Teil beibehalten“
+  const own=ownSlots();
+  $('slotMode').classList.toggle('hidden',!own.length);
+  $('slotModeKeep').textContent=own.length===1?'(Slot '+(own[0]+1)+(project.threemf?' aus der Datei':'')+')':own.length?'(Slots '+own.map(s=>s+1).join(', ')+')':'';
+  document.querySelector('input[name="slotMode"][value="'+(own.length>1?'keep':'all')+'"]').checked=true;
+  $('slotMode').onchange=renderExportDialog;
   renderExportDialog();
   $('exportDlg').showModal();
   loadLiveSlots();
@@ -160,7 +180,7 @@ function openExportDialog(){
 
 function save3mf(){
   const tpl=exportTemplate(lastResult.printer.id,lastResult.dSel);
-  const plan=exportPlan(chosenSlot()),r=plan.r,slot=plan.slot;
+  const plan=dialogPlan(),r=plan.r,slot=plan.slot;
   try{
     const live=exportSlots(tpl);
     const {bytes}=project.threemf
