@@ -15,6 +15,7 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 - **Einfache 3MF** ohne Orca-/Bambu-Projektdaten (z. B. aus Cura, PrusaSlicer, CAD) werden wie eine STL behandelt: nur die Form, mit Lage-Tasten und Lochverstärkung. Eine Bemalung aus PrusaSlicer geht dabei verloren.
 
 ### Behoben
+- **Seite hing bei sehr detailreichen Modellen minutenlang** (z. B. feine Prägung neben großen Flächen): Stabilitäts- und Überhang-Analyse suchten in überfüllten Rasterzellen alle Dreiecke ab. Überfüllte Zellen bekommen jetzt ein feineres Unterraster – Ergebnisse unverändert (13 Teile aus 5 Dateien verglichen), Trommel-Segment mit 112.000 Dreiecken: Stabilität 161 s → 8 s, Geometrie 6,4 s → 1,6 s. Dauert die automatische Stabilitäts-Bewertung trotzdem länger als 4 s, bricht sie ab und lässt sich per Klick starten.
 - **Hinweis „Die 3MF wurde von BambuStudio erstellt“** beim Öffnen umgestellter Makerworld-Projekte in Orca: Die Datei trägt jetzt die Orca-Kennung mit der Version der Vorlage – die Druckeinstellungen stammen ja aus der Orca-Vorlage. Die Herkunftsangabe des Designers bleibt erhalten.
 - **Gespiegelte Objekte in 3MF** wurden mit nach innen zeigenden Flächen eingelesen: Löcher wurden dort nicht erkannt, Überhänge falsch bewertet.
 
