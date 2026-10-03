@@ -513,7 +513,13 @@ function markAsOrca(root, version) {
 function withZOffset(tpl, mm) {
   const v = typeof mm === 'string' ? Number(mm.replace(',', '.')) : mm;
   if (!tpl || mm === '' || mm == null || !Number.isFinite(v) || v < -2 || v > 2) return tpl;
-  return { ...tpl, settings: { ...tpl.settings, z_offset: String(Math.round(v * 1000) / 1000) } };
+  // Orca lädt beim Öffnen das System-Druckerprofil neu und übernimmt nur Schlüssel aus
+  // different_settings_to_system (letzte Gruppe = Drucker) – ohne Eintrag zeigte Orca wieder 0 (gemeldet 2026-10-03)
+  const nFil = (tpl.settings.filament_settings_id || []).length, groups = nFil + 2;
+  const diff = Array.from({ length: groups }, (_, i) => String((tpl.settings.different_settings_to_system || [])[i] || ''));
+  const keys = new Set(diff[groups - 1].split(';').filter(Boolean)); keys.add('z_offset');
+  diff[groups - 1] = [...keys].join(';');
+  return { ...tpl, settings: { ...tpl.settings, z_offset: String(Math.round(v * 1000) / 1000), different_settings_to_system: diff } };
 }
 
 /* jobs: [{geom, r, slot, part:{objectId, partId?, plate}}] wie aus partJobs(); threemf = Import-Ergebnis mit zip.

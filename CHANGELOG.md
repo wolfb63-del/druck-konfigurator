@@ -20,6 +20,7 @@ Alle nennenswerten Änderungen am Druck-Konfigurator. Versionen folgen [SemVer](
 - **Einfache 3MF** ohne Orca-/Bambu-Projektdaten (z. B. aus Cura, PrusaSlicer, CAD) werden wie eine STL behandelt: nur die Form, mit Lage-Tasten und Lochverstärkung. Eine Bemalung aus PrusaSlicer geht dabei verloren.
 
 ### Behoben
+- **Z-Offset kam in Orca nicht an:** Orca lädt beim Öffnen das Druckerprofil neu und übernimmt nur ausdrücklich als geändert markierte Werte – der Z-Offset wird jetzt so markiert.
 - **Sehr große Modelle (über 1 Mio. Dreiecke) blockierten die Seite beim Laden ~20 s zusätzlich:** Die automatische Stabilitäts-Bewertung startet ab 300.000 Dreiecken nicht mehr von selbst („Stabilität: per Klick“), und ihr Zeitlimit greift jetzt auch in der Vorbereitung.
 - **Große Modelle laden schneller:** Einlesen 3MF etwa 2–5×, Geometrie-Aufbereitung (verdeckte Innenflächen) etwa 2,5–3×, Bohrloch-Erkennung etwa 1,5× schneller (gemessen mit 1,25 Mio. Dreiecken, alt und neu abwechselnd). Ergebnisse unverändert (15 Teile aus 7 Dateien bitgleich verglichen).
 - **Schritt-Leiste: „Drucker“ war immer abgehakt**, auch wenn nur der voreingestellte Kobra S1 aktiv war. Jetzt erst, wenn ein Drucker einmal angeklickt wurde (der Browser merkt es sich); ein Klick auf Schritt 1 hebt die Druckerwahl kurz hervor.

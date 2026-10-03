@@ -245,6 +245,12 @@ hp = runHoles(holeProject(two, { plate2: true }), (j, i) => i === 1 ? j.found : 
   const stl = K.build3mf(z, r, [{ geom: g, slot: null, r, part: {} }], 0, fflate, null);
   const zs = JSON.parse(fflate.strFromU8(fflate.unzipSync(stl.bytes)['Metadata/project_settings.config'])).z_offset;
   check('STL-Export: z_offset 0.25 in der 3MF', zs === '0.25', zs);
+  // Befund 2026-10-03: Orca übernimmt den Wert nur, wenn z_offset in der Drucker-Gruppe von
+  // different_settings_to_system steht (letzter Eintrag) – sonst lädt es das Profil neu und zeigt 0
+  const psAll = JSON.parse(fflate.strFromU8(fflate.unzipSync(stl.bytes)['Metadata/project_settings.config']));
+  const dss = psAll.different_settings_to_system;
+  check('STL-Export: z_offset in der Drucker-Gruppe von different_settings_to_system', Array.isArray(dss) && dss.length === psAll.filament_settings_id.length + 2 && dss[dss.length - 1].split(';').includes('z_offset'), JSON.stringify(dss && dss[dss.length - 1]));
+  check('Vorlage: different_settings_to_system unverändert', JSON.stringify(tpl.settings.different_settings_to_system) === JSON.stringify(JSON.parse(before).different_settings_to_system));
 }
 
 // Lightning für Deko/Figur (Auftrag 2026-10-03): nur bei Objekt „decor“, nicht bei hoher Belastung oder „strong“
